@@ -385,6 +385,16 @@ class Dataset(_Frozen):
             path = " → ".join((*cycle, cycle[0]))
             add("hierarchy_cycle", "resource", cycle[0], f"parent cycle: {path}")
 
+        def check_attributes(
+            table: str, key: str, attributes: Attributes, schema: tuple[AttributeDef, ...]
+        ) -> None:
+            kinds = {a.name: a.kind for a in schema}
+            for name, value in attributes:
+                if name not in kinds:
+                    add("unknown_attribute", table, key, f'unknown attribute "{name}"')
+                elif not _matches_kind(value, kinds[name]):
+                    add("bad_attribute", table, key, f'attribute "{name}" is not {kinds[name]}')
+
         duplicates("resource_type", (t.code for t in self.resource_types))
         duplicates("resource", (r.code for r in self.resources))
         duplicates("reference_type", (t.code for t in self.reference_types))
@@ -398,7 +408,7 @@ class Dataset(_Frozen):
 
         types = {t.code: t for t in self.resource_types}
         resources = {r.code: r for r in self.resources}
-        reference_types = {t.code for t in self.reference_types}
+        reference_types = {t.code: t for t in self.reference_types}
         events = {e.code for e in self.events}
         days = {d.code for d in self.time.days}
         periods = {p.code for p in self.time.periods}
@@ -413,20 +423,13 @@ class Dataset(_Frozen):
             if rtype is not None:
                 if r.capacity is not None and not rtype.has_capacity:
                     add("unexpected_capacity", "resource", r.code, f"type {r.type} has no capacity")
-                schema = {a.name: a.kind for a in rtype.attribute_schema}
-                for name, value in r.attributes:
-                    if name not in schema:
-                        add("unknown_attribute", "resource", r.code, f'unknown attribute "{name}"')
-                    elif not _matches_kind(value, schema[name]):
-                        add(
-                            "bad_attribute",
-                            "resource",
-                            r.code,
-                            f'attribute "{name}" is not {schema[name]}',
-                        )
+                check_attributes("resource", r.code, r.attributes, rtype.attribute_schema)
 
         for ref in self.references:
-            unknown("reference", ref.code, "reference type", ref.type, reference_types)
+            unknown("reference", ref.code, "reference type", ref.type, set(reference_types))
+            ref_type = reference_types.get(ref.type)
+            if ref_type is not None:
+                check_attributes("reference", ref.code, ref.attributes, ref_type.attribute_schema)
 
         for s in self.time.start_patterns:
             for p in s.start_periods:
