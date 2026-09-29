@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv sync:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run ruff:*)",
+      "Bash(uv run mypy:*)",
+      "Bash(uv run timetabler:*)",
+      "Bash(uv run alembic:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm e2e:*)",
+      "Bash(pnpm gen:api:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/secrets/**)"
+    ]
+  }
+}

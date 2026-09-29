@@ -1,0 +1,55 @@
+# L6 fixture: SE + CS (real FET export)
+
+The regression dataset for Timetabler. It is a real timetable that was generated with FET for Level 6 Software Engineering and Computer Science.
+
+| File | Purpose |
+|---|---|
+| `fet-groups-export.html` | The original FET "groups" HTML export (source of truth for the placements) |
+| `expected.json` | Figures measured from the export. Tests must match them exactly |
+| `l6.xlsx` | Generated in Phase 3 by `timetabler import-fet` (not committed until then) |
+| `templates.xlsx` | Added in Phase 9: the L6 structure expressed as templates |
+| `conftest.py` | Added in Phase 2: `l6_dataset`, `l6_locked_result` fixtures |
+
+## What the export contains
+
+- 30 groups (SE G1–G11, CS G1–G19), 57 teacher codes, 10 rooms and 10 modules.
+- 77 events (22 LEC, 55 TUT), all 2 periods long.
+- A Mon–Sat grid with 14 one-hour periods starting 08:30 to 21:30.
+- Starts are used only at 08:30, 10:30, 13:30, 15:30 and 17:30.
+- Joint events have up to 7 groups and 7 teachers.
+- 1 online event with no room.
+- 0 teacher, group or room clashes.
+
+## Parsing notes (for `io/fet_html.py`)
+
+- Each group is one `<table id="table_N">`, and its name is in `<span class="name">`.
+- Each body row has a `<th class="yAxis">` period label (for example `08:30`), followed by one `<td>` per day from Monday to Saturday.
+- A cell covered by a rowspan from the row above is replaced by an HTML comment `<!-- span -->`. It still counts as a column when working out the day index.
+- `---` means an empty slot.
+- Cell text lines, in order:
+  1. For joint events only, a comma-separated list of all the groups.
+  2. `<MODULE> <LEC|TUT>, [<time text>]`, optionally followed by `, [ONLINE]`.
+  3. A comma-separated list of teachers.
+  4. The room, which is missing for online events.
+- `rowspan` is the duration in periods.
+- A joint event appears in every one of its groups' tables. Deduplicate by (day, start, module, kind, sorted groups, teachers, room).
+
+## Not in the export, so these are assumptions
+
+Record these in `_meta.assumptions` of the generated workbook, and replace them when real data arrives:
+
+- **Group size:** 30 for every group.
+- **Room capacity:** Auditorium 250. Every other room gets 30 × `max_groups_in_one_event` for that room, from `expected.json`.
+- **Room types:** `auditorium` for the Auditorium, `lab` for the others.
+- **Buildings:** every room is in building `GP` (from the `-GP` suffix), under campus `MAIN`.
+- **Breaks:** the period starting 12:30 is a break (it is never used).
+- **Start pattern:** `2H` = starts at 08:30, 10:30, 13:30, 15:30 and 17:30.
+- **Constraints:** none are known from the export. Only the implicit hard constraints apply.
+
+## Known anomaly
+
+The 6CCGD007C LEC on Thursday is labelled `[6.00pm -8.00pm], [ONLINE]` but sits in the 17:30 slot, and other 17:30 events are labelled 5.30pm–7.30pm. The grid position is authoritative, and the label is stored as a note only.
+
+## Privacy
+
+The export contains real teacher codes and the institute's room names. Keep the repository **private**, or anonymise the codes before publishing (an `--anonymise` flag on `import-fet` is a good follow-up).

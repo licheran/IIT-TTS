@@ -1,0 +1,414 @@
+{
+  "source": "fet-groups-export.html",
+  "counts": {
+    "groups": 30,
+    "groups_by_programme": {
+      "L6 SE": 11,
+      "L6 CS": 19
+    },
+    "rooms": 10,
+    "teachers": 57,
+    "modules": 10,
+    "events": 77,
+    "events_by_kind": {
+      "LEC": 22,
+      "TUT": 55
+    },
+    "online_events": 1,
+    "events_without_room": 1
+  },
+  "time": {
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ],
+    "periods": [
+      "08:30",
+      "09:30",
+      "10:30",
+      "11:30",
+      "12:30",
+      "13:30",
+      "14:30",
+      "15:30",
+      "16:30",
+      "17:30",
+      "18:30",
+      "19:30",
+      "20:30",
+      "21:30"
+    ],
+    "period_count": 14,
+    "durations": {
+      "2": 77
+    },
+    "start_periods_used": [
+      "08:30",
+      "10:30",
+      "13:30",
+      "15:30",
+      "17:30"
+    ],
+    "events_by_day": {
+      "Monday": 0,
+      "Tuesday": 15,
+      "Wednesday": 30,
+      "Thursday": 22,
+      "Friday": 10,
+      "Saturday": 0
+    }
+  },
+  "groups": [
+    "L6 SE / G1",
+    "L6 SE / G2",
+    "L6 SE / G3",
+    "L6 SE / G4",
+    "L6 SE / G5",
+    "L6 SE / G6",
+    "L6 SE / G7",
+    "L6 SE / G8",
+    "L6 SE / G9",
+    "L6 SE / G10",
+    "L6 SE / G11",
+    "L6 CS / G1",
+    "L6 CS / G2",
+    "L6 CS / G3",
+    "L6 CS / G4",
+    "L6 CS / G5",
+    "L6 CS / G6",
+    "L6 CS / G7",
+    "L6 CS / G8",
+    "L6 CS / G9",
+    "L6 CS / G10",
+    "L6 CS / G11",
+    "L6 CS / G12",
+    "L6 CS / G13",
+    "L6 CS / G14",
+    "L6 CS / G15",
+    "L6 CS / G16",
+    "L6 CS / G17",
+    "L6 CS / G18",
+    "L6 CS / G19"
+  ],
+  "group_periods_per_week": {
+    "L6 SE / G1": 20,
+    "L6 SE / G2": 12,
+    "L6 SE / G3": 12,
+    "L6 SE / G4": 12,
+    "L6 SE / G5": 12,
+    "L6 SE / G6": 12,
+    "L6 SE / G7": 12,
+    "L6 SE / G8": 12,
+    "L6 SE / G9": 12,
+    "L6 SE / G10": 12,
+    "L6 SE / G11": 12,
+    "L6 CS / G1": 12,
+    "L6 CS / G2": 12,
+    "L6 CS / G3": 12,
+    "L6 CS / G4": 12,
+    "L6 CS / G5": 12,
+    "L6 CS / G6": 12,
+    "L6 CS / G7": 12,
+    "L6 CS / G8": 12,
+    "L6 CS / G9": 12,
+    "L6 CS / G10": 12,
+    "L6 CS / G11": 12,
+    "L6 CS / G12": 16,
+    "L6 CS / G13": 12,
+    "L6 CS / G14": 12,
+    "L6 CS / G15": 20,
+    "L6 CS / G16": 20,
+    "L6 CS / G17": 8,
+    "L6 CS / G18": 8,
+    "L6 CS / G19": 8
+  },
+  "rooms": {
+    "Auditorium": {
+      "events": 14,
+      "max_groups_in_one_event": 7
+    },
+    "[1LA] -GP": {
+      "events": 2,
+      "max_groups_in_one_event": 1
+    },
+    "[2LA] -GP": {
+      "events": 13,
+      "max_groups_in_one_event": 3
+    },
+    "[2LC] -GP": {
+      "events": 10,
+      "max_groups_in_one_event": 1
+    },
+    "[2LD] -GP": {
+      "events": 8,
+      "max_groups_in_one_event": 2
+    },
+    "[2LE] -GP": {
+      "events": 8,
+      "max_groups_in_one_event": 1
+    },
+    "[2LF] -GP": {
+      "events": 7,
+      "max_groups_in_one_event": 1
+    },
+    "[3LA] -GP": {
+      "events": 5,
+      "max_groups_in_one_event": 4
+    },
+    "[4LA] -GP": {
+      "events": 2,
+      "max_groups_in_one_event": 4
+    },
+    "[5LA] -GP": {
+      "events": 7,
+      "max_groups_in_one_event": 5
+    }
+  },
+  "teachers": {
+    "AAM": 2,
+    "ABM": 4,
+    "AHTU": 2,
+    "BIWI": 5,
+    "DASU": 2,
+    "DILIT": 3,
+    "DIPA": 5,
+    "DIPE": 2,
+    "DMS": 2,
+    "DUVI": 4,
+    "FAR": 4,
+    "GIGA": 2,
+    "GUG": 4,
+    "HARR": 7,
+    "HASA": 1,
+    "HASH": 2,
+    "HAWE": 8,
+    "IMAS": 3,
+    "JAPA": 6,
+    "JIE": 2,
+    "KELUM": 1,
+    "KRISH": 4,
+    "LAK": 2,
+    "MANI": 4,
+    "MANU": 2,
+    "MERA": 7,
+    "MITHU": 4,
+    "MJAN": 1,
+    "NEVI": 4,
+    "NIYB": 6,
+    "NPU": 2,
+    "PASI": 5,
+    "PUBD": 2,
+    "RAJ": 2,
+    "RAMI": 2,
+    "RUZK": 2,
+    "SAADH": 5,
+    "SAHDI": 2,
+    "SAHP": 2,
+    "SALIP": 6,
+    "SANDU": 4,
+    "SANI": 3,
+    "SANJ": 5,
+    "SAP": 3,
+    "SASU": 2,
+    "SAVM": 4,
+    "SHAV": 4,
+    "SUB": 6,
+    "THAB": 6,
+    "THAM": 5,
+    "THE": 3,
+    "TOR": 2,
+    "UTHP": 4,
+    "VATD": 4,
+    "WIM": 1,
+    "YALL": 5,
+    "YAS": 2
+  },
+  "modules": {
+    "6BUIS019C": {
+      "events": 4,
+      "LEC": 1,
+      "TUT": 3,
+      "groups": [
+        "L6 CS / G12",
+        "L6 CS / G13",
+        "L6 CS / G14"
+      ]
+    },
+    "6CCGD007C": {
+      "events": 2,
+      "LEC": 1,
+      "TUT": 1,
+      "groups": [
+        "L6 CS / G15"
+      ]
+    },
+    "6COSC020C": {
+      "events": 24,
+      "LEC": 5,
+      "TUT": 19,
+      "groups": [
+        "L6 CS / G1",
+        "L6 CS / G2",
+        "L6 CS / G3",
+        "L6 CS / G4",
+        "L6 CS / G5",
+        "L6 CS / G6",
+        "L6 CS / G7",
+        "L6 CS / G8",
+        "L6 CS / G9",
+        "L6 CS / G10",
+        "L6 CS / G11",
+        "L6 CS / G12",
+        "L6 CS / G13",
+        "L6 CS / G14",
+        "L6 CS / G15",
+        "L6 CS / G16",
+        "L6 CS / G17",
+        "L6 CS / G18",
+        "L6 CS / G19"
+      ]
+    },
+    "6COSC021C": {
+      "events": 2,
+      "LEC": 1,
+      "TUT": 1,
+      "groups": [
+        "L6 CS / G15",
+        "L6 CS / G16",
+        "L6 SE / G1"
+      ]
+    },
+    "6COSC023C": {
+      "events": 6,
+      "LEC": 3,
+      "TUT": 3,
+      "groups": [
+        "L6 CS / G1",
+        "L6 CS / G2",
+        "L6 CS / G3",
+        "L6 CS / G4",
+        "L6 CS / G5",
+        "L6 CS / G6",
+        "L6 CS / G7",
+        "L6 CS / G8",
+        "L6 CS / G9",
+        "L6 CS / G10",
+        "L6 CS / G11",
+        "L6 CS / G12",
+        "L6 CS / G13",
+        "L6 CS / G14",
+        "L6 CS / G15",
+        "L6 CS / G16",
+        "L6 CS / G17",
+        "L6 CS / G18",
+        "L6 CS / G19"
+      ]
+    },
+    "6ELEN018C": {
+      "events": 2,
+      "LEC": 1,
+      "TUT": 1,
+      "groups": [
+        "L6 CS / G15",
+        "L6 CS / G16",
+        "L6 SE / G1"
+      ]
+    },
+    "6MMCS009C": {
+      "events": 15,
+      "LEC": 3,
+      "TUT": 12,
+      "groups": [
+        "L6 CS / G1",
+        "L6 CS / G2",
+        "L6 CS / G3",
+        "L6 CS / G4",
+        "L6 CS / G5",
+        "L6 CS / G6",
+        "L6 CS / G7",
+        "L6 CS / G8",
+        "L6 CS / G9",
+        "L6 CS / G10",
+        "L6 CS / G11",
+        "L6 CS / G12",
+        "L6 CS / G16"
+      ]
+    },
+    "6SENG005C": {
+      "events": 14,
+      "LEC": 3,
+      "TUT": 11,
+      "groups": [
+        "L6 SE / G1",
+        "L6 SE / G2",
+        "L6 SE / G3",
+        "L6 SE / G4",
+        "L6 SE / G5",
+        "L6 SE / G6",
+        "L6 SE / G7",
+        "L6 SE / G8",
+        "L6 SE / G9",
+        "L6 SE / G10",
+        "L6 SE / G11"
+      ]
+    },
+    "6SENG006C": {
+      "events": 4,
+      "LEC": 2,
+      "TUT": 2,
+      "groups": [
+        "L6 SE / G1",
+        "L6 SE / G2",
+        "L6 SE / G3",
+        "L6 SE / G4",
+        "L6 SE / G5",
+        "L6 SE / G6",
+        "L6 SE / G7",
+        "L6 SE / G8",
+        "L6 SE / G9",
+        "L6 SE / G10",
+        "L6 SE / G11"
+      ]
+    },
+    "6SENG010W": {
+      "events": 4,
+      "LEC": 2,
+      "TUT": 2,
+      "groups": [
+        "L6 SE / G1",
+        "L6 SE / G2",
+        "L6 SE / G3",
+        "L6 SE / G4",
+        "L6 SE / G5",
+        "L6 SE / G6",
+        "L6 SE / G7",
+        "L6 SE / G8",
+        "L6 SE / G9",
+        "L6 SE / G10",
+        "L6 SE / G11"
+      ]
+    }
+  },
+  "max_groups_in_one_event": 7,
+  "max_teachers_in_one_event": 7,
+  "clashes": {
+    "teacher": 0,
+    "group": 0,
+    "room": 0
+  },
+  "known_anomalies": [
+    {
+      "event": {
+        "module": "6CCGD007C",
+        "kind": "LEC",
+        "day": "Thursday",
+        "start": "17:30"
+      },
+      "issue": "Label says [6.00pm -8.00pm] but the cell occupies the 17:30 slot; other 17:30 cells are labelled 5.30pm-7.30pm. Treat the grid position as authoritative."
+    }
+  ]
+}
