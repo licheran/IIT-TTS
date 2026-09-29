@@ -1,0 +1,84 @@
+[project]
+name = "tts"
+version = "0.1.0"
+description = "IIT-TTS: a generic, data-driven scheduling engine"
+readme = "README.md"
+authors = [
+    { name = "Cheran Li", email = "licheran@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "alembic==1.20.0",
+    "beautifulsoup4==4.15.0",
+    "fastapi==0.141.1",
+    "jinja2==3.1.6",
+    "openpyxl==3.1.5",
+    "ortools==9.15.6755",
+    "pandas==3.0.6",
+    "psycopg[binary]==3.3.6",
+    "pydantic==2.13.5",
+    "sqlalchemy==2.1.1",
+    "typer==0.27.2",
+    "uvicorn[standard]==0.54.0",
+]
+
+[project.scripts]
+tts = "tts:main"
+
+[build-system]
+requires = ["uv_build>=0.12.20,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx==0.28.1",
+    "hypothesis==6.168.3",
+    "import-linter==2.15",
+    "mypy==2.3.1",
+    "pytest==9.1.1",
+    "ruff==0.16.9",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+check_untyped_defs = true
+mypy_path = "src"
+
+# Strict for the domain-neutral core (backend/CLAUDE.md, spec 06 §8).
+[[tool.mypy.overrides]]
+module = "tts.core.*"
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_return_any = true
+no_implicit_reexport = true
+strict_equality = true
+extra_checks = true
+
+[[tool.mypy.overrides]]
+module = ["ortools.*", "openpyxl.*", "bs4.*", "pandas.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "scale: slow scale tests, run nightly (deselect with -m 'not scale')",
+    "integration: API and database integration tests",
+]

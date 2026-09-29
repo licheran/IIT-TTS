@@ -1,7 +1,7 @@
 # Status
 
 **Current phase:** 0 — [Project setup](plan/phase-00-setup.md)
-**Next task:** P0.1
+**Next task:** P0.2
 **Format version:** workbook `format_version` 1
 
 ## Pinned versions
@@ -20,3 +20,4 @@ _To be recorded in P0.8._
 |---|---|---|
 | 2026-09-29 | — | Repository foundation: specs, plan, ADRs, Claude Code setup, L6 fixture source. |
 | 2026-09-29 | — | Renamed product to IIT-TTS (IIT TimeTabling Solution); Python package and CLI renamed `timetabler` → `tts`. |
+| 2026-09-29 | P0.1 | `backend/` uv package `tts` with empty package tree, exact-pinned deps (`uv.lock` committed), ruff, mypy (strict override for `tts.core.*`), pytest markers `scale`/`integration`. Smoke test imports every package. Toolchain: uv 0.12.20, Python 3.12.10, Node 24.18.0, pnpm 12.6.0, Docker 29.8.1. Console script is still the `uv init` placeholder (`tts:main`); P0.2 replaces it with `tts.cli:app`. |

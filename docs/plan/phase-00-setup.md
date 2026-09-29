@@ -7,7 +7,7 @@
 - `CLAUDE.md`, `backend/CLAUDE.md`, `web/CLAUDE.md`
 
 ## Tasks
-- [ ] P0.1 `backend/`: `uv init --package tts` with `src/tts/` and the empty package directories from spec 06 §3 (each with `__init__.py`). Add the runtime dependencies (ortools, pydantic, fastapi, uvicorn[standard], sqlalchemy, alembic, psycopg[binary], openpyxl, pandas, jinja2, beautifulsoup4, typer) and the dev dependencies (pytest, hypothesis, ruff, mypy, httpx, import-linter). Configure ruff and mypy in `pyproject.toml`, with strict mypy for `tts.core`. Register pytest markers: `scale`, `integration`.
+- [x] P0.1 `backend/`: `uv init --package tts` with `src/tts/` and the empty package directories from spec 06 §3 (each with `__init__.py`). Add the runtime dependencies (ortools, pydantic, fastapi, uvicorn[standard], sqlalchemy, alembic, psycopg[binary], openpyxl, pandas, jinja2, beautifulsoup4, typer) and the dev dependencies (pytest, hypothesis, ruff, mypy, httpx, import-linter). Configure ruff and mypy in `pyproject.toml`, with strict mypy for `tts.core`. Register pytest markers: `scale`, `integration`.
 - [ ] P0.2 `backend/src/tts/cli.py`: a Typer app named `tts` with stub commands `solve`, `validate`, `import-fet` and `export` that exit with "not implemented". Register it as a console script.
 - [ ] P0.3 `backend/src/tts/api/main.py`: a FastAPI app with `GET /health` returning `{"status":"ok"}`, plus a test.
 - [ ] P0.4 `backend/tests/unit/test_architecture.py`: the dependency rules from spec 06 §3 and the core-purity word check (it passes on the empty packages).
