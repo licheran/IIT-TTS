@@ -19,7 +19,7 @@
 - [x] P4.6 Tests, all asserting through the verifier:
   - Every Phase 1 mini case, solved.
   - Property test: random feasible datasets (generated from a random valid assignment) always solve with 0 violations.
-- [ ] P4.7 L6 tests:
+- [x] P4.7 L6 tests:
   - (a) With the locks as pins, the solver reproduces the original exactly.
   - (b) With no pins, it is feasible, all 77 placed, 0 violations, in ≤ 30 s (NFR-1).
   - (c) Determinism with `num_workers=1` and a fixed seed (NFR-3).
