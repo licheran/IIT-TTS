@@ -1,6 +1,7 @@
-"""Fixtures for the L6 regression dataset (a real FET export, see README.md in this folder).
+"""Shared fixtures. The L6 regression dataset: a real FET export, see `fixtures/l6/README.md`.
 
-Everything is built once per session from `fet-groups-export.html`. The models are frozen, so a
+Everything is built once per session from `fet-groups-export.html`, and is visible to every test
+folder (unit, integration, property, scale, the fixture's own tests). The models are frozen, so a
 test cannot change a fixture in place.
 """
 
@@ -13,7 +14,7 @@ import pytest
 from tts.core.model import Dataset, Result
 from tts.io.fet_html import FetTimetable, parse_fet_groups_html, to_dataset
 
-L6_DIR = Path(__file__).resolve().parent
+L6_DIR = Path(__file__).resolve().parent / "fixtures" / "l6"
 
 
 @pytest.fixture(scope="session")

@@ -31,4 +31,4 @@ Python 3.12 · uv · FastAPI · SQLAlchemy 2 + Alembic · OR-Tools CP-SAT · Pyd
 
 ## Tests
 - `unit/` is fast and pure. `property/` uses hypothesis to generate small datasets, solve them and check that the verifier finds no violations. `integration/` covers the API and DB (SQLite by default, Postgres when `TT_TEST_PG` is set). `scale/` holds the marked `scale` tests.
-- Use the L6 fixture through `tests/fixtures/l6/conftest.py` fixtures (`l6_dataset`, `l6_locked_assignments`). Never mutate it in place.
+- Use the L6 fixture through the fixtures in `tests/conftest.py` (`l6_dataset`, `l6_locked_result`, `l6_expected`), available to every test folder. Never mutate it in place.
