@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from tts!")
+"""IIT-TTS: a generic, data-driven scheduling engine."""
