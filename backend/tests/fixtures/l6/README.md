@@ -52,4 +52,4 @@ The 6CCGD007C LEC on Thursday is labelled `[6.00pm -8.00pm], [ONLINE]` but sits 
 
 ## Privacy
 
-The export contains real teacher codes and the institute's room names. Keep the repository **private**, or anonymise the codes before publishing (an `--anonymise` flag on `import-fet` is a good follow-up).
+The export is old and deprecated, and its teacher codes are example codes only (confirmed by the user on 2026-09-30), so the repository can be public.

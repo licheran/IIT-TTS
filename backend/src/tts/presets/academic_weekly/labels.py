@@ -33,3 +33,8 @@ def label(code: str) -> str:
         if code in table:
             return table[code]
     return code
+
+
+def all_labels() -> dict[str, str]:
+    """Every label of the preset, by code (the UI takes them from `GET /schema`)."""
+    return {**TYPE_LABELS, **KIND_LABELS, **DELIVERY_LABELS}

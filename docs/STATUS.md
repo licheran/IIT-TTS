@@ -13,7 +13,7 @@
 | 4 Solver v1 | Done. Acceptance passed: `tts solve tests/fixtures/l6/l6.xlsx --out … --time-limit 30` exits 0 in 0.1 s with 0 hard violations, and every P4.6/P4.7 test passes. |
 | 5 Pre-flight and explanations | Done. Acceptance passed: each broken-L6 variant gives the expected issue or diagnostic with the right entity codes, the slowest in 5.7 s (limit 60 s); pre-flight on L6 takes under 10 ms (NFR-7: 1 s). The `max_days` variant is xfail until Phase 8. |
 
-**Decisions waiting for you** are in the log below (search for "review") and in *Open questions*. The two that block nothing now but matter soon: whether the repository is private (`l6.xlsx` is generated but deliberately not committed), and the core names for template modes (P9, decided in the 2026-09-29 plan: `joint`/`each`/`batched`, with the preset showing `per_group`).
+**Decisions waiting for you** are in the log below (search for "review"). One that matters soon: the core names for template modes (P9, decided in the 2026-09-29 plan: `joint`/`each`/`batched`, with the preset showing `per_group`).
 **Format version:** workbook `format_version` 1
 
 ## Pinned versions
@@ -26,13 +26,17 @@ Recorded 2026-09-29 (P0.8, backend part). The exact pins live in `backend/pyproj
 | Backend dev | pytest 9.1.1, hypothesis 6.168.3, ruff 0.16.9, mypy 2.3.1, httpx 0.28.1, import-linter 2.15 |
 | Web | @tanstack/react-query 5.104.0, @tanstack/react-table 8.21.3, @tanstack/react-virtual 3.14.13, class-variance-authority 0.7.1, clsx 2.1.1, openapi-fetch 0.17.0, react 19.3.0, react-dom 19.3.0, react-router-dom 7.18.4, tailwind-merge 3.7.0, @eslint/js 10.0.1, @playwright/test 1.63.0, @tailwindcss/vite 4.3.3, @testing-library/jest-dom 7.0.1, @testing-library/react 16.3.3, @testing-library/user-event 14.6.7, @types/node 26.6.3, @types/react 19.3.0, @types/react-dom 19.3.0, @vitejs/plugin-react 6.1.1, eslint 10.11.0, eslint-plugin-react-hooks 7.1.1, globals 17.12.0, jsdom 30.1.1, openapi-typescript 7.13.0, prettier 3.9.9, tailwindcss 4.3.3, typescript 6.0.3, typescript-eslint 8.71.0, vite 8.3.1, vitest 5.0.2 (exact pins in `web/package.json`; TypeScript is 6.0 because `openapi-typescript` needs the JS compiler API, which TypeScript 7 lacks) |
 
+## Answered questions
+Answered by the user on 2026-09-30.
+- **Group sizes and room capacities.** Real group sizes are 20–60 students and room capacities 30–120, but both must be configurable to any number. The largest room is a hard limit: a group or joint event that does not fit in any room is infeasible (already H3, and pre-flight `no_candidate`). The fixture assumptions (30 per group, derived room sizes) stay assumptions.
+- **Teacher codes.** A teacher has exactly one code, and a code refers to exactly one teacher, unique across universities. No aliasing or merging is needed.
+- **Teaching days and block lengths.** Universities and levels may use different teaching days or block lengths. The model already allows it through start patterns and availability, but the workbook format has no per-university or per-level pattern yet (Phase 10: check that events, patterns and availability can express it, or propose a format change).
+- **Travel between buildings.** No free period is needed for a building change. The default `AC-TRAVEL` (`travel_gap`, spec 04 §3) is therefore **not enabled by default** (P8.3). The `travel_gap` type stays in the catalogue.
+- **Scope.** One institute-wide dataset, so no staged-by-level workflow is required. Staged solving (P10.2) stays as a scaling tool only.
+- **Repository.** Public. The FET export in the fixture is old and deprecated, and its teacher codes are examples only, so nothing sensitive is committed. `l6.xlsx` may be committed.
+
 ## Open questions (need answers from the user)
-- [ ] Real group sizes and room capacities, to replace the L6 fixture assumptions.
-- [ ] Teacher codes: can one person have several codes, or can one code refer to different people across universities?
-- [ ] Do universities or levels use different teaching days or block lengths?
-- [ ] Travel times between buildings (GP, Java, Rama, Dialog, Spencer), and whether a building change needs a free period.
-- [ ] One institute-wide dataset, or staged solving per level?
-- [ ] Is the repository public or private? The L6 fixture contains real teacher codes (see `backend/tests/fixtures/l6/README.md`).
+_None at the moment._
 
 ## Log
 | Date | Task | Notes |

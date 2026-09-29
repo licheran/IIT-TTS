@@ -3,6 +3,7 @@
 from collections.abc import Callable
 
 from tts.core.sheets import Preset
+from tts.presets.academic_weekly.labels import all_labels as academic_labels
 from tts.presets.academic_weekly.labels import label as academic_label
 from tts.presets.academic_weekly.preset import PRESET as ACADEMIC_WEEKLY
 
@@ -15,6 +16,14 @@ PRESETS: dict[str, Preset] = {ACADEMIC_WEEKLY.name: ACADEMIC_WEEKLY}
 
 
 LABELLERS: dict[str, Callable[[str], str]] = {ACADEMIC_WEEKLY.name: academic_label}
+
+LABEL_TABLES: dict[str, Callable[[], dict[str, str]]] = {ACADEMIC_WEEKLY.name: academic_labels}
+
+
+def labels(name: str) -> dict[str, str]:
+    """Every label of a preset by code, for the UI. Empty for an unknown preset."""
+    table = LABEL_TABLES.get(name)
+    return {} if table is None else table()
 
 
 def labeller(name: str) -> Callable[[str], str]:
