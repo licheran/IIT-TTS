@@ -18,7 +18,11 @@ RESOURCE_TYPES: tuple[ResourceType, ...] = (
     ResourceType(code=STUDENT_GROUP, exclusive=True, has_capacity=True),
     ResourceType(code=TEACHER, exclusive=True),
     ResourceType(code=CAMPUS, exclusive=False),
-    ResourceType(code=BUILDING, exclusive=False),
+    ResourceType(
+        code=BUILDING,
+        exclusive=False,
+        attribute_schema=(AttributeDef(name="abbreviation", kind="str"),),
+    ),
     ResourceType(code=ROOM, exclusive=True, has_capacity=True),
 )
 
