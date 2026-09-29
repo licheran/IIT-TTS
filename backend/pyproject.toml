@@ -77,6 +77,8 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Lets every test directory `from fixtures import make_dataset, ...` (tests/unit/fixtures.py).
+pythonpath = ["tests/unit"]
 addopts = "-ra"
 markers = [
     "scale: slow scale tests, run nightly (deselect with -m 'not scale')",

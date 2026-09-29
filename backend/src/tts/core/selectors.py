@@ -394,9 +394,9 @@ def check_target(selector: Selector | str, target: Target) -> None:
 class Selectors:
     """Evaluates selectors against one dataset. Build once, evaluate many times."""
 
-    def __init__(self, dataset: Dataset) -> None:
+    def __init__(self, dataset: Dataset, hierarchy: Hierarchy | None = None) -> None:
         self._ds = dataset
-        self._hierarchy = Hierarchy(dataset)
+        self._hierarchy = hierarchy if hierarchy is not None else Hierarchy(dataset)
 
     def resources(self, selector: Selector | str) -> frozenset[str]:
         """Codes of the resources the selector matches."""
