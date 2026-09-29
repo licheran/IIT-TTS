@@ -16,7 +16,7 @@ from collections import defaultdict
 
 from ortools.sat.python import cp_model
 
-from tts.core.constraints.capacity import required_capacity
+from tts.core.candidates import Candidates
 from tts.core.model import Dataset, Pin
 from tts.core.selectors import SelectorError
 from tts.core.timegrid import TimeGridError, covered_slots
@@ -91,37 +91,27 @@ def _pooled_variables(
     ctx: CompileContext, pins: dict[str, list[Pin]], unavailable: dict[str, frozenset[int]]
 ) -> None:
     model = ctx.model
-    by_type: dict[str, list[str]] = defaultdict(list)
-    for resource in ctx.dataset.resources:
-        by_type[resource.type].append(resource.code)
-    matches: dict[str, frozenset[str] | None] = {}
+    static = Candidates(ctx.dataset, ctx.hierarchy, ctx.selectors)
+    bad_filters: set[str] = set()
 
     for q in ctx.dataset.pooled:
         event = ctx.events.get(q.event)
         if event is None:
             continue
         label = f"{q.event}#{q.ordinal}"
-        if q.filter not in matches:
-            try:
-                matches[q.filter] = ctx.selectors.resources(q.filter)
-            except SelectorError as error:
-                matches[q.filter] = None
+        needed = static.needed(q)
+        try:
+            eligible = static.of(q).codes
+        except SelectorError as error:
+            eligible = ()
+            if q.filter not in bad_filters:
+                bad_filters.add(q.filter)
                 ctx.declare_infeasible(
                     f'filter "{q.filter}" of requirement {label}: {error.message}'
                 )
-        matching = matches[q.filter]
-
-        needed = 0
-        if q.capacity_rule.resource_type is not None:
-            needed = required_capacity(
-                ctx.hierarchy, ctx.resources, q.event, q.capacity_rule.resource_type
-            )
         domain = ctx.domains[q.event]
         candidates: list[str] = []
-        for code in by_type.get(q.resource_type, []):
-            resource = ctx.resources[code]
-            if matching is None or code not in matching or (resource.capacity or 0) < needed:
-                continue
+        for code in eligible:
             bad = unavailable.get(code, frozenset())
             usable = [t for t in domain if bad.isdisjoint(covered_slots(t, event.duration))]
             if not usable:

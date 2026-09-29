@@ -6,7 +6,7 @@
 - `docs/spec/05-solver.md` §3, §5
 
 ## Tasks
-- [ ] P5.1 `preflight/checks.py`: every check in spec 05 §3, returning `Issue(severity, kind, message, refs)`. Messages use codes and preset labels (labels are passed in, so the core stays neutral).
+- [x] P5.1 `preflight/checks.py`: every check in spec 05 §3, returning `Issue(severity, kind, message, refs)`. Messages use codes and preset labels (labels are passed in, so the core stays neutral).
 - [ ] P5.2 Integrate pre-flight into `cli.py solve`. Errors block the solve and exit with code 4.
 - [ ] P5.3 `solver/explain.py`: the assumption-literal re-solve, core extraction and greedy shrinking (spec 05 §5), turned into a `Diagnostic`.
 - [ ] P5.4 A broken-L6 suite in `tests/integration/test_l6_broken.py`. Each variant has one expected message pattern:
