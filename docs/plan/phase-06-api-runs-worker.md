@@ -6,7 +6,7 @@
 - `docs/spec/06-architecture.md` §2, §4, §5, §9
 
 ## Tasks
-- [ ] P6.1 `store/models.py`, `store/db.py` and the first Alembic migration for every table in spec 06 §4, including the partial unique index on published runs.
+- [x] P6.1 `store/models.py`, `store/db.py` and the first Alembic migration for every table in spec 06 §4, including the partial unique index on published runs.
 - [ ] P6.2 `store/repositories.py`: dataset save and load to and from the core `Dataset`, table CRUD driven by the preset's sheet definitions, and run lifecycle methods.
 - [ ] P6.3 API routers `datasets`, `tables`, `io`: every endpoint in spec 06 §5 up to `/preflight`, with the standard error shape.
 - [ ] P6.4 Runs:

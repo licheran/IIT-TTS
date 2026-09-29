@@ -34,3 +34,8 @@ runs-output/
 
 # boilerplate
 timetabler-foundation.zip
+
+# Local databases
+*.db
+*.db-wal
+*.db-shm
