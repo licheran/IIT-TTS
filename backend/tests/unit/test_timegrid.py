@@ -175,3 +175,13 @@ def test_a_pattern_naming_an_unknown_period_or_day_raises() -> None:
     bad_day = StartPattern(code="s", duration=1, start_periods=("p1",), days=("nope",))
     with pytest.raises(TimeGridError, match='unknown day "nope"'):
         TimeGrid(make_time(patterns=(bad_day,))).allowed_starts(event(1, "s"))
+
+
+def test_day_and_period_numbers_follow_order() -> None:
+    grid = TimeGrid(make_time(periods=4, days=3))
+    assert [grid.day_number(f"d{i}") for i in (1, 2, 3)] == [0, 1, 2]
+    assert [grid.period_number(f"p{i}") for i in (1, 4)] == [0, 3]
+    with pytest.raises(TimeGridError):
+        grid.day_number("dx")
+    with pytest.raises(TimeGridError):
+        grid.period_number("px")

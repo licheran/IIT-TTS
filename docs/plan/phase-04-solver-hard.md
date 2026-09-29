@@ -7,14 +7,14 @@
 - `docs/spec/04-constraints.md` §1
 
 ## Tasks
-- [ ] P4.1 `solver/context.py`: `CompileContext` holding the model, the variable maps (`start`, `iv`, `day_is`, `use`, `oiv`), and the helpers `occupants(resource)` and `penalty(name)`.
-- [ ] P4.2 `solver/compile.py`:
+- [x] P4.1 `solver/context.py`: `CompileContext` holding the model, the variable maps (`start`, `iv`, `day_is`, `use`, `oiv`), and the helpers `occupants(resource)` and `penalty(name)`.
+- [x] P4.2 `solver/compile.py`:
   - Start domains (allowed starts minus fixed-resource unavailability, intersected with pins).
   - Candidate pre-filtering for pooled requirements (H3, H4).
   - `AddNoOverlap` per exclusive resource, with hierarchy propagation.
   - Pooled unavailability, and locks.
-- [ ] P4.3 `solver/solve.py`: apply `RunParams` (spec 05 §4.4). Return `SolveOutcome(status, result|None, stats)`.
-- [ ] P4.4 `solver/decode.py`: build the `Result` from the solution.
+- [x] P4.3 `solver/solve.py`: apply `RunParams` (spec 05 §4.4). Return `SolveOutcome(status, result|None, stats)`.
+- [x] P4.4 `solver/decode.py`: build the `Result` from the solution.
 - [ ] P4.5 `cli.py solve`: workbook in, result workbook out (with the `Assignments` sheet), print the stats and verifier summary. Exit code 0 when feasible, 2 when infeasible, 3 when invalid.
 - [ ] P4.6 Tests, all asserting through the verifier:
   - Every Phase 1 mini case, solved.

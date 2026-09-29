@@ -44,6 +44,14 @@ class TimeGrid:
         """The slot index of a day code and a period code."""
         return self._day(day) * self.periods_per_day + self._period(period)
 
+    def day_number(self, day: str) -> int:
+        """The index of a day code (its position in day order)."""
+        return self._day(day)
+
+    def period_number(self, period: str) -> int:
+        """The index of a period code (its position in period order)."""
+        return self._period(period)
+
     def day_index(self, t: int) -> int:
         return t // self.periods_per_day
 
