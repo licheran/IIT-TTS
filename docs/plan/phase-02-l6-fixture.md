@@ -9,7 +9,7 @@
 
 ## Tasks
 - [x] P2.1 `presets/academic_weekly/`: `types.py` (resource and reference types from spec 02 §6.1), `labels.py`, and a `sheets.py` stub (the full definitions come in Phase 3).
-- [ ] P2.2 `io/fet_html.py`: `parse_fet_groups_html(path) -> FetTimetable`.
+- [x] P2.2 `io/fet_html.py`: `parse_fet_groups_html(path) -> FetTimetable`.
   - Each `<table id="table_…">` is one group, and its name is in `span.name`.
   - Rows have a `th.yAxis` period label. Columns are Monday to Saturday, and `<!-- span -->` comments mark cells covered by a rowspan.
   - A cell holds: an optional group list line (joint sessions), `<MODULE> <LEC|TUT>, [time text][, [ONLINE]]`, the teacher list, and an optional room.
