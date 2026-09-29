@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tts}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-tts}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    command: ["uvicorn", "tts.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      TT_DATABASE_URL: ${TT_DATABASE_URL:-postgresql+psycopg://tts:change-me@db:5432/tts}
+      TT_ADMIN_USER: ${TT_ADMIN_USER:-admin}
+      TT_ADMIN_PASSWORD_HASH: ${TT_ADMIN_PASSWORD_HASH:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  worker:
+    build: ./backend
+    command: ["python", "-m", "tts.worker.main"]
+    environment:
+      TT_DATABASE_URL: ${TT_DATABASE_URL:-postgresql+psycopg://tts:change-me@db:5432/tts}
+      TT_WORKERS: ${TT_WORKERS:-1}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: node:24
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install && pnpm dev --host 0.0.0.0"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    volumes:
+      - ./web:/app
+      - web-node-modules:/app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+
+volumes:
+  db-data:
+  web-node-modules:
