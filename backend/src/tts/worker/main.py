@@ -1,23 +1,16 @@
-"""Worker entry point. A stub loop until the run queue exists (Phase 6)."""
+"""Worker entry point: `python -m tts.worker.main`. Runs queued runs until stopped."""
 
 import logging
-import time
-from collections.abc import Callable
 
-log = logging.getLogger("tts.worker")
-
-
-def run(should_stop: Callable[[], bool], interval_s: float = 5.0) -> None:
-    """Idle until `should_stop()` returns true, checking once per `interval_s`."""
-    log.info("worker started (stub: no queue yet)")
-    while not should_stop():
-        time.sleep(interval_s)
-    log.info("worker stopped")
+from tts.store.db import database_url, make_engine, make_session_factory, upgrade
+from tts.worker.runner import Worker
 
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
-    run(lambda: False)
+    url = database_url()
+    upgrade(url)
+    Worker(make_session_factory(make_engine(url))).serve(lambda: False)
 
 
 if __name__ == "__main__":

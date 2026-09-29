@@ -57,14 +57,16 @@ def test_an_empty_dataset_can_be_exported_and_read_back(client: TestClient) -> N
 
 def test_l6_imports_and_exports_both_formats_without_loss(client: TestClient, l6_dataset) -> None:
     dataset_id = import_dataset(client, l6_dataset)
+    original = client.get(f"/datasets/{dataset_id}/export", params={"format": "csvzip"}).content
     for fmt, name in (("xlsx", "a.xlsx"), ("csvzip", "a.zip")):
         exported = client.get(f"/datasets/{dataset_id}/export", params={"format": fmt})
         assert exported.status_code == 200
         other = create_dataset(client, f"copy-{fmt}")
         files = {"file": (name, exported.content, "application/octet-stream")}
         assert client.post(f"/datasets/{other}/import", files=files).json()["ok"]
-        again = client.get(f"/datasets/{other}/export", params={"format": "xlsx"}).content
-        assert again == client.get(f"/datasets/{other}/export", params={"format": "xlsx"}).content
+        # The CSV zip is byte-for-byte reproducible, so it shows that nothing was lost.
+        again = client.get(f"/datasets/{other}/export", params={"format": "csvzip"}).content
+        assert again == original
 
 
 def test_a_bad_import_reports_every_problem_and_changes_nothing(

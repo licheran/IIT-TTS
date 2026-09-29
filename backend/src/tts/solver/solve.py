@@ -5,6 +5,9 @@ the first three. Every result must still be checked by `tts.core.verifier.verify
 solver's own status is not evidence that a timetable is valid.
 """
 
+import threading
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Literal
 
@@ -36,6 +39,74 @@ class SolveStats:
     seed: int
     objective: float | None
     best_bound: float | None
+    solutions: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class SolveProgress:
+    """What the search has reached so far (spec 05 section 4.5)."""
+
+    objective: float | None
+    best_bound: float | None
+    elapsed_s: float
+    solutions: int
+
+
+class SolveControl:
+    """Lets another thread stop a running search. `stop` is safe to call at any time."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._stopped = False
+        self._solver: cp_model.CpSolver | None = None
+
+    def attach(self, solver: cp_model.CpSolver) -> None:
+        with self._lock:
+            self._solver = solver
+            if self._stopped:
+                solver.stop_search()
+
+    def stop(self) -> None:
+        with self._lock:
+            self._stopped = True
+            if self._solver is not None:
+                self._solver.stop_search()
+
+    @property
+    def stopped(self) -> bool:
+        return self._stopped
+
+
+class _Progress(cp_model.CpSolverSolutionCallback):
+    """Reports each new solution, at most once per `interval_s` (the first always)."""
+
+    def __init__(
+        self,
+        on_progress: Callable[[SolveProgress], None] | None,
+        has_objective: bool,
+        interval_s: float = 1.0,
+    ) -> None:
+        super().__init__()
+        self._on_progress = on_progress
+        self._has_objective = has_objective
+        self._interval = interval_s
+        self._last = float("-inf")
+        self.solutions = 0
+
+    def on_solution_callback(self) -> None:
+        self.solutions += 1
+        now = time.monotonic()
+        if self._on_progress is None or now - self._last < self._interval:
+            return
+        self._last = now
+        self._on_progress(
+            SolveProgress(
+                objective=self.objective_value if self._has_objective else None,
+                best_bound=self.best_objective_bound if self._has_objective else None,
+                elapsed_s=self.wall_time,
+                solutions=self.solutions,
+            )
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,8 +129,17 @@ class SolveOutcome:
         return self.result is not None
 
 
-def solve_model(ctx: CompileContext, params: RunParams) -> SolveOutcome:
-    """Solve a compiled model with the given parameters and decode the solution."""
+def solve_model(
+    ctx: CompileContext,
+    params: RunParams,
+    on_progress: Callable[[SolveProgress], None] | None = None,
+    control: SolveControl | None = None,
+) -> SolveOutcome:
+    """Solve a compiled model with the given parameters and decode the solution.
+
+    `on_progress` is called at most once a second while solutions improve. `control.stop()` from
+    another thread ends the search and keeps the best solution found so far.
+    """
     solver = cp_model.CpSolver()
     workers = params.num_workers if params.num_workers is not None else _cpu_count()
     solver.parameters.max_time_in_seconds = params.time_limit_s
@@ -68,9 +148,12 @@ def solve_model(ctx: CompileContext, params: RunParams) -> SolveOutcome:
     if params.mode == "feasible":
         solver.parameters.stop_after_first_solution = True
 
-    status = _STATUS.get(solver.solve(ctx.model), "unknown")
-    has_solution = status in ("optimal", "feasible")
     has_objective = ctx.model.has_objective()
+    callback = _Progress(on_progress, has_objective)
+    if control is not None:
+        control.attach(solver)
+    status = _STATUS.get(solver.solve(ctx.model, callback), "unknown")
+    has_solution = status in ("optimal", "feasible")
     return SolveOutcome(
         status=status,
         result=decode(ctx, solver) if has_solution else None,
@@ -82,6 +165,7 @@ def solve_model(ctx: CompileContext, params: RunParams) -> SolveOutcome:
             seed=params.seed,
             objective=solver.objective_value if has_solution and has_objective else None,
             best_bound=solver.best_objective_bound if has_solution and has_objective else None,
+            solutions=callback.solutions,
         ),
         problems=tuple(ctx.problems),
         warnings=tuple(ctx.warnings),
