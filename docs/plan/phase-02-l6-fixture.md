@@ -15,11 +15,11 @@
   - A cell holds: an optional group list line (joint sessions), `<MODULE> <LEC|TUT>, [time text][, [ONLINE]]`, the teacher list, and an optional room.
   - `rowspan` gives the duration.
   - Deduplicate joint sessions across group tables by (day, start, module, kind, teachers, room, groups).
-- [ ] P2.3 `io/fet_html.py`: `to_dataset(fet, preset="academic_weekly", assumptions=…) -> (Dataset, Result)`.
+- [x] P2.3 `io/fet_html.py`: `to_dataset(fet, preset="academic_weekly", assumptions=…) -> (Dataset, Result)`.
   - Structure: Level `L6`; Programmes `L6 SE` and `L6 CS`; groups under their programme; Campus `MAIN`; Building `GP`; 10 rooms, where the Auditorium gets `room_type=auditorium` and the others `room_type=lab`.
   - Time model: Periods P01–P14 (08:30–22:30), P05 (12:30) as a break, days Mon–Sat, start pattern `2H`.
   - Content: one event per session, `delivery=online` when marked `[ONLINE]`, and a `Result` holding the original placements.
-- [ ] P2.4 Assumptions, recorded in `_meta.assumptions` and in the fixture README:
+- [x] P2.4 Assumptions, recorded in `_meta.assumptions` and in the fixture README:
   - Group size 30.
   - Auditorium capacity 250.
   - Other rooms: 30 × the maximum number of groups seen in that room.
