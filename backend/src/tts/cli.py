@@ -1,4 +1,4 @@
-"""`tts` command-line entry point. Commands are stubs until their phases land."""
+"""`tts` command-line entry point: solve, validate, import-fet and export."""
 
 import json
 from pathlib import Path
@@ -6,7 +6,9 @@ from typing import Annotated
 
 import typer
 
-from tts.core.model import Dataset, Result
+from tts.core.model import Dataset, Result, Violation
+from tts.core.run import RunParams
+from tts.core.verifier import hard_violations, verify
 from tts.io.csvzip import export_csvzip, import_csvzip
 from tts.io.fet_html import (
     Assumptions,
@@ -18,13 +20,11 @@ from tts.io.fet_html import (
 from tts.io.importer import ImportOutcome
 from tts.io.tables import WorkbookData, WorkbookError
 from tts.io.workbook import export_xlsx, import_xlsx
+from tts.solver.compile import compile_model
+from tts.solver.registry import UnsupportedConstraintError
+from tts.solver.solve import solve_model
 
 app = typer.Typer(name="tts", help="IIT-TTS scheduling engine.", no_args_is_help=True)
-
-
-def _not_implemented(command: str) -> None:
-    typer.echo(f"tts {command}: not implemented", err=True)
-    raise typer.Exit(code=1)
 
 
 def _fail(command: str, message: str, code: int = 1) -> typer.Exit:
@@ -64,16 +64,89 @@ def _report(command: str, outcome: ImportOutcome) -> WorkbookData:
     return outcome.data
 
 
-@app.command()
-def solve() -> None:
-    """Solve a workbook and write the result workbook."""
-    _not_implemented("solve")
+def _summarise(violations: list[Violation]) -> str:
+    hard = len(hard_violations(violations))
+    soft = sum(v.severity == "soft" for v in violations)
+    warnings = sum(v.severity == "warning" for v in violations)
+    return f"{hard} hard violation(s), {soft} soft, {warnings} warning(s)"
 
 
 @app.command()
-def validate() -> None:
-    """Run the verifier on a workbook that contains assignments."""
-    _not_implemented("validate")
+def solve(
+    workbook: Annotated[
+        Path, typer.Argument(exists=True, dir_okay=False, help="A workbook (.xlsx or CSV .zip).")
+    ],
+    out: Annotated[Path, typer.Option("--out", "-o", help="Result file: .xlsx or .zip (CSV).")],
+    time_limit: Annotated[float, typer.Option(help="Seconds the search may take.")] = 120.0,
+    workers: Annotated[
+        int | None, typer.Option(help="Search workers (default: one per CPU).")
+    ] = None,
+    seed: Annotated[
+        int, typer.Option(help="Random seed. Same seed and 1 worker: same result.")
+    ] = 0,
+) -> None:
+    """Solve a workbook and write it back with an Assignments sheet.
+
+    Every result is re-checked by the independent verifier. Exit codes: 0 a valid timetable was
+    written, 1 the workbook could not be read or solved, 2 no timetable exists (or none was found
+    in time), 3 the solver's result broke a hard rule and was not written.
+    """
+    data = _report("solve", _read_workbook("solve", workbook))
+    if data.result is not None:
+        typer.echo("Note: the workbook's Assignments are ignored; they are solved again.")
+    params = RunParams(time_limit_s=time_limit, num_workers=workers, seed=seed)
+    try:
+        outcome = solve_model(compile_model(data.dataset), params)
+    except UnsupportedConstraintError as error:
+        raise _fail("solve", str(error)) from error
+
+    stats = outcome.stats
+    typer.echo(
+        f"Solver: {outcome.status} in {stats.wall_time_s:.2f} s "
+        f"({stats.workers} worker(s), seed {stats.seed}, {stats.conflicts} conflicts)."
+    )
+    for warning in outcome.warnings:
+        typer.echo(f"Warning: {warning}")
+    if outcome.result is None:
+        for problem in outcome.problems:
+            typer.echo(f"Problem: {problem}", err=True)
+        reason = "no timetable exists" if outcome.status == "infeasible" else "none found in time"
+        raise _fail("solve", f"no result ({outcome.status}): {reason}", code=2)
+
+    violations = verify(data.dataset, outcome.result)
+    typer.echo(f"Verifier: {_summarise(violations)}.")
+    if hard_violations(violations):
+        for violation in hard_violations(violations):
+            typer.echo(f"Violation: {violation.message}", err=True)
+        raise _fail("solve", "the result breaks a hard rule and was not written (a bug)", code=3)
+    result_data = WorkbookData(
+        data.dataset, outcome.result, meta=data.meta, notes=data.notes, run=f"seed-{seed}"
+    )
+    _write_workbook("solve", result_data, out)
+    typer.echo(f"Wrote {out}.")
+
+
+@app.command()
+def validate(
+    workbook: Annotated[
+        Path,
+        typer.Argument(exists=True, dir_okay=False, help="A workbook with an Assignments sheet."),
+    ],
+) -> None:
+    """Check the assignments in a workbook with the independent verifier.
+
+    Exit codes: 0 no hard violation, 1 the workbook could not be read or has no assignments,
+    3 at least one hard violation.
+    """
+    data = _report("validate", _read_workbook("validate", workbook))
+    if data.result is None:
+        raise _fail("validate", "the workbook has no Assignments sheet to check")
+    violations = verify(data.dataset, data.result)
+    for violation in violations:
+        typer.echo(f"{violation.severity.upper()} {violation.constraint_code}: {violation.message}")
+    typer.echo(f"Verifier: {_summarise(violations)}.")
+    if hard_violations(violations):
+        raise typer.Exit(code=3)
 
 
 @app.command("import-fet")

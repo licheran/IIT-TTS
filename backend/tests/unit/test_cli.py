@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-import pytest
 from typer.testing import CliRunner
 
 from tts.cli import app
@@ -11,13 +10,6 @@ from tts.io.fet_html import parse_fet_groups_html, to_dataset
 
 runner = CliRunner()
 L6_HTML = Path(__file__).resolve().parents[1] / "fixtures" / "l6" / "fet-groups-export.html"
-
-
-@pytest.mark.parametrize("command", ["solve", "validate"])
-def test_stub_command_reports_not_implemented(command: str) -> None:
-    result = runner.invoke(app, [command])
-    assert result.exit_code == 1
-    assert "not implemented" in result.output
 
 
 def test_help_lists_every_command() -> None:
