@@ -19,3 +19,4 @@ _To be recorded in P0.8._
 | Date | Task | Notes |
 |---|---|---|
 | 2026-09-29 | — | Repository foundation: specs, plan, ADRs, Claude Code setup, L6 fixture source. |
+| 2026-09-29 | — | Renamed product to IIT-TTS (IIT TimeTabling Solution); Python package and CLI renamed `timetabler` → `tts`. |

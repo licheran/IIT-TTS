@@ -1,12 +1,12 @@
 # L6 fixture: SE + CS (real FET export)
 
-The regression dataset for Timetabler. It is a real timetable that was generated with FET for Level 6 Software Engineering and Computer Science.
+The regression dataset for IIT-TTS. It is a real timetable that was generated with FET for Level 6 Software Engineering and Computer Science.
 
 | File | Purpose |
 |---|---|
 | `fet-groups-export.html` | The original FET "groups" HTML export (source of truth for the placements) |
 | `expected.json` | Figures measured from the export. Tests must match them exactly |
-| `l6.xlsx` | Generated in Phase 3 by `timetabler import-fet` (not committed until then) |
+| `l6.xlsx` | Generated in Phase 3 by `tts import-fet` (not committed until then) |
 | `templates.xlsx` | Added in Phase 9: the L6 structure expressed as templates |
 | `conftest.py` | Added in Phase 2: `l6_dataset`, `l6_locked_result` fixtures |
 

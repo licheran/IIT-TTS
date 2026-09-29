@@ -2,7 +2,7 @@
 
 Status: **Authoritative. This is a contract.** Current `format_version`: **1**. Any change bumps the version and needs a note in `docs/STATUS.md`.
 
-Code: `backend/src/timetabler/io/workbook.py`. The sheet definitions come from the preset (`02-domain-model.md` §6). This file specifies the `academic_weekly` preset.
+Code: `backend/src/tts/io/workbook.py`. The sheet definitions come from the preset (`02-domain-model.md` §6). This file specifies the `academic_weekly` preset.
 
 ## 1. General rules
 

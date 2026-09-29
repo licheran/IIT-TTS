@@ -1,6 +1,6 @@
 # 02 — Domain Model
 
-Status: **Authoritative.** Code lives in `backend/src/timetabler/core/`. The words in this file are the only vocabulary allowed in the core.
+Status: **Authoritative.** Code lives in `backend/src/tts/core/`. The words in this file are the only vocabulary allowed in the core.
 
 ## 1. Core concepts
 

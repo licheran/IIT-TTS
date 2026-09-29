@@ -6,13 +6,13 @@ Python 3.12 · uv · FastAPI · SQLAlchemy 2 + Alembic · OR-Tools CP-SAT · Pyd
 
 | Package | May import |
 |---|---|
-| `timetabler.core` | stdlib, pydantic only |
-| `timetabler.expand`, `preflight` | `core` |
-| `timetabler.solver` | `core`, ortools |
-| `timetabler.io` | `core`, `presets` (sheet definitions only), openpyxl, bs4, jinja2 |
-| `timetabler.presets.*` | `core` |
-| `timetabler.store` | `core`, sqlalchemy |
-| `timetabler.api`, `timetabler.worker`, `timetabler.cli` | any backend package |
+| `tts.core` | stdlib, pydantic only |
+| `tts.expand`, `preflight` | `core` |
+| `tts.solver` | `core`, ortools |
+| `tts.io` | `core`, `presets` (sheet definitions only), openpyxl, bs4, jinja2 |
+| `tts.presets.*` | `core` |
+| `tts.store` | `core`, sqlalchemy |
+| `tts.api`, `tts.worker`, `tts.cli` | any backend package |
 
 `core.verifier` must never import `solver`.
 
@@ -24,7 +24,7 @@ Python 3.12 · uv · FastAPI · SQLAlchemy 2 + Alembic · OR-Tools CP-SAT · Pyd
 
   A test asserts that every catalogue type has both modules.
 - The solver pipeline stages are separate functions: `compile_model`, `solve`, `decode`, then `verify`. Don't merge them.
-- Run the solver as `timetabler solve` or via the worker, never inside an API request.
+- Run the solver as `tts solve` or via the worker, never inside an API request.
 - DB access goes only through `store/` repositories. Never use raw SQL outside `store/`, except for the `SKIP LOCKED` claim query in `worker/`.
 - Change the schema only through Alembic migrations (`uv run alembic revision --autogenerate -m "..."`, then review the file by hand).
 

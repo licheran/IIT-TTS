@@ -31,3 +31,6 @@ runs-output/
 .DS_Store
 .idea/
 .vscode/
+
+# boilerplate
+timetabler-foundation.zip

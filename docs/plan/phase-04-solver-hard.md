@@ -25,7 +25,7 @@
   - (c) Determinism with `num_workers=1` and a fixed seed (NFR-3).
 
 ## Acceptance
-- `uv run timetabler solve tests/fixtures/l6/l6.xlsx --out /tmp/l6-out.xlsx --time-limit 30` exits 0, and the verifier summary shows 0 hard violations.
+- `uv run tts solve tests/fixtures/l6/l6.xlsx --out /tmp/l6-out.xlsx --time-limit 30` exits 0, and the verifier summary shows 0 hard violations.
 - Every P4.6 and P4.7 test passes.
 
 ## Out of scope

@@ -1,6 +1,6 @@
-# CLAUDE.md — Timetabler
+# CLAUDE.md — IIT-TTS
 
-Timetabler is a **generic, data-driven scheduling engine**. It places events in time and assigns them resources so that no exclusive resource is double-booked and all declared rules hold. The first preset is **academic weekly timetabling**: conflict-free course timetabling and room allocation for a multi-level, multi-programme, multi-university institute. That preset must be the easiest use case, but the core must not depend on it.
+IIT-TTS (IIT TimeTabling Solution) is a **generic, data-driven scheduling engine**. It places events in time and assigns them resources so that no exclusive resource is double-booked and all declared rules hold. The first preset is **academic weekly timetabling**: conflict-free course timetabling and room allocation for a multi-level, multi-programme, multi-university institute. That preset must be the easiest use case, but the core must not depend on it.
 
 ## Start every session here
 
@@ -42,9 +42,9 @@ cd backend && uv sync                      # install
 uv run pytest                              # all tests
 uv run pytest -m "not scale"               # fast tests (default for each task)
 uv run ruff check . && uv run ruff format --check .
-uv run mypy src                            # strict on src/timetabler/core
-uv run timetabler solve <workbook.xlsx> --out result.xlsx --time-limit 60
-uv run timetabler validate <workbook.xlsx> # verifier only
+uv run mypy src                            # strict on src/tts/core
+uv run tts solve <workbook.xlsx> --out result.xlsx --time-limit 60
+uv run tts validate <workbook.xlsx> # verifier only
 
 # Web (Node 20+, pnpm)
 cd web && pnpm install
@@ -70,7 +70,7 @@ docs/spec/                what to build (authoritative)
   06-architecture.md        packages, dependency rules, API, stack, quality gates
 docs/plan/                how to build it: ROADMAP.md + phase-NN-*.md
 docs/adr/                 architecture decisions
-backend/                  Python: src/timetabler/{core,expand,preflight,solver,io,presets,store,api,worker}
+backend/                  Python: src/tts/{core,expand,preflight,solver,io,presets,store,api,worker}
 backend/tests/fixtures/l6/  real FET export (L6 SE+CS) + expected.json
 web/                      React + TypeScript front end
 .claude/commands/         /next-task, /check, /new-adr

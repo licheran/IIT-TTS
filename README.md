@@ -1,8 +1,8 @@
-# Timetabler
+# IIT-TTS (IIT TimeTabling Solution)
 
 **Conflict-free scheduling, driven by your spreadsheets.**
 
-Timetabler is an open, data-driven scheduling application. You describe your world as tables of **resources** (people, groups, rooms, buildings), **events** (sessions to schedule) and **rules**. You edit them in the app or round-trip them through Excel/CSV, press **Start**, and Timetabler finds a timetable in which nothing is double-booked and your preferences are optimised.
+IIT-TTS is an open, data-driven scheduling application. You describe your world as tables of **resources** (people, groups, rooms, buildings), **events** (sessions to schedule) and **rules**. You edit them in the app or round-trip them through Excel/CSV, press **Start**, and IIT-TTS finds a timetable in which nothing is double-booked and your preferences are optimised.
 
 The first built-in preset is **academic weekly timetabling**: lectures and tutorials for many levels, degree programmes and awarding universities, spread across several buildings and sharing teachers and rooms. The core engine is domain-neutral, so exams, staff rosters and room booking are future presets, not rewrites.
 

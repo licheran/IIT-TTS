@@ -45,7 +45,7 @@ flowchart LR
 - **Cancel:** `POST /runs/{id}/cancel` sets `cancel_requested=true`. The worker's callback stops the search (`05-solver.md` §4.5).
 - **Stale runs:** runs left `running` with no heartbeat for over 60 s are reset to `queued`, at most twice. After that they become `failed`.
 
-## 3. Backend packages (`backend/src/timetabler/`)
+## 3. Backend packages (`backend/src/tts/`)
 
 ```
 core/            model.py  hierarchy.py  timegrid.py  selectors.py  verifier.py  constraints/<type>.py
@@ -57,7 +57,7 @@ presets/         academic_weekly/{__init__,types,sheets,labels,defaults}.py   ex
 store/           db.py  models.py  repositories.py  migrations/ (Alembic)
 api/             main.py  deps.py  routers/{datasets,tables,io,runs,results,validate}.py  schemas.py
 worker/          main.py  runner.py
-cli.py           `timetabler` entry point (solve, validate, import-fet, export)
+cli.py           `tts` entry point (solve, validate, import-fet, export)
 ```
 
 **Dependency rules.** Enforced by `tests/unit/test_architecture.py`, which uses import-linter or an AST walk.

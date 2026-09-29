@@ -4,11 +4,11 @@ Status: **Authoritative.** Requirement IDs (FR-n, NFR-n) are referenced from the
 
 ## 1. Definition
 
-**Timetabler** is a data-driven scheduling application. It places **events** in **time** and assigns them the **resources** they require, so that:
+**IIT-TTS** (IIT TimeTabling Solution) is a data-driven scheduling application. It places **events** in **time** and assigns them the **resources** they require, so that:
 - no exclusive resource is ever used by two events in the same period, and
 - every hard rule holds while soft rules are optimised.
 
-Users declare entities and relationships as tables, either in the app or through an Excel/CSV workbook. Timetabler then goes through four steps:
+Users declare entities and relationships as tables, either in the app or through an Excel/CSV workbook. IIT-TTS then goes through four steps:
 1. It **expands** templates into events.
 2. It **pre-flight checks** the data.
 3. It **solves** for start times and pooled resources.
