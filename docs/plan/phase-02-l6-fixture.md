@@ -23,8 +23,8 @@
   - Group size 30.
   - Auditorium capacity 250.
   - Other rooms: 30 × the maximum number of groups seen in that room.
-- [ ] P2.5 `tests/fixtures/l6/conftest.py`: fixtures `l6_dataset` and `l6_locked_result`. Add `test_l6_fixture.py` asserting every figure in `expected.json`.
-- [ ] P2.6 A test that `verify(l6_dataset, l6_locked_result)` returns no hard violations.
+- [x] P2.5 `tests/fixtures/l6/conftest.py`: fixtures `l6_dataset` and `l6_locked_result`. Add `test_l6_fixture.py` asserting every figure in `expected.json`.
+- [x] P2.6 A test that `verify(l6_dataset, l6_locked_result)` returns no hard violations.
 - [ ] P2.7 CLI `tts import-fet <html> --out <xlsx>` (writes the workbook once Phase 3 exists; until then it writes JSON).
 
 ## Acceptance
