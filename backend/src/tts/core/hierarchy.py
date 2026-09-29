@@ -11,7 +11,7 @@ An event occupies, in every slot it covers:
 It never occupies ancestors.
 """
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 
 from tts.core.model import Dataset
 
@@ -106,12 +106,17 @@ class Hierarchy:
 
 
 def detect_cycles(dataset: Dataset) -> list[tuple[str, ...]]:
-    """Every parent cycle, each reported once as codes in walk order starting at its smallest code.
+    """Every parent cycle among a dataset's resources. See `find_cycles`."""
+    return find_cycles({r.code: r.parent for r in dataset.resources if r.parent is not None})
 
-    A resource that only leads into a cycle is not part of it. Parents that don't exist are
-    ignored (an unresolved reference is reported separately).
+
+def find_cycles(parent: Mapping[str, str]) -> list[tuple[str, ...]]:
+    """Every cycle in a child-to-parent map, each reported once as codes in walk order.
+
+    A cycle starts at its smallest code. A node that only leads into a cycle is not part of it.
+    Parents that are not keys of the map are ignored (an unresolved reference is reported
+    separately).
     """
-    parent = {r.code: r.parent for r in dataset.resources if r.parent is not None}
     state: dict[str, int] = {}  # 1 = on the current walk, 2 = finished
     cycles: list[tuple[str, ...]] = []
     for start in sorted(parent):

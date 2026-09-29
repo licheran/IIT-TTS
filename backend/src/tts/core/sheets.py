@@ -47,8 +47,11 @@ class ColumnDef(_Frozen):
     `refs` lists the sheets whose codes the value must name (for a `list` column, each item).
     `required_when` is a (column, value) pair: the column is required when that other column
     holds that value. `expands_to` marks a convenience column: on import its items become rows of
-    the named join sheet, and it is never written on export. `derived` columns are descriptive
-    and only written on export.
+    the named join sheet, and it is never written on export. A column with `derive` is
+    descriptive: written on export only, computed as one of `event.reference`, `event.kind`,
+    `end` (the end time of the last covered period), `fixed:<join sheet>` (the event's fixed
+    resources that sheet lists) or `ancestors:<resource sheet>` (the chosen resources' ancestors
+    of that sheet's type).
     """
 
     name: str
@@ -62,12 +65,16 @@ class ColumnDef(_Frozen):
     minimum: int | None = None
     default: str | int | bool | None = None
     expands_to: str | None = None
-    derived: bool = False
+    derive: str | None = None
     label: str = ""
 
     @property
     def convenience(self) -> bool:
         return self.expands_to is not None
+
+    @property
+    def derived(self) -> bool:
+        return self.derive is not None
 
 
 class PooledMapping(_Frozen):

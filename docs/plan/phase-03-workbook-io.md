@@ -8,8 +8,8 @@
 
 ## Tasks
 - [x] P3.1 `presets/academic_weekly/sheets.py`: sheet definitions (name, columns, required, type, reference target, core mapping, label) for every sheet in spec 03 §2. `io` reads only these definitions, with no sheet-specific code paths except the join-sheet expansion helpers.
-- [ ] P3.2 `io/workbook.py` export: sheet order, frozen header, data-validation dropdowns for reference columns, `_meta` with `format_version=1`, and an `Assignments` sheet when a `Result` is given.
-- [ ] P3.3 Import:
+- [x] P3.2 `io/workbook.py` export: sheet order, frozen header, data-validation dropdowns for reference columns, `_meta` with `format_version=1`, and an `Assignments` sheet when a `Result` is given.
+- [x] P3.3 Import:
   - Parse the sheets, and treat `x_` columns as notes.
   - Coerce types, and expand convenience lists into join rows.
   - Resolve references and check the invariants.
