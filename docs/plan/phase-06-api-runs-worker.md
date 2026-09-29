@@ -14,7 +14,7 @@
   - `worker/runner.py` claims runs (`SKIP LOCKED`), runs the pipeline, heartbeats, reports progress, handles cancel, and stores the result and diagnostics.
 - [x] P6.5 Results: `/runs/{id}`, `/assignments`, `/grid`, `/diff`, `/publish` (at most one published run per dataset), and `/export` (HTML through `io/export_html.py` + Jinja2; XLSX; CSV).
 - [x] P6.6 `POST /validate` (FR-14), accepting a workbook with assignments or a FET HTML export.
-- [ ] P6.7 Integration tests (SQLite by default; Postgres when `TT_TEST_PG` is set):
+- [x] P6.7 Integration tests (SQLite by default; Postgres when `TT_TEST_PG` is set):
   - L6 end to end through the API.
   - Cancel: a long run stops within 2 s and keeps its best solution (`cancelled_partial`).
   - Two workers never claim the same run (Postgres only).

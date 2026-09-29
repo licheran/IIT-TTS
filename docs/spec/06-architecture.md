@@ -80,8 +80,9 @@ The core-purity test fails if the domain words listed in `CLAUDE.md` rule 1 appe
 
 - Their columns follow `02-domain-model.md` §1.
 - JSONB columns: `attributes`, `tags`, `params`, `snapshot`, `refs`.
-- Every table except `dataset` has a `dataset_id` foreign key, and `(dataset_id, code)` is unique where there's a code.
-- `run` columns: `id, dataset_id, status (queued|running|succeeded|blocked|infeasible|invalid|cancelled|cancelled_partial|failed), params, input_hash, snapshot, progress, score, score_breakdown, cancel_requested, worker_id, heartbeat_at, created_at, started_at, finished_at, published`.
+- Every table except `dataset` has a `dataset_id` foreign key, and `(dataset_id, code)` is unique where there's a code. Rows refer to each other by **code** (as the workbook does), not by id, so a dataset is saved and loaded without translation. `dataset` also holds `extras` (the workbook's `_meta` rows and `x_` notes) and a `version` that counts saves.
+- `assignment`, `assigned_resource` and `diagnostic` belong to a `run` (`run_id`), not to a dataset.
+- `run` columns: `id, dataset_id, status (queued|running|succeeded|blocked|infeasible|invalid|cancelled|cancelled_partial|failed), params, input_hash, snapshot, progress, score, score_breakdown, cancel_requested, worker_id, heartbeat_at, attempts, created_at, started_at, finished_at, published`. `attempts` counts claims: a stale run is re-queued while `attempts` is below 3 (the first run plus two re-queues).
 - At most one `published=true` run per dataset (partial unique index).
 
 ## 5. API (REST, JSON, OpenAPI generated)

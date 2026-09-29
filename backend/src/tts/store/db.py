@@ -7,7 +7,7 @@ from pathlib import Path
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import Engine, create_engine, event
+from sqlalchemy import Engine, create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
 
 DEFAULT_URL = "sqlite:///tts.db"
@@ -59,6 +59,27 @@ def alembic_config(url: str) -> Config:
     return config
 
 
+_MIGRATION_LOCK = 7_431_001  # an arbitrary key for the PostgreSQL advisory lock
+
+
 def upgrade(url: str | None = None, revision: str = "head") -> None:
-    """Bring the database at `url` up to `revision` (the API and the worker call this at start)."""
-    command.upgrade(alembic_config(url or database_url()), revision)
+    """Bring the database at `url` up to `revision` (the API and the worker call this at start).
+
+    On PostgreSQL an advisory lock makes concurrent starters take turns, so the api and the
+    worker starting together do not both try to create the tables.
+    """
+    url = url or database_url()
+    if not url.startswith("postgres"):
+        command.upgrade(alembic_config(url), revision)
+        return
+    engine = make_engine(url)
+    try:
+        with engine.connect() as lock:
+            lock.execute(text("SELECT pg_advisory_lock(:key)"), {"key": _MIGRATION_LOCK})
+            try:
+                command.upgrade(alembic_config(url), revision)
+            finally:
+                lock.execute(text("SELECT pg_advisory_unlock(:key)"), {"key": _MIGRATION_LOCK})
+                lock.commit()
+    finally:
+        engine.dispose()
