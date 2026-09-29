@@ -23,6 +23,7 @@ from tts.io.workbook import export_xlsx, import_xlsx
 from tts.preflight.checks import Issue, run_preflight
 from tts.presets import labeller
 from tts.solver.compile import compile_model
+from tts.solver.explain import explain
 from tts.solver.registry import UnsupportedConstraintError
 from tts.solver.solve import solve_model
 
@@ -125,6 +126,7 @@ def solve(
     is re-checked by the independent verifier. Exit codes: 0 a valid timetable was written, 1 the
     workbook could not be read or solved, 2 no timetable exists (or none was found in time),
     3 the solver's result broke a hard rule and was not written, 4 pre-flight found an error.
+    When no timetable exists, the rules that conflict are named (the infeasibility explanation).
     """
     data = _report("solve", _read_workbook("solve", workbook))
     if data.result is not None:
@@ -146,6 +148,10 @@ def solve(
     if outcome.result is None:
         for problem in outcome.problems:
             typer.echo(f"Problem: {problem}", err=True)
+        if outcome.status == "infeasible":
+            diagnostic = explain(data.dataset, labeller(data.dataset.preset))
+            if diagnostic is not None:
+                typer.echo(f"Explanation: {diagnostic.message}", err=True)
         reason = "no timetable exists" if outcome.status == "infeasible" else "none found in time"
         raise _fail("solve", f"no result ({outcome.status}): {reason}", code=2)
 

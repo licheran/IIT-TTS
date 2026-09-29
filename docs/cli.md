@@ -168,11 +168,19 @@ The steps, in order:
 |---|---|
 | 0 | A valid timetable was written |
 | 1 | The workbook could not be read, or it declares a hard constraint the solver does not support yet |
-| 2 | No timetable exists (`no result (infeasible): no timetable exists`), none was found within the time limit, or a usage error (missing input, unknown extension) |
+| 2 | No timetable exists (`no result (infeasible): no timetable exists`), none was found within the time limit, or a usage error (missing input, unknown extension). When no timetable exists, an `Explanation:` line names the rules that conflict (see below) |
 | 3 | The solver's result broke a hard rule and was not written |
 | 4 | Pre-flight found an error; nothing was solved |
 
 Nothing is written for any exit code other than 0.
+
+**When no timetable exists**, `solve` works out a small set of rules that cannot all hold together and prints it, for example:
+
+```
+Explanation: Conflicting rules: Teacher THE unavailable Mon P01; pin of 6BUIS019C-LEC-01 to Mon P01
+```
+
+The rules it can name are availability rows (merged into day and period ranges), pins, an event's allowed start times, a pooled requirement (for example a room of some type), a resource's one-event-at-a-time rule (`no_overlap(<code>)`, with the load on it), and declared hard constraints. Dropping or changing any one of the listed rules makes that conflict go away (there may be others). The search takes at most 60 seconds; if it runs out of time, the message says the list may include rules that are not needed.
 
 ```bash
 uv run tts solve l6.local.xlsx --out l6-solved.local.xlsx --time-limit 30
@@ -214,4 +222,4 @@ uv run tts validate l6-solved.local.xlsx
 
 ## Planned commands
 
-Later phases add commands and options as they land; this page is updated with each one. Not built yet: expanding templates into events (Phase 9), running the API and the worker (Phase 6), and an explanation of an infeasible timetable in `solve` (P5.3).
+Later phases add commands and options as they land; this page is updated with each one. Not built yet: expanding templates into events (Phase 9), and running the API and the worker (Phase 6).

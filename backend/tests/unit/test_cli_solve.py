@@ -132,6 +132,10 @@ def test_solve_reports_an_impossible_timetable_with_exit_code_2(tmp_path: Path) 
         result.output
     )
     assert "no timetable exists" in result.output
+    assert (
+        'Explanation: Conflicting rules: a needs 1 Room matching "tag:room_type=lab"; '
+        'b needs 1 Room matching "tag:room_type=lab"; no_overlap(R0)'
+    ) in result.output
     assert not out.exists()
 
 
@@ -178,6 +182,10 @@ def test_solve_says_why_an_event_cannot_be_placed(tmp_path: Path) -> None:
     assert result.exit_code == 2, result.output
     assert "Pre-flight: 0 error(s), 0 warning(s)." in result.output
     assert "has no start left after availability and pins" in result.output
+    assert (
+        "Explanation: Conflicting rules: Teacher THE unavailable Mon P01; "
+        "pin of 6BUIS019C-LEC-01 to Mon P01"
+    ) in result.output
 
 
 def test_solve_prints_preflight_warnings_and_carries_on(tmp_path: Path) -> None:

@@ -21,6 +21,7 @@ Python 3.12 · uv · FastAPI · SQLAlchemy 2 + Alembic · OR-Tools CP-SAT · Pyd
 - Each constraint type has two modules, both named after the type in `docs/spec/04-constraints.md`:
   - `core/constraints/<type>.py`: `Params` (a Pydantic model) and `verify(ds, result) -> list[Violation]`. No ortools.
   - `solver/constraints/<type>.py`: `compile(ctx, instance) -> None`, registered in `solver/registry.py`.
+    A hard instance must be enforced with `only_enforce_if(ctx.constraint_guard(instance.code))` when that guard is not `None`, so the infeasibility explanation (`solver/explain.py`) can name it.
 
   A test asserts that every catalogue type has both modules.
 - The solver pipeline stages are separate functions: `compile_model`, `solve`, `decode`, then `verify`. Don't merge them.

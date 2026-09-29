@@ -561,3 +561,19 @@ class Violation(_Frozen):
     penalty: int = Field(default=0, ge=0)
     refs: tuple[Ref, ...] = ()
     message: str = ""
+
+
+class Diagnostic(_Frozen):
+    """A finding about a whole run rather than one placement (spec 05 section 5).
+
+    `kind` is for example `infeasible_core`. `details` holds one line per part of the finding (for
+    an infeasible core, one per conflicting rule group). `minimal` is false when an explanation
+    ran out of time before it could prove that no part can be dropped.
+    """
+
+    kind: str
+    severity: Literal["error", "warning"] = "error"
+    message: str
+    refs: tuple[Ref, ...] = ()
+    details: tuple[str, ...] = ()
+    minimal: bool = True

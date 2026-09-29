@@ -3,9 +3,15 @@
 `CompileContext` owns the CP-SAT model and the variable maps. Constraint compilers
 (`solver/constraints/<type>.py`) read the maps and add to the model. They never look at the
 solver, and they never special-case a dataset.
+
+In explain mode (spec 05 section 5) every hard rule set is guarded by an assumption literal from
+`guard`, so the solver can say which rule sets conflict. Outside explain mode `guard` returns `None`
+and the rules hold unconditionally. A compiler enforces a hard rule with
+`only_enforce_if(guard)` when the guard is not `None`.
 """
 
 from collections import defaultdict
+from dataclasses import dataclass
 
 from ortools.sat.python import cp_model
 
@@ -16,12 +22,29 @@ from tts.core.timegrid import TimeGrid
 
 PooledKey = tuple[str, int, str]  # (event code, requirement ordinal, resource code)
 
+RuleKind = str  # starts | availability | pin | no_overlap | requirement | constraint
+
+
+@dataclass(frozen=True, slots=True, order=True)
+class RuleSet:
+    """One hard rule set that an explanation can switch off (spec 05 section 5).
+
+    `key` identifies the instance: (event,) for `starts`, (resource, day, period) for
+    `availability`, (event, index) for `pin`, (resource,) for `no_overlap`, (event, ordinal) for
+    `requirement` and (code,) for `constraint`.
+    """
+
+    kind: RuleKind
+    key: tuple[str, ...]
+
 
 class CompileContext:
     """The model under construction, with the variables of every event."""
 
-    def __init__(self, dataset: Dataset) -> None:
+    def __init__(self, dataset: Dataset, explain: bool = False) -> None:
         self.dataset = dataset
+        self.explain = explain
+        self.guards: dict[RuleSet, cp_model.IntVar] = {}  # only filled in explain mode
         self.model = cp_model.CpModel()
         self.grid = TimeGrid(dataset.time)
         self.hierarchy = Hierarchy(dataset)
@@ -87,7 +110,25 @@ class CompileContext:
             self._day_is[key] = found
         return found
 
-    def declare_infeasible(self, reason: str) -> None:
-        """Note why no solution exists and make the model infeasible, without failing."""
+    def guard(self, kind: RuleKind, *key: str) -> cp_model.IntVar | None:
+        """The assumption literal of a rule set in explain mode, else `None` (always on)."""
+        if not self.explain:
+            return None
+        rule_set = RuleSet(kind, tuple(key))
+        found = self.guards.get(rule_set)
+        if found is None:
+            found = self.model.new_bool_var(f"guard_{kind}_{'_'.join(key)}")
+            self.guards[rule_set] = found
+        return found
+
+    def constraint_guard(self, code: str) -> cp_model.IntVar | None:
+        """The guard of a declared hard constraint instance (for `solver/constraints/*`)."""
+        return self.guard("constraint", code)
+
+    def declare_infeasible(self, reason: str, guard: cp_model.IntVar | None = None) -> None:
+        """Note why no solution exists and make the model infeasible, without failing.
+
+        With a guard, only the guard's rule set is made impossible (explain mode).
+        """
         self.problems.append(reason)
-        self.model.add_bool_or([])
+        self.model.add_bool_or([] if guard is None else [guard.Not()])
