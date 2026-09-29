@@ -2,7 +2,8 @@
 
 **Current phase:** 0 — [Project setup](plan/phase-00-setup.md)
 **Next task:** P0.5 — blocked: the npm registry was unreachable (all hosts timed out, PyPI too, at the time). Open Phase 0 tasks: P0.5, P0.8; Phase 0 stays current until both are done and its acceptance (including `docker compose up --build` and green CI) is checked.
-**Phase 1 is complete** (P1.1–P1.7 ticked, acceptance passed: unit tests, strict mypy on `core`, architecture and purity tests). It was done out of order while the network was down. Backend-only work can continue with Phase 2 (next: P3.1).
+**Phase 1 is complete** (P1.1–P1.7 ticked, acceptance passed: unit tests, strict mypy on `core`, architecture and purity tests). It was done out of order while the network was down.
+**Phase 2 is complete** (P2.1–P2.7 ticked, acceptance passed: `pytest -k l6` green, every figure of `expected.json` matches, no violations on the original placements). Backend-only work continues with Phase 3 (next: P3.1).
 **Format version:** workbook `format_version` 1
 
 ## Pinned versions
