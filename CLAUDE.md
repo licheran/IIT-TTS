@@ -61,6 +61,7 @@ docker compose up --build
 ```
 CLAUDE.md                 this file
 docs/STATUS.md            current phase, progress log  ← read first
+docs/cli.md               `tts` command reference (update with every CLI change; a test checks it)
 docs/spec/                what to build (authoritative)
   01-product.md             definition, use case, requirements (FR/NFR), non-goals
   02-domain-model.md        core concepts, tables, occupancy rule, selectors, academic mapping

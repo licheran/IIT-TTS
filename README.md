@@ -6,7 +6,7 @@ IIT-TTS is an open, data-driven scheduling application. You describe your world 
 
 The first built-in preset is **academic weekly timetabling**: lectures and tutorials for many levels, degree programmes and awarding universities, spread across several buildings and sharing teachers and rooms. The core engine is domain-neutral, so exams, staff rosters and room booking are future presets, not rewrites.
 
-> Status: **pre-alpha. The backend engine works from the command line; there is no web app yet.** Phases 1–4 are done: the core model and verifier, the L6 regression fixture, Excel/CSV import and export, and the CP-SAT solver for the hard rules. Phase 5 (pre-flight checks and infeasibility explanations) is next. See [`docs/STATUS.md`](docs/STATUS.md).
+> Status: **pre-alpha. The backend engine works from the command line; there is no web app yet.** Phases 1–4 are done: the core model and verifier, the L6 regression fixture, Excel/CSV import and export, and the CP-SAT solver for the hard rules. Phase 5 (pre-flight checks and infeasibility explanations) is under way: the pre-flight checks work, the explanations are next. See [`docs/STATUS.md`](docs/STATUS.md).
 
 ## How it works
 
@@ -31,7 +31,8 @@ Excel/CSV or table editor ──► Validate ──► Expand templates ──�
 | Verify | Works. Runs after every solve. |
 | Declared constraints (the catalogue in [spec 04](docs/spec/04-constraints.md)) | Phase 8. `tts solve` refuses a workbook that declares a hard one, and warns about a soft one. |
 | Expand templates | Phase 9. |
-| Pre-flight checks, infeasibility explanations | Phase 5 (next). |
+| Pre-flight checks | Works (`tts preflight`, and before every `tts solve`). Errors such as a resource needing more periods than it has stop the solve with exit code 4. |
+| Infeasibility explanations | Phase 5 (in progress): "which rules conflict" when the solver proves there is no timetable. |
 | Saved runs, API, web app, grids, HTML export | Phases 6–7. |
 
 ## Documentation
@@ -44,6 +45,7 @@ Excel/CSV or table editor ──► Validate ──► Expand templates ──�
 | [Constraints](docs/spec/04-constraints.md) | The constraint catalogue and its exact semantics |
 | [Solver](docs/spec/05-solver.md) | CP-SAT formulation, pre-flight, explanations |
 | [Architecture](docs/spec/06-architecture.md) | Packages, API, tech stack, quality gates |
+| [Command line](docs/cli.md) | Every `tts` command, option, output and exit code |
 | [Roadmap](docs/plan/ROADMAP.md) | Build phases and acceptance criteria |
 | [ADRs](docs/adr/README.md) | Architecture decisions |
 
@@ -61,13 +63,24 @@ uv sync                                    # install
 
 # Turn the L6 FET export into a workbook, then solve it
 uv run tts import-fet tests/fixtures/l6/fet-groups-export.html --out l6.local.xlsx
+uv run tts preflight l6.local.xlsx         # quick checks, no solving
 uv run tts solve l6.local.xlsx --out l6-solved.local.xlsx --time-limit 30
 uv run tts validate l6-solved.local.xlsx   # check a workbook's Assignments
 ```
 
+| Command | What it does |
+|---|---|
+| `tts import-fet` | Converts a FET HTML export into a workbook |
+| `tts export` | Rewrites a workbook in canonical form, or converts Excel ↔ CSV |
+| `tts preflight` | Finds what makes a timetable impossible, without solving |
+| `tts solve` | Pre-flight, solve, verify, and write the timetable back |
+| `tts validate` | Checks a workbook's assignments with the independent verifier |
+
+The full reference, with every option and exit code, is in [`docs/cli.md`](docs/cli.md).
+
 Git ignores files named `*.local.xlsx`. The L6 workbooks contain real teacher codes, so keep them out of commits.
 
-See [`backend/README.md`](backend/README.md) for every command, its options and exit codes, and for how to run the tests.
+See [`backend/README.md`](backend/README.md) for setup and how to run the tests.
 
 The full stack (API, worker, database and web app) is meant to run with `docker compose up --build`, serving the API on :8000, the web app on :5173 and the database on :5432. That command is not ready yet: the web app has not been scaffolded ([Phase 0](docs/plan/phase-00-setup.md), task P0.5).
 

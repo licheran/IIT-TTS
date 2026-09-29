@@ -14,16 +14,17 @@ uv sync
 
 Run `uv run tts --help`, or `uv run tts <command> --help` for one command.
 
-Workbooks are either `.xlsx` or CSV `.zip` files; the file extension decides which. Both follow the contract in [spec 03](../docs/spec/03-workbook-format.md). Reading a workbook is all or nothing: if anything is wrong, every problem is listed as `Sheet!R<row>C<col> [column]: message` and nothing is used.
-
 | Command | What it does | Exit codes |
 |---|---|---|
-| `tts solve <workbook> --out <file> [--time-limit S] [--workers N] [--seed K]` | Solves the workbook, checks the result with the verifier, and writes it back with an `Assignments` sheet. Assignments already in the workbook are ignored and solved again. With `--workers 1` and a fixed `--seed`, the same input always gives the same result. | 0 written · 1 the workbook could not be read, or it uses a constraint type the solver does not support yet · 2 no timetable exists, or none was found within the time limit · 3 the solver's result broke a hard rule (a bug), so nothing was written |
-| `tts validate <workbook>` | Runs the verifier on the workbook's `Assignments` and lists every violation. | 0 no hard violation · 1 the workbook could not be read, or has no assignments · 3 at least one hard violation |
-| `tts import-fet <export.html> --out <file> [--with-assignments]` | Converts a FET "groups" HTML export into a workbook (`.xlsx` or `.zip`) or into JSON (`.json`). Values the export does not contain, such as group sizes and room capacities, are assumptions and are written to `_meta`. `--with-assignments` also writes the export's own placements. | 0 written · 1 the export could not be read |
-| `tts export <input> --out <file> [--with-assignments]` | Rewrites a workbook in canonical form, in either format. It also turns an `import-fet` `.json` into a workbook. | 0 written · 1 the input has problems |
+| `tts import-fet <export.html> --out <file>` | Converts a FET "groups" HTML export into a workbook (`.xlsx` or `.zip`) or JSON. | 0 written · 1 unreadable export |
+| `tts export <input> --out <file>` | Rewrites a workbook in canonical form, or converts between Excel and CSV. | 0 written · 1 the input has problems |
+| `tts preflight <workbook>` | Finds what makes a timetable impossible, without solving. | 0 no errors · 1 unreadable · 4 errors |
+| `tts solve <workbook> --out <file>` | Runs pre-flight, solves, verifies and writes the timetable back. | 0 written · 1 unreadable, or an unsupported hard constraint · 2 infeasible or timed out · 3 verifier rejected the result · 4 pre-flight error |
+| `tts validate <workbook>` | Checks a workbook's `Assignments` with the independent verifier. | 0 valid · 1 unreadable or no assignments · 3 hard violation |
 
-Every command exits with 2 on a usage error, such as a missing input file or an unrecognised file extension.
+Every command exits with 2 on a usage error, such as a missing input file or an unrecognised file extension. **[The command-line reference](../docs/cli.md)** has every argument, option, output line and exit code, with examples.
+
+Workbooks are `.xlsx` files or `.zip` files of CSVs (the extension decides). Reading one is all or nothing: every problem is listed as `Sheet!R<row>C<col> [column]: message` and nothing is used. The layout is the contract in [spec 03](../docs/spec/03-workbook-format.md).
 
 Example, using the L6 regression fixture:
 

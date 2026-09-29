@@ -1,4 +1,4 @@
-"""`tts` command-line entry point: solve, validate, import-fet and export."""
+"""`tts` command-line entry point: solve, validate, preflight, import-fet and export."""
 
 import json
 from pathlib import Path
@@ -20,6 +20,8 @@ from tts.io.fet_html import (
 from tts.io.importer import ImportOutcome
 from tts.io.tables import WorkbookData, WorkbookError
 from tts.io.workbook import export_xlsx, import_xlsx
+from tts.preflight.checks import Issue, run_preflight
+from tts.presets import labeller
 from tts.solver.compile import compile_model
 from tts.solver.registry import UnsupportedConstraintError
 from tts.solver.solve import solve_model
@@ -71,6 +73,38 @@ def _summarise(violations: list[Violation]) -> str:
     return f"{hard} hard violation(s), {soft} soft, {warnings} warning(s)"
 
 
+def _preflight(command: str, dataset: Dataset) -> list[Issue]:
+    """Run the pre-flight checks and print them. Exit with code 4 if any is an error."""
+    issues = run_preflight(dataset, labeller(dataset.preset))
+    for issue in issues:
+        line = f"{issue.severity.upper()} {issue.kind}: {issue.message}"
+        typer.echo(line, err=issue.severity == "error")
+    errors = sum(i.severity == "error" for i in issues)
+    typer.echo(f"Pre-flight: {errors} error(s), {len(issues) - errors} warning(s).")
+    if errors:
+        raise _fail(command, f"{errors} pre-flight error(s); nothing was solved", code=4)
+    return issues
+
+
+@app.command()
+def preflight(
+    workbook: Annotated[
+        Path, typer.Argument(exists=True, dir_okay=False, help="A workbook (.xlsx or CSV .zip).")
+    ],
+) -> None:
+    """Run the pre-flight checks on a workbook, without solving.
+
+    Finds what makes a timetable impossible before the solver starts: unknown references, events
+    with no possible start, requirements no room can meet, resources that need more periods than
+    they have, and pins that collide. Warnings (pressure on a pool, unused resources, empty
+    scopes) are printed but do not fail.
+
+    Exit codes: 0 no errors, 1 the workbook could not be read, 4 at least one error.
+    """
+    data = _report("preflight", _read_workbook("preflight", workbook))
+    _preflight("preflight", data.dataset)
+
+
 @app.command()
 def solve(
     workbook: Annotated[
@@ -87,13 +121,15 @@ def solve(
 ) -> None:
     """Solve a workbook and write it back with an Assignments sheet.
 
-    Every result is re-checked by the independent verifier. Exit codes: 0 a valid timetable was
-    written, 1 the workbook could not be read or solved, 2 no timetable exists (or none was found
-    in time), 3 the solver's result broke a hard rule and was not written.
+    The pre-flight checks run first (see `tts preflight`); an error stops the solve. Every result
+    is re-checked by the independent verifier. Exit codes: 0 a valid timetable was written, 1 the
+    workbook could not be read or solved, 2 no timetable exists (or none was found in time),
+    3 the solver's result broke a hard rule and was not written, 4 pre-flight found an error.
     """
     data = _report("solve", _read_workbook("solve", workbook))
     if data.result is not None:
         typer.echo("Note: the workbook's Assignments are ignored; they are solved again.")
+    _preflight("solve", data.dataset)
     params = RunParams(time_limit_s=time_limit, num_workers=workers, seed=seed)
     try:
         outcome = solve_model(compile_model(data.dataset), params)

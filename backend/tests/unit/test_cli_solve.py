@@ -10,11 +10,13 @@ from typer.testing import CliRunner
 from tts import cli
 from tts.cli import app
 from tts.core.model import (
+    CapacityRule,
     Dataset,
     Day,
     Event,
     FixedRequirement,
     Period,
+    PooledRequirement,
     Resource,
     StartPattern,
     TimeModel,
@@ -77,15 +79,21 @@ def test_solve_keeps_the_workbooks_extras_and_ignores_old_assignments(tmp_path: 
     assert original is not None and original.result != data.result
 
 
-def test_solve_reports_an_impossible_timetable_with_exit_code_2(tmp_path: Path) -> None:
-    dataset = Dataset(
+def one_period_dataset(*, rooms: int, groups_per_event: bool) -> Dataset:
+    """Two events in a single period. With `groups_per_event` each has its own group."""
+    resources = [Resource(code="PR1", type="Programme")]
+    resources += [
+        Resource(code=f"g{i}", type="StudentGroup", parent="PR1", capacity=10) for i in (1, 2)
+    ]
+    resources += [
+        Resource(code=f"R{i}", type="Room", capacity=10, tags=(("room_type", "lab"),))
+        for i in range(rooms)
+    ]
+    return Dataset(
         preset="academic_weekly",
         resource_types=PRESET.resource_types,
         reference_types=PRESET.reference_types,
-        resources=(
-            Resource(code="PR1", type="Programme"),
-            Resource(code="g1", type="StudentGroup", parent="PR1", capacity=10),
-        ),
+        resources=tuple(resources),
         time=TimeModel(
             days=(Day(code="Mon", order=1),),
             periods=(Period(code="P1", start=time(8), end=time(9), order=1),),
@@ -97,19 +105,50 @@ def test_solve_reports_an_impossible_timetable_with_exit_code_2(tmp_path: Path) 
         ),
         fixed=(
             FixedRequirement(event="a", resource="g1"),
-            FixedRequirement(event="b", resource="g1"),
+            FixedRequirement(event="b", resource="g2" if groups_per_event else "g1"),
         ),
+        pooled=tuple(
+            PooledRequirement(
+                event=e,
+                resource_type="Room",
+                filter="tag:room_type=lab",
+                capacity_rule=CapacityRule.parse("sum_of_fixed:StudentGroup"),
+            )
+            for e in ("a", "b")
+        )
+        if rooms
+        else (),
     )
+
+
+def test_solve_reports_an_impossible_timetable_with_exit_code_2(tmp_path: Path) -> None:
+    """Pre-flight can't see this one: two events, one room, one period (only a pressure warning)."""
     source = tmp_path / "impossible.xlsx"
-    export_xlsx(WorkbookData(dataset), source)
+    export_xlsx(WorkbookData(one_period_dataset(rooms=1, groups_per_event=True)), source)
     out = tmp_path / "out.xlsx"
     result = runner.invoke(app, solve_args(source, out))
     assert result.exit_code == 2, result.output
+    assert "WARNING pooled_pressure: Room tag:room_type=lab: 2 periods needed, 1 available" in (
+        result.output
+    )
     assert "no timetable exists" in result.output
     assert not out.exists()
 
 
-def test_solve_says_why_an_event_cannot_be_placed(tmp_path: Path) -> None:
+def test_solve_is_blocked_by_a_preflight_error_with_exit_code_4(tmp_path: Path) -> None:
+    """Two events on one group in one period: pre-flight sees the over-demand and stops."""
+    source = tmp_path / "blocked.xlsx"
+    export_xlsx(WorkbookData(one_period_dataset(rooms=0, groups_per_event=False)), source)
+    out = tmp_path / "out.xlsx"
+    result = runner.invoke(app, solve_args(source, out))
+    assert result.exit_code == 4, result.output
+    assert "ERROR over_demand: Group g1: needs 2 periods, 1 available" in result.output
+    assert "Pre-flight: 1 error(s), 0 warning(s)." in result.output
+    assert "Solver:" not in result.output  # it never got as far as solving
+    assert not out.exists()
+
+
+def test_solve_reports_a_teacher_with_no_free_periods_before_solving(tmp_path: Path) -> None:
     def block_a_teacher(workbook: object) -> None:
         availability = workbook["Availability"]  # type: ignore[index]
         periods = [c.value for c in workbook["Periods"]["A"][1:]]  # type: ignore[index]
@@ -118,9 +157,45 @@ def test_solve_says_why_an_event_cannot_be_placed(tmp_path: Path) -> None:
                 availability.append(["HAWE", day, period, "unavailable"])
 
     broken = edited(import_to(tmp_path, "l6.xlsx"), tmp_path / "broken.xlsx", block_a_teacher)
+    out = tmp_path / "out.xlsx"
+    result = runner.invoke(app, solve_args(broken, out))
+    assert result.exit_code == 4
+    assert "ERROR over_demand: Teacher HAWE: needs 16 periods, 0 available" in result.output
+    assert not out.exists()
+
+
+def test_solve_says_why_an_event_cannot_be_placed(tmp_path: Path) -> None:
+    """A pin on a slot where the teacher is unavailable: pre-flight passes, compiling finds it."""
+
+    def pin_onto_a_blocked_slot(workbook: object) -> None:
+        workbook["Availability"].append(["THE", "Mon", "P01", "unavailable"])  # type: ignore[index]
+        workbook["Pins"].append(["6BUIS019C-LEC-01", "Mon", "P01", None, "user"])  # type: ignore[index]
+
+    broken = edited(
+        import_to(tmp_path, "l6.xlsx"), tmp_path / "pinned.xlsx", pin_onto_a_blocked_slot
+    )
     result = runner.invoke(app, solve_args(broken, tmp_path / "out.xlsx"))
-    assert result.exit_code == 2
+    assert result.exit_code == 2, result.output
+    assert "Pre-flight: 0 error(s), 0 warning(s)." in result.output
     assert "has no start left after availability and pins" in result.output
+
+
+def test_solve_prints_preflight_warnings_and_carries_on(tmp_path: Path) -> None:
+    def add_empty_scope(workbook: object) -> None:
+        row = ["C1", "max_gaps", "type:Nothing", '{"max": 2}', False, 1, True]
+        workbook["Constraints"].append(row)  # type: ignore[index]
+
+    source = edited(import_to(tmp_path, "l6.xlsx"), tmp_path / "warn.xlsx", add_empty_scope)
+    result = runner.invoke(app, solve_args(source, tmp_path / "out.xlsx"))
+    assert result.exit_code == 0, result.output
+    assert "WARNING empty_scope: C1: scope matches nothing" in result.output
+    assert "Pre-flight: 0 error(s), 1 warning(s)." in result.output
+
+
+def test_solve_reports_a_clean_preflight(tmp_path: Path) -> None:
+    result = runner.invoke(app, solve_args(import_to(tmp_path, "l6.xlsx"), tmp_path / "out.xlsx"))
+    assert result.exit_code == 0, result.output
+    assert "Pre-flight: 0 error(s), 0 warning(s)." in result.output
 
 
 def test_solve_refuses_a_hard_constraint_it_cannot_compile(tmp_path: Path) -> None:

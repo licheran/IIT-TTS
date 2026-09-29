@@ -15,8 +15,25 @@ L6_HTML = Path(__file__).resolve().parents[1] / "fixtures" / "l6" / "fet-groups-
 def test_help_lists_every_command() -> None:
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    for command in ("solve", "validate", "import-fet", "export"):
+    for command in ("solve", "validate", "preflight", "import-fet", "export"):
         assert command in result.output
+
+
+def test_the_cli_reference_documents_every_command_and_option() -> None:
+    """docs/cli.md must not drift from the commands: each has a section naming all its options."""
+    from typer.main import get_command
+
+    page = (Path(__file__).resolve().parents[3] / "docs" / "cli.md").read_text("utf-8")
+    sections = {
+        part.split("`", 1)[0]: part for part in page.split("\n## `tts ")[1:]
+    }  # "solve" -> the text of its section
+    commands = get_command(app).commands  # type: ignore[attr-defined]
+    assert sorted(commands) == sorted(sections)
+    for name, command in commands.items():
+        for parameter in command.params:
+            for option in parameter.opts:
+                if option.startswith("--") and option != "--help":
+                    assert f"`{option}`" in sections[name], f"tts {name} {option} is undocumented"
 
 
 def test_import_fet_writes_a_json_that_loads_back_into_the_same_dataset(tmp_path: Path) -> None:
