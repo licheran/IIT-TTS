@@ -16,7 +16,7 @@
 - [x] P4.3 `solver/solve.py`: apply `RunParams` (spec 05 §4.4). Return `SolveOutcome(status, result|None, stats)`.
 - [x] P4.4 `solver/decode.py`: build the `Result` from the solution.
 - [x] P4.5 `cli.py solve`: workbook in, result workbook out (with the `Assignments` sheet), print the stats and verifier summary. Exit code 0 when feasible, 2 when infeasible, 3 when invalid.
-- [ ] P4.6 Tests, all asserting through the verifier:
+- [x] P4.6 Tests, all asserting through the verifier:
   - Every Phase 1 mini case, solved.
   - Property test: random feasible datasets (generated from a random valid assignment) always solve with 0 violations.
 - [ ] P4.7 L6 tests:
