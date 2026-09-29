@@ -6,7 +6,7 @@ IIT-TTS is an open, data-driven scheduling application. You describe your world 
 
 The first built-in preset is **academic weekly timetabling**: lectures and tutorials for many levels, degree programmes and awarding universities, spread across several buildings and sharing teachers and rooms. The core engine is domain-neutral, so exams, staff rosters and room booking are future presets, not rewrites.
 
-> Status: **pre-alpha. The backend engine works from the command line; there is no web app yet.** Phases 1–4 are done: the core model and verifier, the L6 regression fixture, Excel/CSV import and export, and the CP-SAT solver for the hard rules. Phase 5 (pre-flight checks and infeasibility explanations) is under way: the pre-flight checks work, the explanations are next. See [`docs/STATUS.md`](docs/STATUS.md).
+> Status: **pre-alpha. The backend engine works from the command line; there is no web app yet.** Phases 1–5 are done: the core model and verifier, the L6 regression fixture, Excel/CSV import and export, the CP-SAT solver for the hard rules, pre-flight checks and infeasibility explanations. Phase 6 (database, API and worker) is next. See [`docs/STATUS.md`](docs/STATUS.md).
 
 ## How it works
 
@@ -32,7 +32,7 @@ Excel/CSV or table editor ──► Validate ──► Expand templates ──�
 | Declared constraints (the catalogue in [spec 04](docs/spec/04-constraints.md)) | Phase 8. `tts solve` refuses a workbook that declares a hard one, and warns about a soft one. |
 | Expand templates | Phase 9. |
 | Pre-flight checks | Works (`tts preflight`, and before every `tts solve`). Errors such as a resource needing more periods than it has stop the solve with exit code 4. |
-| Infeasibility explanations | Phase 5 (in progress): "which rules conflict" when the solver proves there is no timetable. |
+| Infeasibility explanations | Works. When no timetable exists, `tts solve` names a minimal set of conflicting rules, for example `Conflicting rules: pin of A to Tue P06 Auditorium; pin of B to Tue P06 Auditorium; no_overlap(Auditorium)`. |
 | Saved runs, API, web app, grids, HTML export | Phases 6–7. |
 
 ## Documentation

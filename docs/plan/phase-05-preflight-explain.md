@@ -14,7 +14,7 @@
   - Teacher HAWE is made unavailable Tue–Sat (over-demand). (Tue–Fri leaves Mon and Sat, 26 periods for 16 needed, so it cannot trigger over-demand; changed with the user's approval, 2026-09-29.)
   - Two pins are put on the same room and slot (conflicting pins).
   - A hard `max_days: 1` is set for the `L6 SE / G1` group (infeasible core names that constraint). This case waits until Phase 8 adds `max_days`, so leave its test marked xfail until then.
-- [ ] P5.5 A timing test: pre-flight on L6 takes ≤ 1 s (NFR-7).
+- [x] P5.5 A timing test: pre-flight on L6 takes ≤ 1 s (NFR-7).
 
 ## Acceptance
 - Each broken variant produces the expected issue or diagnostic, with the right entity codes.
