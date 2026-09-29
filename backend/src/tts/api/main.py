@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from tts.api.errors import install_error_handlers
-from tts.api.routers import datasets, io, runs, tables
+from tts.api.routers import datasets, io, results, runs, tables
 from tts.store.db import database_url, make_engine, make_session_factory, upgrade
 
 
@@ -33,6 +33,7 @@ def create_app(url: str | None = None, migrate: bool = True) -> FastAPI:
     app.include_router(tables.router)
     app.include_router(io.router)
     app.include_router(runs.router)
+    app.include_router(results.router)
     return app
 
 

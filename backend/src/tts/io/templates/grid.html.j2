@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ title }}</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 1.5rem; color: #1f2933; }
+  h1 { font-size: 1.4rem; }
+  h2 { font-size: 1.1rem; margin: 2rem 0 .5rem; page-break-after: avoid; }
+  .type { color: #616e7c; font-weight: normal; font-size: .85rem; }
+  .grid { display: grid; grid-template-columns: 5.5rem repeat({{ days|length }}, minmax(7rem, 1fr));
+          grid-auto-rows: minmax(2.6rem, auto); border-top: 1px solid #cbd2d9; border-left: 1px solid #cbd2d9; }
+  .head, .time, .slot { border-right: 1px solid #cbd2d9; border-bottom: 1px solid #cbd2d9; padding: .2rem .4rem; font-size: .8rem; }
+  .head { font-weight: 600; background: #f0f4f8; text-align: center; }
+  .time { background: #f0f4f8; color: #52606d; }
+  .slot.break { background: #f5f7fa; }
+  .event { position: relative; z-index: 1; margin: 2px; padding: .25rem .4rem; border-radius: 4px; font-size: .78rem;
+           background: #e0eefb; border: 1px solid #7cb0e6; overflow: hidden; }
+  .event b { display: block; }
+  .event .muted { color: #52606d; }
+  @media print { h2 { break-before: page; } h2:first-of-type { break-before: auto; } }
+</style>
+</head>
+<body>
+<h1>{{ title }}</h1>
+{% for g in grids %}
+<h2>{{ g.resource }}{% if g.name %} — {{ g.name }}{% endif %} <span class="type">{{ g.type_label }}</span></h2>
+{% if not g.grid.cells %}<p>No events.</p>{% endif %}
+<div class="grid">
+  <div class="head" style="grid-row:1;grid-column:1"></div>
+  {% for d in g.grid.days %}<div class="head" style="grid-row:1;grid-column:{{ loop.index + 1 }}">{{ d.label }}</div>{% endfor %}
+  {% for p in g.grid.periods %}
+    {% set r = loop.index + 1 %}
+    <div class="time" style="grid-row:{{ r }};grid-column:1">{{ p.start }}–{{ p.end }}</div>
+    {% for d in g.grid.days %}<div class="slot{% if p.is_break %} break{% endif %}" style="grid-row:{{ r }};grid-column:{{ loop.index + 1 }}"></div>{% endfor %}
+  {% endfor %}
+  {% for c in g.grid.cells %}
+  <div class="event" style="grid-row:{{ c.row + 2 }} / span {{ c.span }};grid-column:{{ c.day_index + 2 }};
+       width:calc({{ 100 // c.lanes }}% - 4px);margin-left:calc({{ 100 * c.lane // c.lanes }}% + 2px);"
+       title="{{ c.event }}">
+    <b>{{ c.reference or c.event }}</b>
+    <span>{{ kind_label(c.kind) }} · {{ c.event }}</span>
+    {% if c.fixed %}<span class="muted">{{ c.fixed|join(', ') }}</span>{% endif %}
+    {% if c.chosen %}<span class="muted">{{ c.chosen|join(', ') }}</span>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+</body>
+</html>
