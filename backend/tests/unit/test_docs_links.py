@@ -17,6 +17,7 @@ FENCE = re.compile(r"```.*?```", re.DOTALL)
 
 def markdown_files() -> list[Path]:
     files = [ROOT / "README.md", ROOT / "CLAUDE.md", ROOT / "backend" / "CLAUDE.md"]
+    files += [ROOT / "backend" / "README.md"]
     files += [
         ROOT / "web" / "CLAUDE.md",
         ROOT / "backend" / "tests" / "fixtures" / "l6" / "README.md",
