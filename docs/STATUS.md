@@ -1,7 +1,7 @@
 # Status
 
 **Current phase:** 0 — [Project setup](plan/phase-00-setup.md)
-**Next task:** P0.3
+**Next task:** P0.4
 **Format version:** workbook `format_version` 1
 
 ## Pinned versions
@@ -22,3 +22,4 @@ _To be recorded in P0.8._
 | 2026-09-29 | — | Renamed product to IIT-TTS (IIT TimeTabling Solution); Python package and CLI renamed `timetabler` → `tts`. |
 | 2026-09-29 | P0.1 | `backend/` uv package `tts` with empty package tree, exact-pinned deps (`uv.lock` committed), ruff, mypy (strict override for `tts.core.*`), pytest markers `scale`/`integration`. Smoke test imports every package. Toolchain: uv 0.12.20, Python 3.12.10, Node 24.18.0, pnpm 12.6.0, Docker 29.8.1. Console script is still the `uv init` placeholder (`tts:main`); P0.2 replaces it with `tts.cli:app`. |
 | 2026-09-29 | P0.2 | `tts` Typer app with stub `solve`, `validate`, `import-fet`, `export` (exit 1, "not implemented"), registered as `tts.cli:app`. |
+| 2026-09-29 | P0.3 | FastAPI app in `tts/api/main.py` with `GET /health` and an integration test. Follow-up: Starlette's `TestClient` now warns that `httpx` is deprecated in favour of `httpx2`; spec 06 §7 names `httpx`, so left unchanged pending a decision. |
