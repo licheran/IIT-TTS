@@ -1,0 +1,7 @@
+dist
+pnpm-lock.yaml
+src/api/schema.ts
+playwright-report
+test-results
+CLAUDE.md
+openapi.json
