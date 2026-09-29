@@ -378,6 +378,13 @@ class Dataset(_Frozen):
             if code not in known:
                 add("unknown_reference", table, key, f'unknown {what} "{code}"')
 
+        # Imported here because hierarchy imports this module.
+        from tts.core.hierarchy import detect_cycles
+
+        for cycle in detect_cycles(self):
+            path = " → ".join((*cycle, cycle[0]))
+            add("hierarchy_cycle", "resource", cycle[0], f"parent cycle: {path}")
+
         duplicates("resource_type", (t.code for t in self.resource_types))
         duplicates("resource", (r.code for r in self.resources))
         duplicates("reference_type", (t.code for t in self.reference_types))
