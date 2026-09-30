@@ -285,6 +285,59 @@
         }
       }
     },
+    "/datasets/{dataset_id}/expand": {
+      "post": {
+        "tags": [
+          "datasets"
+        ],
+        "summary": "Expand Templates",
+        "description": "Preview (default) or commit the expansion of the dataset's templates into activities.",
+        "operationId": "expand_templates_datasets__dataset_id__expand_post",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Dataset Id"
+            }
+          },
+          {
+            "name": "commit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Commit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpandOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/datasets/{dataset_id}/preflight": {
       "post": {
         "tags": [
@@ -1484,6 +1537,24 @@
             "type": "string",
             "title": "Label",
             "default": ""
+          },
+          "stored_as": {
+            "items": {
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array",
+              "maxItems": 2,
+              "minItems": 2
+            },
+            "type": "array",
+            "title": "Stored As",
+            "default": []
           }
         },
         "additionalProperties": false,
@@ -1682,6 +1753,62 @@
         ],
         "title": "EventChange",
         "description": "How one event differs between two results.\n\n`kind` is `moved`, `resources`, `added` or `removed`."
+      },
+      "ExpandOut": {
+        "properties": {
+          "committed": {
+            "type": "boolean",
+            "title": "Committed"
+          },
+          "added": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Added",
+            "default": []
+          },
+          "changed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Changed",
+            "default": []
+          },
+          "removed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Removed",
+            "default": []
+          },
+          "orders_added": {
+            "type": "integer",
+            "title": "Orders Added",
+            "default": 0
+          },
+          "orders_removed": {
+            "type": "integer",
+            "title": "Orders Removed",
+            "default": 0
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Problems",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "committed"
+        ],
+        "title": "ExpandOut",
+        "description": "What expanding the templates changes: activity codes, and ordering constraints."
       },
       "Grid": {
         "properties": {

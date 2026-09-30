@@ -172,6 +172,25 @@ export function exportUrl(id: number, format: 'xlsx' | 'csvzip') {
   return `${API_BASE}/datasets/${id}/export?format=${format}`
 }
 
+/** Preview (commit=false) or commit the expansion of the dataset's templates. */
+export function useExpand(id: number) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (commit: boolean) =>
+      unwrap(
+        api.POST('/datasets/{dataset_id}/expand', {
+          params: { path: { dataset_id: id }, query: { commit } },
+        }),
+      ),
+    onSuccess: (result) => {
+      if (result.committed) {
+        void client.invalidateQueries({ queryKey: keys.tables(id) })
+        void client.invalidateQueries({ queryKey: keys.preflight(id) })
+      }
+    },
+  })
+}
+
 export function usePreflight(id: number) {
   return useQuery({
     queryKey: keys.preflight(id),

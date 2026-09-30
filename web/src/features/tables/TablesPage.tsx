@@ -1,6 +1,7 @@
 import { NavLink, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { useSchema } from '@/api/hooks'
 import { cn } from '@/lib/utils'
+import { ExpandPanel } from './ExpandPanel'
 import { SheetEditor } from './SheetEditor'
 
 /** One tab per sheet of the preset, taken from the dataset's schema. */
@@ -41,6 +42,7 @@ export function TablesPage({ datasetId }: { datasetId: number }) {
           </NavLink>
         ))}
       </nav>
+      {current.target === 'template' && <ExpandPanel datasetId={datasetId} />}
       <SheetEditor
         key={current.name}
         datasetId={datasetId}

@@ -10,6 +10,7 @@ const col = (over: Partial<ColumnDef>): ColumnDef => ({
   allow_star: false,
   choices: [],
   label: '',
+  stored_as: [],
   ...over,
 })
 

@@ -98,6 +98,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/datasets/{dataset_id}/expand": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Expand Templates
+         * @description Preview (default) or commit the expansion of the dataset's templates into activities.
+         */
+        post: operations["expand_templates_datasets__dataset_id__expand_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/datasets/{dataset_id}/preflight": {
         parameters: {
             query?: never;
@@ -469,6 +489,14 @@ export interface components {
              * @default
              */
             label: string;
+            /**
+             * Stored As
+             * @default []
+             */
+            stored_as: [
+                string,
+                string
+            ][];
         };
         /** DatasetCreate */
         DatasetCreate: {
@@ -551,6 +579,44 @@ export interface components {
             kind: string;
             before: components["schemas"]["Placement"] | null;
             after: components["schemas"]["Placement"] | null;
+        };
+        /**
+         * ExpandOut
+         * @description What expanding the templates changes: activity codes, and ordering constraints.
+         */
+        ExpandOut: {
+            /** Committed */
+            committed: boolean;
+            /**
+             * Added
+             * @default []
+             */
+            added: string[];
+            /**
+             * Changed
+             * @default []
+             */
+            changed: string[];
+            /**
+             * Removed
+             * @default []
+             */
+            removed: string[];
+            /**
+             * Orders Added
+             * @default 0
+             */
+            orders_added: number;
+            /**
+             * Orders Removed
+             * @default 0
+             */
+            orders_removed: number;
+            /**
+             * Problems
+             * @default []
+             */
+            problems: string[];
         };
         /** Grid */
         Grid: {
@@ -1179,6 +1245,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SchemaOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    expand_templates_datasets__dataset_id__expand_post: {
+        parameters: {
+            query?: {
+                commit?: boolean;
+            };
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpandOut"];
                 };
             };
             /** @description Validation Error */
