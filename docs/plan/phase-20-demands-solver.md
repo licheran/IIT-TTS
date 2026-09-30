@@ -34,8 +34,8 @@
 
   The run store keeps created events (a migration: `assignment` rows may point to a created event with its demand, kind and participants). The solver still writes only `assignment` and `assigned_resource` rows (rule 3).
 - [x] P20.6 Explanation: one rule set of kind `demand` per participant and demand. It covers the participant's block membership and the block sizes. Test: a demand whose groups can't all fit into the periods they have free is explained with the group and the module named.
-- [ ] P20.7 Decomposition (spec 05 §7) with demands. Either the times-first half fixes membership and times, and the second half chooses rooms and teachers; or decomposition is switched off for configured datasets, and the reason is recorded. Measure both on the P20.8 dataset and pick one, recording it in STATUS.
-- [ ] P20.8 Measure:
+- [x] P20.7 Decomposition (spec 05 §7) with demands. Either the times-first half fixes membership and times, and the second half chooses rooms and teachers; or decomposition is switched off for configured datasets, and the reason is recorded. Measure both on the P20.8 dataset and pick one, recording it in STATUS.
+- [ ] P20.8 Measure (L6-sized target met; the synthetic institute target is **missed**, see STATUS):
   - a configured dataset the size of L6 (the L6 modules, groups, teachers and rooms, with session types instead of hand-made activities; assumptions recorded in `_meta`), built in the core for now;
   - target: feasible in ≤ 120 s on 4 cores, and the verifier finds 0 hard violations;
   - a `scale` test: the Phase 10 synthetic institute written as demands; report the time.

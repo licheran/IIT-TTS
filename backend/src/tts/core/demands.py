@@ -12,11 +12,13 @@ from dataclasses import dataclass
 
 from tts.core.hierarchy import Hierarchy
 from tts.core.model import (
+    Assignment,
     CreatedEvent,
     Dataset,
     Demand,
     Event,
     FixedRequirement,
+    PooledChoice,
     PooledRequirement,
     Resource,
     Result,
@@ -163,13 +165,15 @@ def placeholder_code(demand: str, block: int, repetition: int) -> str:
     return f"{demand}@{block}.{repetition}"
 
 
-def materialise(dataset: Dataset) -> Materialised:
+def materialise(dataset: Dataset, greedy: bool = False) -> Materialised:
     """Make a dataset's demands concrete (ADR-0007, spec 05 section 2.2).
 
     For each demand: its declared events (edits) are grouped into blocks by their participants;
     each edited block gets the repetitions it lacks. The participants left over fill the other
     blocks. When only one split is possible (one block left, or blocks of one participant each)
-    those blocks get their participants here; otherwise the solver chooses them (`free`).
+    those blocks get their participants here; otherwise the solver chooses them (`free`). With
+    `greedy`, those too get the default split (participants in order of code, cut into even
+    blocks), so nothing is left for the solver to choose: a fast first attempt for large datasets.
     """
     if not dataset.demands:
         return Materialised(dataset)
@@ -274,6 +278,11 @@ def materialise(dataset: Dataset) -> Materialised:
         elif high == 1:
             for participant in rest:
                 add_block((participant,), [])
+        elif greedy:
+            cursor = 0
+            for size in block_sizes(len(rest), open_blocks):
+                add_block(tuple(rest[cursor : cursor + size]), [])
+                cursor += size
         else:
             free[d.code] = tuple(rest)
             for _ in range(open_blocks):
@@ -320,3 +329,55 @@ def realise(dataset: Dataset, result: Result) -> Dataset:
             "pooled": tuple(sorted(pooled, key=lambda q: (q.event, q.ordinal))),
         }
     )
+
+
+def with_edits(dataset: Dataset, result: Result) -> Result:
+    """A run's result with the dataset's edits applied (spec 05 section 2.2).
+
+    An edit is a declared event of a demand. When the run created a session with the same code,
+    that session is now the edit: it leaves `created` and takes the edit's pins (an edited day,
+    start, room or teacher) in place of the run's values. Everything else is unchanged. The
+    verifier can then judge the timetable as the user sees it, before any rebuild.
+    """
+    edits = {e.code: e for e in dataset.events if e.demand is not None}
+    if not edits:
+        return result
+    demands = {d.code: d for d in dataset.demands}
+    kinds = {r.code: r.type for r in dataset.resources}
+    pins: dict[str, list] = defaultdict(list)  # type: ignore[type-arg]
+    for pin in dataset.pins:
+        pins[pin.event].append(pin)
+    assignments = []
+    for a in result.assignments:
+        edit = edits.get(a.event)
+        if edit is None or edit.demand not in demands:
+            assignments.append(a)
+            continue
+        specs = {s.ordinal: s for s in demands[edit.demand].pooled}
+        day, start = a.day, a.start_period
+        chosen = {c.ordinal: list(c.resources) for c in a.chosen}
+        pinned: dict[int, list[str]] = defaultdict(list)
+        for pin in pins.get(a.event, ()):
+            day = pin.day or day
+            start = pin.start_period or start
+            for resource in pin.resources:
+                ordinal = next(
+                    (o for o, s in specs.items() if s.resource_type == kinds.get(resource)), None
+                )
+                if ordinal is not None and resource not in pinned[ordinal]:
+                    pinned[ordinal].append(resource)
+        for ordinal, resources in pinned.items():
+            kept = [r for r in chosen.get(ordinal, []) if r not in resources]
+            chosen[ordinal] = [*resources, *kept][: specs[ordinal].count]
+        assignments.append(
+            Assignment(
+                event=a.event,
+                day=day,
+                start_period=start,
+                chosen=tuple(
+                    PooledChoice(ordinal=o, resources=tuple(rs)) for o, rs in chosen.items()
+                ),
+            )
+        )
+    created = tuple(c for c in result.created if c.code not in edits)
+    return Result(assignments=tuple(assignments), created=created)

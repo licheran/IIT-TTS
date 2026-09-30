@@ -32,7 +32,7 @@ from tts.solver.registry import compile_declared
 
 
 def compile_model(
-    dataset: Dataset, explain: bool = False, times_only: bool = False
+    dataset: Dataset, explain: bool = False, times_only: bool = False, greedy: bool = False
 ) -> CompileContext:
     """The model of `dataset`. A dataset with no possible solution still compiles: the context
     records why in `problems`, and the model is infeasible.
@@ -40,8 +40,9 @@ def compile_model(
     `explain=True` builds the guarded model used to explain infeasibility. `times_only=True`
     builds the first half of the decomposition (spec 05 section 7, `solver/decompose.py`): start
     times only, with each pool's capacity as the only rule on pooled resources.
+    `greedy=True` gives every demand its default split instead of leaving it to the solver.
     """
-    materialised = materialise(dataset)  # demands become events and blocks (ADR-0007)
+    materialised = materialise(dataset, greedy)  # demands become events and blocks
     ctx = CompileContext(materialised.dataset, explain=explain)
     ctx.materialised = materialised
     ctx.times_only = times_only
@@ -328,8 +329,14 @@ def _demand_membership(ctx: CompileContext, unavailable: Blocked) -> None:
                     if not any(sizes):
                         continue
                     load = sum(s * x[i][bi] for i, s in enumerate(sizes) if s)
+                    candidates = ctx.candidates.get((event, q.ordinal), ())
+                    biggest = max((ctx.resources[r].capacity or 0 for r in candidates), default=0)
+                    if candidates and sum(sizes) > biggest and not ctx.explain:
+                        model.add(load <= biggest)  # no room is bigger: a block must fit it
+                    if ctx.times_only:
+                        continue  # the rooms are chosen in the second step
                     requirement_guard = ctx.guard("requirement", event, str(q.ordinal))
-                    for resource in ctx.candidates.get((event, q.ordinal), ()):
+                    for resource in candidates:
                         capacity = ctx.resources[resource].capacity or 0
                         if sum(sizes) <= capacity:
                             continue  # it seats everyone, whatever the block

@@ -17,6 +17,7 @@ at pooled choices or at resources that can be chosen. Otherwise, and for small m
 `solve_dataset` solves the full model directly. Every result is verified by the caller as usual.
 """
 
+import dataclasses
 import time
 from collections.abc import Callable
 
@@ -24,6 +25,7 @@ from tts.core.candidates import Candidates
 from tts.core.constraints.catalogue import CATALOGUE
 from tts.core.constraints.declared import InvalidConstraintError, parse_instance
 from tts.core.constraints.registry import declared_type
+from tts.core.demands import materialise, realise
 from tts.core.hierarchy import Hierarchy
 from tts.core.model import Dataset, Pin
 from tts.core.run import RunParams
@@ -111,8 +113,30 @@ def solve_dataset(
     control: SolveControl | None = None,
 ) -> SolveOutcome:
     """Solve a dataset, decomposing it when that is safe and worthwhile."""
-    # Demands are solved whole: membership ties times, rooms and teachers together (P20.7).
-    if not dataset.demands and candidate_count(dataset) > DECOMPOSE_ABOVE and decomposable(dataset):
+    # For demands, the analysis looks at the sessions the solver will create (ADR-0007).
+    materialised = materialise(dataset) if dataset.demands else None
+    analysed = materialised.dataset if materialised is not None else dataset
+    large = candidate_count(analysed) > DECOMPOSE_ABOVE
+    split = large and decomposable(analysed)
+    if large and materialised is not None and materialised.free:
+        # Choosing who shares a session adds a great many choices, so a large dataset first
+        # tries the default split. If no timetable exists with it, the solver chooses (below).
+        started = time.monotonic()
+        first = params.model_copy(update={"time_limit_s": params.time_limit_s / 2})
+        tried = (
+            solve_decomposed(dataset, first, on_progress, control, greedy=True)
+            if split
+            else solve_model(compile_model(dataset, greedy=True), first, on_progress, control)
+        )
+        if tried.result is not None or (control is not None and control.stopped):
+            note = (
+                "participants were split by the default split (even blocks, in order of code); "
+                "the solver did not search other splits"
+            )
+            return dataclasses.replace(tried, warnings=(*tried.warnings, note))
+        left = max(params.time_limit_s - (time.monotonic() - started), 0.05)
+        params = params.model_copy(update={"time_limit_s": left})
+    if split:
         return solve_decomposed(dataset, params, on_progress, control)
     return solve_model(compile_model(dataset), params, on_progress, control)
 
@@ -122,13 +146,16 @@ def solve_decomposed(
     params: RunParams,
     on_progress: Progress | None = None,
     control: SolveControl | None = None,
+    greedy: bool = False,
 ) -> SolveOutcome:
     started = time.monotonic()
 
     def left() -> float:
         return max(params.time_limit_s - (time.monotonic() - started), 0.05)
 
-    times = solve_model(compile_model(dataset, times_only=True), params, on_progress, control)
+    times = solve_model(
+        compile_model(dataset, times_only=True, greedy=greedy), params, on_progress, control
+    )
     if times.result is None or (control is not None and control.stopped):
         return times  # infeasible, out of time or cancelled: no timetable either way
     decided = {p.event: p.resources for p in dataset.pins if p.resources}
@@ -142,17 +169,22 @@ def solve_decomposed(
         )
         for a in times.result.assignments
     )
-    pinned = dataset.model_copy(update={"pins": pins})
+    # With demands, the times step also chose the blocks: the sessions it created become
+    # ordinary events here, so the second step only chooses rooms and teachers.
+    pinned = realise(dataset, times.result).model_copy(update={"pins": pins})
     resources = solve_model(
         compile_model(pinned), params.model_copy(update={"time_limit_s": left()}), None, control
     )
     if resources.result is not None:
+        kept = resources.result.model_copy(update={"created": times.result.created})
+        resources = dataclasses.replace(resources, result=kept)
         return _combined(times, resources, time.monotonic() - started, "decomposed")
 
     # The capacities were not enough for a matching: solve everything, starting from the times.
-    full = compile_model(dataset)
+    full = compile_model(dataset, greedy=greedy)
     for a in times.result.assignments:
-        full.model.add_hint(full.start[a.event], full.grid.slot(a.day, a.start_period))
+        if a.event in full.start:  # sessions the solver creates have other names in the model
+            full.model.add_hint(full.start[a.event], full.grid.slot(a.day, a.start_period))
     fallback = solve_model(
         full, params.model_copy(update={"time_limit_s": left()}), on_progress, control
     )

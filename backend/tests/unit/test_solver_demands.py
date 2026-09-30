@@ -259,3 +259,78 @@ def test_the_answer_does_not_depend_on_symmetry_breaking(monkeypatch) -> None:  
     with_breaking = blocks_of(solved(availability_split()))
     monkeypatch.setattr(compile_module, "BREAK_SYMMETRY", False)
     assert blocks_of(solved(availability_split())) == with_breaking
+
+
+# --- decomposition: times first, then rooms and teachers (P20.7) -----------------------------
+
+
+def decomposable_dataset() -> Dataset:
+    gs = groups(10, 10, 10, 10, 10, 10)
+    rooms = tuple(res(f"r{i}", "R", capacity=40) for i in range(1, 4))
+    return build(
+        demand(participants=[g.code for g in gs], limit=3, repeat=2, kind="LEC"),
+        demand("d2", participants=[g.code for g in gs], limit=1, kind="TUT"),
+        resources=(*gs, *rooms),
+        days=3,
+        periods=4,
+    )
+
+
+def test_a_decomposed_solve_gives_a_timetable_the_verifier_accepts(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from tts.solver import decompose
+
+    monkeypatch.setattr(decompose, "DECOMPOSE_ABOVE", 0)
+    ds = decomposable_dataset()
+    outcome = decompose.solve_dataset(ds, ONE)
+    assert outcome.result is not None, (outcome.status, outcome.problems)
+    assert [v.message for v in hard_violations(verify(ds, outcome.result))] == []
+    assert any("two steps" in w for w in outcome.warnings)
+    assert len(outcome.result.created) == 2 * 2 + 6  # two lecture blocks twice, six tutorials
+
+
+def test_a_decomposed_solve_keeps_the_sessions_and_groups_of_the_times_step(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from tts.solver import decompose
+
+    monkeypatch.setattr(decompose, "DECOMPOSE_ABOVE", 0)
+    ds = decomposable_dataset()
+    result = decompose.solve_dataset(ds, ONE).result
+    assert result is not None
+    assert {a.event for a in result.assignments} == {c.code for c in result.created}
+    lectures = [c.participants for c in result.created if c.demand == "d1"]
+    assert sorted(len(p) for p in lectures) == [3, 3, 3, 3]
+    assert Counter(lectures) == Counter({p: 2 for p in set(lectures)})  # same companions twice
+
+
+# --- large datasets: the obvious split first, then the solver's own (P20.7) --------------------
+
+
+def test_a_large_dataset_tries_the_default_split_first(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from tts.solver import decompose
+
+    monkeypatch.setattr(decompose, "DECOMPOSE_ABOVE", 0)
+    ds = decomposable_dataset()
+    outcome = decompose.solve_dataset(ds, ONE)
+    assert outcome.result is not None
+    assert any("default split" in w for w in outcome.warnings)
+    lectures = sorted(c.participants for c in outcome.result.created if c.demand == "d1")
+    assert lectures == [("g1", "g2", "g3")] * 2 + [("g4", "g5", "g6")] * 2  # in order of code
+
+
+def test_when_the_default_split_cannot_work_the_solver_finds_another(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """g1 and g3 cannot meet in p1 and g2 and g4 cannot meet in p2: only {g1, g3} with
+    {g2, g4} works, not the default {g1, g2} with {g3, g4}."""
+    from tts.solver import decompose
+
+    monkeypatch.setattr(decompose, "DECOMPOSE_ABOVE", 0)
+    ds = availability_split()
+    outcome = decompose.solve_dataset(ds, ONE)
+    assert outcome.result is not None, (outcome.status, outcome.problems)
+    assert [v.message for v in hard_violations(verify(ds, outcome.result))] == []
+    assert blocks_of(outcome.result) == [("g1", "g3"), ("g2", "g4")]
+    assert not any("default split" in w for w in outcome.warnings)
+
+
+def test_a_small_dataset_lets_the_solver_choose_the_split_at_once() -> None:
+    outcome = solve(availability_split(), ONE)
+    assert outcome.result is not None
+    assert blocks_of(outcome.result) == [("g1", "g3"), ("g2", "g4")]
