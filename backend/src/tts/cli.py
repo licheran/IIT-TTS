@@ -22,7 +22,7 @@ from tts.io.importer import ImportOutcome
 from tts.io.tables import WorkbookData, WorkbookError
 from tts.io.workbook import export_xlsx, import_xlsx
 from tts.preflight.checks import Issue, run_preflight
-from tts.presets import labeller
+from tts.presets import labeller, with_defaults
 from tts.solver.compile import compile_model
 from tts.solver.explain import explain
 from tts.solver.registry import UnsupportedConstraintError
@@ -214,8 +214,15 @@ def import_fet(
     with_assignments: Annotated[
         bool, typer.Option("--with-assignments", help="Also write the export's own placements.")
     ] = False,
+    no_defaults: Annotated[
+        bool,
+        typer.Option("--no-defaults", help="Leave out the preset's default soft constraints."),
+    ] = False,
 ) -> None:
     """Convert a FET groups HTML export into a workbook.
+
+    The preset's default soft constraints (fewer gaps, no Saturday teaching, ...) are added to
+    the Constraints sheet unless `--no-defaults` is given.
 
     Values the export lacks (group sizes, room capacities, ...) are assumptions. They are written
     to the workbook's `_meta` sheet as `assumptions`. A `.json` file holds the dataset, the
@@ -227,6 +234,8 @@ def import_fet(
         dataset, result = to_dataset(fet, assumptions=assumptions)
     except (FetParseError, FetConversionError) as error:
         raise _fail("import-fet", str(error)) from error
+    if not no_defaults:
+        dataset = with_defaults(dataset)
 
     if out.suffix.lower() == ".json":
         payload = {

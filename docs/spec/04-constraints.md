@@ -52,8 +52,10 @@ Rules for every declared type:
 |---|---|---|---|---|---|
 | AC-GAPS | `max_gaps` | `type:StudentGroup` | `{"max": 2, "per": "day"}` | false | 5 |
 | AC-TGAPS | `max_gaps` | `type:Teacher` | `{"max": 3, "per": "day"}` | false | 2 |
-| AC-TRAVEL | `travel_gap` | `type:StudentGroup` | `{"min_periods": 1, "level": "Building"}` | false | 10 |
+| AC-TRAVEL | `travel_gap` | `type:StudentGroup` | `{"min_periods": 1, "level": "Building"}` | false | 10 (inactive by default) |
 | AC-SAT | `preferred_times` | `kind:LEC,TUT` | all non-Saturday slots | false | 3 |
+
+`AC-TRAVEL` is created with `active: false`: the institute needs no free period for a change of building (answered 2026-09-30), and a user can switch it on. `AC-SAT` exists only when the time model has a Saturday. The defaults are added to new datasets and to `tts import-fet` output (unless `--no-defaults`).
 
 Lecture-before-tutorial ordering is added per module by the expander (`05-solver.md` §2) as soft `order` constraints with weight 1.
 

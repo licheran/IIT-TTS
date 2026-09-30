@@ -34,8 +34,10 @@ L6_HTML = Path(__file__).resolve().parents[1] / "fixtures" / "l6" / "fet-groups-
 
 
 def import_to(tmp_path: Path, name: str, *extra: str) -> Path:
+    """L6 as a workbook with the hard rules only: these tests are about the command, not scoring."""
     out = tmp_path / name
-    result = runner.invoke(app, ["import-fet", str(L6_HTML), "--out", str(out), *extra])
+    args = ["import-fet", str(L6_HTML), "--out", str(out), "--no-defaults", *extra]
+    result = runner.invoke(app, args)
     assert result.exit_code == 0, result.output
     return out
 

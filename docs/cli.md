@@ -42,7 +42,7 @@ Code 2 means different things for `solve`; see below.
 Convert a FET "groups" HTML export into a workbook.
 
 ```
-tts import-fet <html> --out <file> [--with-assignments]
+tts import-fet <html> --out <file> [--with-assignments] [--no-defaults]
 ```
 
 | Argument or option | Meaning |
@@ -50,6 +50,7 @@ tts import-fet <html> --out <file> [--with-assignments]
 | `<html>` | The FET groups HTML export. Must exist. |
 | `--out`, `-o` | File to write: `.xlsx`, `.zip` (CSV) or `.json`. Required. |
 | `--with-assignments` | Also write the export's own placements (an `Assignments` sheet). Off by default, so the workbook holds the configuration only. |
+| `--no-defaults` | Leave out the preset's default soft constraints. By default the `Constraints` sheet gets them: `AC-GAPS` and `AC-TGAPS` (fewer gaps for groups and teachers), `AC-SAT` (no Saturday teaching) and `AC-TRAVEL` (inactive; see spec 04 §3). The committed `l6.xlsx` fixture is written with `--no-defaults`. |
 
 The export has no group sizes, room capacities or room types, so those are **assumptions** (group size 30, Auditorium 250, other rooms 30 × the most groups seen in one event in that room, and so on). They are written to the workbook's `_meta` sheet under `assumptions`, and listed in the fixture's [README](../backend/tests/fixtures/l6/README.md). Replace them with real values before trusting a solve.
 
@@ -66,6 +67,7 @@ The command prints `Read N groups and M events; wrote <file>.`, then one `Anomal
 ```bash
 uv run tts import-fet tests/fixtures/l6/fet-groups-export.html --out l6.local.xlsx
 uv run tts import-fet tests/fixtures/l6/fet-groups-export.html --out l6-full.local.xlsx --with-assignments
+uv run tts import-fet tests/fixtures/l6/fet-groups-export.html --out tests/fixtures/l6/l6.xlsx --no-defaults
 ```
 
 The L6 export contains real teacher codes. Name generated files `*.local.xlsx`, which git ignores.

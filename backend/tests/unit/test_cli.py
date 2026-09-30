@@ -5,8 +5,9 @@ from typer.testing import CliRunner
 
 from tts.cli import app
 from tts.core.model import Dataset, Result
-from tts.core.verifier import verify
+from tts.core.verifier import hard_violations, verify
 from tts.io.fet_html import parse_fet_groups_html, to_dataset
+from tts.presets import with_defaults
 
 runner = CliRunner()
 L6_HTML = Path(__file__).resolve().parents[1] / "fixtures" / "l6" / "fet-groups-export.html"
@@ -51,10 +52,10 @@ def test_import_fet_writes_a_json_that_loads_back_into_the_same_dataset(tmp_path
     dataset = Dataset.model_validate(payload["dataset"])
     placements = Result.model_validate(payload["result"])
     expected_dataset, expected_result = to_dataset(parse_fet_groups_html(L6_HTML))
-    assert dataset == expected_dataset
+    assert dataset == with_defaults(expected_dataset)
     assert placements == expected_result
     assert dataset.validate_invariants() == []
-    assert verify(dataset, placements) == []
+    assert hard_violations(verify(dataset, placements)) == []
 
 
 def test_import_fet_accepts_the_short_output_option(tmp_path: Path) -> None:
@@ -99,7 +100,7 @@ def test_import_fet_writes_an_xlsx_workbook_that_reads_back(tmp_path: Path) -> N
     data = outcome.data
     assert data is not None
     expected, _ = to_dataset(parse_fet_groups_html(L6_HTML))
-    assert data.dataset == expected
+    assert data.dataset == with_defaults(expected)  # the preset's default soft rules added
     assert data.result is None  # the configuration only, unless asked
     assert data.meta["institution"] == "Informatics Institute of Technology"
     assert "Group size: 30" in data.meta["assumptions"]
@@ -112,7 +113,16 @@ def test_import_fet_can_include_the_original_placements(tmp_path: Path) -> None:
     assert data is not None and data.result is not None
     assert data.run == "fet"
     assert len(data.result.assignments) == 77
-    assert verify(data.dataset, data.result) == []
+    assert hard_violations(verify(data.dataset, data.result)) == []
+
+
+def test_import_fet_can_leave_out_the_default_constraints(tmp_path: Path) -> None:
+    from tts.io.workbook import import_xlsx
+
+    data = import_xlsx(import_to(tmp_path, "plain.xlsx", "--no-defaults")).data
+    assert data is not None
+    assert data.dataset == to_dataset(parse_fet_groups_html(L6_HTML))[0]
+    assert data.dataset.constraints == ()
 
 
 def test_import_fet_writes_a_csv_zip(tmp_path: Path) -> None:

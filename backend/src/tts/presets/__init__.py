@@ -2,7 +2,9 @@
 
 from collections.abc import Callable
 
+from tts.core.model import Dataset
 from tts.core.sheets import Preset
+from tts.presets.academic_weekly.defaults import with_defaults as academic_defaults
 from tts.presets.academic_weekly.labels import all_labels as academic_labels
 from tts.presets.academic_weekly.labels import label as academic_label
 from tts.presets.academic_weekly.preset import PRESET as ACADEMIC_WEEKLY
@@ -18,6 +20,14 @@ PRESETS: dict[str, Preset] = {ACADEMIC_WEEKLY.name: ACADEMIC_WEEKLY}
 LABELLERS: dict[str, Callable[[str], str]] = {ACADEMIC_WEEKLY.name: academic_label}
 
 LABEL_TABLES: dict[str, Callable[[], dict[str, str]]] = {ACADEMIC_WEEKLY.name: academic_labels}
+
+DEFAULTS: dict[str, Callable[[Dataset], Dataset]] = {ACADEMIC_WEEKLY.name: academic_defaults}
+
+
+def with_defaults(dataset: Dataset) -> Dataset:
+    """The dataset plus its preset's default constraints (unchanged for a preset with none)."""
+    apply = DEFAULTS.get(dataset.preset)
+    return dataset if apply is None else apply(dataset)
 
 
 def labels(name: str) -> dict[str, str]:

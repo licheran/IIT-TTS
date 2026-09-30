@@ -16,7 +16,7 @@ from tts.api.schemas import (
 from tts.api.workbooks import preset_of
 from tts.core.model import Dataset
 from tts.preflight.checks import has_errors, run_preflight
-from tts.presets import PRESETS, UnknownPresetError, get_preset, labeller, labels
+from tts.presets import PRESETS, UnknownPresetError, get_preset, labeller, labels, with_defaults
 from tts.store.repositories import DatasetInfo, DatasetRepo
 
 presets_router = APIRouter(tags=["datasets"])
@@ -52,10 +52,12 @@ def create_dataset(body: DatasetCreate, session: DbSession) -> DatasetOut:
     except UnknownPresetError as error:
         raise ApiError(422, "unknown_preset", str(error)) from None
     repo = DatasetRepo(session)
-    seed = Dataset(
-        preset=preset.name,
-        resource_types=preset.resource_types,
-        reference_types=preset.reference_types,
+    seed = with_defaults(
+        Dataset(
+            preset=preset.name,
+            resource_types=preset.resource_types,
+            reference_types=preset.reference_types,
+        )
     )
     dataset_id = repo.create(body.name, preset.name, seed)
     return _out(repo.info(dataset_id))
