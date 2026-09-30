@@ -15,7 +15,7 @@
   - add FR-20: "Teacher workload fairness", Phase 24;
   - FR-2: the workbook is configuration only, with no timetable and no edits;
   - in §6, keep individual student sectioning as a non-goal and say that group-level splitting is in scope.
-- [ ] P18.3 Spec 02:
+- [x] P18.3 Spec 02:
   - add Demand, blocks and `Event.demand` to §1, and say a created event is a run result;
   - add the invariants: participants exclusive; `max_participants ≥ 1`; `repeat ≥ 1`; a dataset is configured (it has demands) or hand-made, not both;
   - in the §3 occupancy rule, say a created event occupies its participants and their exclusive descendants;
