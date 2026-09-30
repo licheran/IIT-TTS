@@ -15,6 +15,17 @@ Compiler = Callable[[CompileContext, Constraint], None]
 COMPILERS: dict[str, Compiler] = {}
 
 
+def _register() -> None:
+    """Fill `COMPILERS`, one line per type (imported here: the compilers import this module)."""
+    from tts.solver.constraints import max_per_day
+
+    COMPILERS.update(
+        {
+            "max_per_day": max_per_day.compile,
+        }
+    )
+
+
 class UnsupportedConstraintError(ValueError):
     """A hard constraint whose type the solver cannot compile. Ignoring it would break the rule."""
 
@@ -41,3 +52,6 @@ def compile_declared(ctx: CompileContext) -> None:
                 f'constraint "{constraint.code}" ({constraint.type}) is not supported by the '
                 "solver yet and was ignored"
             )
+
+
+_register()

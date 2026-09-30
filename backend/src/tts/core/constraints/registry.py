@@ -7,6 +7,7 @@ scanning, so what the verifier supports is visible in one place.
 
 from tts.core.constraints import (
     capacity,
+    max_per_day,
     no_overlap,
     pin,
     placement,
@@ -24,7 +25,9 @@ IMPLICIT: dict[str, ConstraintType] = {
     pin.TYPE: pin,
 }
 
-DECLARED: dict[str, ConstraintType] = {}
+DECLARED: dict[str, ConstraintType] = {
+    max_per_day.TYPE: max_per_day,
+}
 
 
 def implicit_types() -> list[ConstraintType]:

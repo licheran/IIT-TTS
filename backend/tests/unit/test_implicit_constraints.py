@@ -555,6 +555,10 @@ def test_every_implicit_module_follows_the_module_convention(module: ConstraintT
     assert verify(empty, Result()) == []
 
 
-def test_no_declared_types_are_registered_yet() -> None:
-    assert DECLARED == {}
-    assert declared_type("max_days") is None
+def test_every_registered_declared_type_is_in_the_catalogue_and_compiles() -> None:
+    from tts.core.constraints.catalogue import CATALOGUE
+    from tts.solver.registry import COMPILERS
+
+    assert set(DECLARED) <= set(CATALOGUE)
+    assert set(DECLARED) == set(COMPILERS)
+    assert declared_type("no_such_type") is None

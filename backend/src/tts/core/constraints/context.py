@@ -112,6 +112,38 @@ class VerifyContext:
     def avoid_slots(self) -> dict[str, frozenset[int]]:
         return self._availability("avoid")
 
+    @cached_property
+    def occupancy(self) -> dict[str, dict[int, tuple[str, ...]]]:
+        """For each resource, the non-break slots it is occupied in and the events occupying them.
+
+        This is `occ` of spec 04 section 0 (occupancy rule of spec 02 section 3).
+        """
+        found: dict[str, dict[int, list[str]]] = defaultdict(lambda: defaultdict(list))
+        for code, placement in self.placements.items():
+            slots = [
+                t for t in placement.slots if t < self.grid.slot_count and not self.grid.is_break(t)
+            ]
+            for resource in self.occupied(code):
+                for t in slots:
+                    found[resource][t].append(code)
+        return {
+            resource: {t: tuple(sorted(events)) for t, events in by_slot.items()}
+            for resource, by_slot in found.items()
+        }
+
+    def occ(self, resource: str, day: int) -> list[int]:
+        """The ordered period indexes of day `day` in which `resource` is occupied (non-break)."""
+        periods = self.grid.periods_per_day
+        slots = self.occupancy.get(resource, {})
+        return sorted(t - day * periods for t in slots if t // periods == day)
+
+    def events_of(self, resource: str) -> list[str]:
+        """The placed events that occupy `resource`, by code."""
+        return sorted(c for c in self.placements if resource in self.occupied(c))
+
+    def non_break_periods(self) -> list[int]:
+        return [i for i in range(self.grid.periods_per_day) if not self.grid.is_break(i)]
+
     def _availability(self, status: str) -> dict[str, frozenset[int]]:
         found: dict[str, set[int]] = defaultdict(set)
         for a in self.dataset.availability:

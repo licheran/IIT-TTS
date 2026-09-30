@@ -68,6 +68,11 @@ class CompileContext:
         self._occupants: dict[str, list[cp_model.IntervalVar]] = defaultdict(list)
         self._penalties: dict[str, cp_model.IntVar] = {}
         self._day_is: dict[tuple[str, int], cp_model.IntVar] = {}
+        self._start_is: dict[str, dict[int, cp_model.IntVar]] = {}
+        self._day_var: dict[str, cp_model.IntVar] = {}
+        self._occupied: dict[tuple[str, int], cp_model.IntVar | None] = {}
+        self._uses: dict[tuple[str, str], cp_model.IntVar] = {}
+        self._fixed_occupants: dict[str, list[str]] | None = None
 
     def add_occupant(self, resource: str, interval: cp_model.IntervalVar) -> None:
         """Record that `interval` occupies `resource` (its no-overlap set is built later)."""
@@ -108,6 +113,106 @@ class CompileContext:
                 self.start[event], in_day.complement()
             ).only_enforce_if(found.negated())
             self._day_is[key] = found
+        return found
+
+    # --- Building blocks for declared constraints (solver/constraints/*) ------------------------
+
+    def start_is(self, event: str) -> dict[int, cp_model.IntVar]:
+        """One literal per possible start of `event`, exactly one true (built on first use)."""
+        found = self._start_is.get(event)
+        if found is None:
+            domain = self.domains[event]
+            found = {t: self.model.new_bool_var(f"at_{event}_{t}") for t in domain}
+            if found:
+                self.model.add_exactly_one(found.values())
+                self.model.add(self.start[event] == sum(t * lit for t, lit in found.items()))
+            self._start_is[event] = found
+        return found
+
+    def covering(self, event: str, t: int) -> list[cp_model.IntVar]:
+        """The start literals of `event` under which it covers slot `t` (at most one is true)."""
+        duration = self.events[event].duration
+        return [lit for s, lit in self.start_is(event).items() if s <= t < s + duration]
+
+    def day_var(self, event: str) -> cp_model.IntVar:
+        """The day number `event` starts on."""
+        found = self._day_var.get(event)
+        if found is None:
+            found = self.model.new_int_var(0, max(self.grid.day_count - 1, 0), f"dayof_{event}")
+            self.model.add_division_equality(found, self.start[event], self.grid.periods_per_day)
+            self._day_var[event] = found
+        return found
+
+    def fixed_occupants(self, resource: str) -> list[str]:
+        """Events that occupy `resource` whatever the solver picks (occupancy rule)."""
+        if self._fixed_occupants is None:
+            table: dict[str, list[str]] = defaultdict(list)
+            for code in self.events:
+                for r in self.hierarchy.occupied_resources(code):
+                    table[r].append(code)
+            self._fixed_occupants = dict(table)
+        return self._fixed_occupants.get(resource, [])
+
+    def uses(self, event: str, resource: str) -> cp_model.IntVar | None:
+        """A literal true when `resource` is chosen for `event` by any pooled requirement."""
+        key = (event, resource)
+        if key in self._uses:
+            return self._uses[key]
+        literals = [lit for (e, _, r), lit in self.use.items() if e == event and r == resource]
+        if not literals:
+            return None
+        if len(literals) == 1:
+            found = literals[0]
+        else:
+            found = self.model.new_bool_var(f"uses_{event}_{resource}")
+            self.model.add_max_equality(found, literals)
+        self._uses[key] = found
+        return found
+
+    def occupying_events(self, resource: str) -> list[tuple[str, cp_model.IntVar | None]]:
+        """Every event that can occupy `resource`, with the literal it needs (None: always)."""
+        fixed = set(self.fixed_occupants(resource))
+        found: list[tuple[str, cp_model.IntVar | None]] = [(e, None) for e in sorted(fixed)]
+        pooled = sorted({e for (e, _, r) in self.use if r == resource and e not in fixed})
+        for e in pooled:
+            found.append((e, self.uses(e, resource)))
+        return found
+
+    def both(self, a: cp_model.IntVar, b: cp_model.IntVar, name: str) -> cp_model.IntVar:
+        """A literal equal to `a and b`."""
+        x = self.model.new_bool_var(name)
+        self.model.add_implication(x, a)
+        self.model.add_implication(x, b)
+        self.model.add_bool_or([a.Not(), b.Not(), x])
+        return x
+
+    def occupied(self, resource: str, t: int) -> cp_model.IntVar | None:
+        """A literal equal to "`resource` is occupied in slot `t`", or None if it never can be."""
+        key = (resource, t)
+        if key in self._occupied:
+            return self._occupied[key]
+        terms: list[cp_model.IntVar] = []
+        for event, needs in self.occupying_events(resource):
+            covering = self.covering(event, t)
+            if not covering:
+                continue
+            if len(covering) == 1:
+                covers = covering[0]
+            else:
+                covers = self.model.new_bool_var(f"cov_{event}_{t}")
+                self.model.add(covers == sum(covering))
+            terms.append(
+                covers if needs is None else self.both(needs, covers, f"on_{event}_{resource}_{t}")
+            )
+        found: cp_model.IntVar | None
+        if not terms:
+            found = None
+        elif len(terms) == 1:
+            found = terms[0]
+        else:
+            found = self.model.new_bool_var(f"occ_{resource}_{t}")
+            self.model.add_max_equality(found, terms)
+        self._occupied[key] = found
         return found
 
     def guard(self, kind: RuleKind, *key: str) -> cp_model.IntVar | None:

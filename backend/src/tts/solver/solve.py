@@ -8,7 +8,7 @@ solver's own status is not evidence that a timetable is valid.
 import threading
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
 from ortools.sat.python import cp_model
@@ -123,6 +123,7 @@ class SolveOutcome:
     stats: SolveStats
     problems: tuple[str, ...] = ()
     warnings: tuple[str, ...] = ()
+    penalties: dict[str, int] = field(default_factory=dict)  # soft instance code -> its `p`
 
     @property
     def has_solution(self) -> bool:
@@ -169,6 +170,11 @@ def solve_model(
         ),
         problems=tuple(ctx.problems),
         warnings=tuple(ctx.warnings),
+        penalties=(
+            {name: int(solver.value(var)) for name, var in ctx.penalties.items()}
+            if has_solution
+            else {}
+        ),
     )
 
 

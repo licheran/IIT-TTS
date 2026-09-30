@@ -20,6 +20,8 @@ from pydantic import BaseModel, ConfigDict
 
 from tts.core.candidates import Candidates
 from tts.core.constraints.catalogue import CATALOGUE
+from tts.core.constraints.declared import InvalidConstraintError, parse_instance
+from tts.core.constraints.registry import declared_type
 from tts.core.hierarchy import Hierarchy
 from tts.core.model import Dataset, ModelIssue, PooledRequirement, Ref
 from tts.core.selectors import SelectorError, Selectors
@@ -149,6 +151,7 @@ class _Checker:
         self._conflicting_pins()
         self._unused_resources()
         self._constraint_scopes()
+        self._constraint_params()
         return self.issues
 
     def add(self, severity: Severity, kind: str, message: str, *refs: Ref) -> None:
@@ -324,5 +327,26 @@ class _Checker:
                     "warning",
                     "empty_scope",
                     f"{c.code}: scope matches nothing",
+                    _constraint_ref(c.code),
+                )
+
+    # Declared constraint with invalid parameters or references
+    def _constraint_params(self) -> None:
+        for c in self.ds.constraints:
+            implementation = declared_type(c.type)
+            if not c.active or implementation is None:
+                continue
+            try:
+                instance = parse_instance(self.ds, c, implementation.Params, self.selectors)
+            except InvalidConstraintError as error:
+                if not error.problem.startswith("scope:"):  # scopes are reported above
+                    self.add("error", "invalid_constraint", str(error), _constraint_ref(c.code))
+                continue
+            check = getattr(implementation, "problems", None)
+            for problem in check(self.ds, instance) if check is not None else ():
+                self.add(
+                    "error",
+                    "invalid_constraint",
+                    f'constraint "{c.code}" ({c.type}): {problem}',
                     _constraint_ref(c.code),
                 )
