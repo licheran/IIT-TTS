@@ -6,7 +6,7 @@ IIT-TTS is an open, data-driven scheduling application. You describe your world 
 
 The first built-in preset is **academic weekly timetabling**: lectures and tutorials for many levels, degree programmes and awarding universities, spread across several buildings and sharing teachers and rooms. The core engine is domain-neutral: a second preset, **exam timetabling**, runs on the same core with no changes to it. Staff rosters and room booking would be further presets, not rewrites.
 
-> Status: **alpha. Every phase of the plan (0–17) is done:** the engine, the database and REST API with a background worker, the web app, the full soft-constraint catalogue, templates, institute-scale solving (about 3,000 events in under a minute) the exams preset, quick row entry in every table, one-file HTML export of all timetables, and a [user wiki](docs/wiki/README.md) that explains every tab, table, constraint and error message. See [`docs/STATUS.md`](docs/STATUS.md), including the decisions that are waiting for your review.
+> Status: **alpha. Every phase of the plan (0–17) is done:** the engine, the database and REST API with a background worker, the web app, the full soft-constraint catalogue, templates, institute-scale solving (about 3,000 events in under a minute), the exams preset, quick row entry in every table, one-file HTML export of all timetables, and a [user wiki](docs/wiki/README.md) that explains every tab, table, constraint and error message. See [`docs/STATUS.md`](docs/STATUS.md), including the decisions that are waiting for your review.
 
 ## How it works
 
