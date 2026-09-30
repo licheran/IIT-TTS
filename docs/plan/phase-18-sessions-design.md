@@ -20,7 +20,7 @@
   - add the invariants: participants exclusive; `max_participants ≥ 1`; `repeat ≥ 1`; a dataset is configured (it has demands) or hand-made, not both;
   - in the §3 occupancy rule, say a created event occupies its participants and their exclusive descendants;
   - add the §6.1 academic mapping: Session types, `Modules.level`/`programmes`/`optional`/`sessions`, `Teachers.modules` and `Groups.options` → demands; edits → declared events and pins; a group's parent is a programme (version 2).
-- [ ] P18.4 Spec 03, format version 2 (academic). A full sheet table for version 2:
+- [x] P18.4 Spec 03, format version 2 (academic). A full sheet table for version 2:
   - SessionTypes and the new columns;
   - `Groups.parent` only a programme;
   - the removed sheets (Templates, Activities, ActivityGroups, ActivityTeachers, Pins, Assignments): the version 2 workbook is configuration only;
