@@ -33,6 +33,8 @@ export interface DataColumn {
   readOnly?: boolean
   required?: boolean
   options?: string[]
+  /** The value a new row starts with (only used for true/false columns). */
+  defaultValue?: CellValue
 }
 
 export interface DataRow {
@@ -41,6 +43,8 @@ export interface DataRow {
 }
 
 export const ROW_HEIGHT = 34
+const HEADER_ONLY = 34
+const HEADER_WITH_ENTRY = 82
 
 export function display(value: CellValue | undefined, kind: ColumnKind): string {
   if (value === null || value === undefined) return ''
@@ -103,6 +107,8 @@ interface Props {
   onEdit: (key: string, column: string, value: CellValue) => Promise<unknown> | void
   onDelete?: (key: string) => Promise<unknown> | void
   actions?: ReactNode
+  /** A row pinned under the headers, given the grid template so its cells line up. */
+  renderEntry?: (layout: { template: string }) => ReactNode
   highlightKey?: string | null
   height?: number
 }
@@ -114,6 +120,7 @@ export function DataTable({
   onEdit,
   onDelete,
   actions,
+  renderEntry,
   highlightKey,
   height = 520,
 }: Props) {
@@ -159,6 +166,7 @@ export function DataTable({
     getScrollElement: () => scroller.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 8,
+    scrollPaddingStart: renderEntry ? HEADER_WITH_ENTRY : HEADER_ONLY,
   })
 
   const template = `${columns
@@ -240,6 +248,7 @@ export function DataTable({
   }
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (editing) return
+    if ((event.target as HTMLElement).closest('[data-entry-row]')) return
     const keys: Record<string, [number, number]> = {
       ArrowDown: [1, 0],
       ArrowUp: [-1, 0],
@@ -294,37 +303,40 @@ export function DataTable({
         className="relative overflow-auto rounded-md border border-neutral-300 focus-visible:outline-2 focus-visible:outline-blue-600"
         style={{ height }}
       >
-        <div
-          role="row"
-          className="sticky top-0 z-20 grid border-b border-neutral-300 bg-neutral-100 text-sm font-semibold"
-          style={{ gridTemplateColumns: template, minWidth: 'max-content' }}
-        >
-          {table.getHeaderGroups()[0]?.headers.map((header, i) => {
-            const column = columns[i]!
-            const sorted = header.column.getIsSorted()
-            return (
-              <div
-                key={header.id}
-                role="columnheader"
-                aria-sort={
-                  sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : 'none'
-                }
-                className="min-w-0 border-r border-neutral-200 last:border-r-0"
-              >
-                <button
-                  className="flex h-full w-full items-center gap-1 px-2 py-1.5 text-left"
-                  onClick={header.column.getToggleSortingHandler()}
+        <div className="sticky top-0 z-20" style={{ minWidth: 'max-content' }}>
+          <div
+            role="row"
+            className="grid border-b border-neutral-300 bg-neutral-100 text-sm font-semibold"
+            style={{ gridTemplateColumns: template, minWidth: 'max-content' }}
+          >
+            {table.getHeaderGroups()[0]?.headers.map((header, i) => {
+              const column = columns[i]!
+              const sorted = header.column.getIsSorted()
+              return (
+                <div
+                  key={header.id}
+                  role="columnheader"
+                  aria-sort={
+                    sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : 'none'
+                  }
+                  className="min-w-0 border-r border-neutral-200 last:border-r-0"
                 >
-                  <span className="truncate">
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    {column.required && <span aria-hidden> *</span>}
-                  </span>
-                  <span aria-hidden>{sorted === 'asc' ? '▲' : sorted === 'desc' ? '▼' : ''}</span>
-                </button>
-              </div>
-            )
-          })}
-          {onDelete && <div role="columnheader" className="px-2 py-1.5" />}
+                  <button
+                    className="flex h-full w-full items-center gap-1 px-2 py-1.5 text-left"
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
+                    <span className="truncate">
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {column.required && <span aria-hidden> *</span>}
+                    </span>
+                    <span aria-hidden>{sorted === 'asc' ? '▲' : sorted === 'desc' ? '▼' : ''}</span>
+                  </button>
+                </div>
+              )
+            })}
+            {onDelete && <div role="columnheader" className="px-2 py-1.5" />}
+          </div>
+          {renderEntry?.({ template })}
         </div>
         <div
           style={{ height: virtual.getTotalSize(), position: 'relative', minWidth: 'max-content' }}

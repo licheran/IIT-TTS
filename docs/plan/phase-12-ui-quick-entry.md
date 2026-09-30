@@ -8,7 +8,7 @@
 - `backend/src/tts/io/export_html.py`, `backend/src/tts/io/templates/grid.html.j2`, `web/src/features/grids/ResultsPage.tsx`
 
 ## Tasks
-- [ ] P12.1 An always-visible entry row on every table:
+- [x] P12.1 An always-visible entry row on every table:
   - a blank row pinned under the column headers (sticky while the table scrolls), with one input per editable column lined up under its header. It replaces the "Add row" button and form;
   - **Tab** and **Shift+Tab** move across the fields. **Enter** in any field (or on the Add button) adds the row. **Esc** clears it;
   - after a successful add, the fields are cleared and focus returns to the first field, so the next row can be typed straight away;

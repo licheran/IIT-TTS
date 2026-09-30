@@ -25,6 +25,8 @@ export interface EditorProps {
   label: string
   options?: string[]
   autoFocus?: boolean
+  /** Leaving the field commits it (the default). The entry row turns this off: Enter commits. */
+  blurCommits?: boolean
 }
 
 const inputClass =
@@ -53,7 +55,7 @@ export function TextEditor(p: EditorProps & { numeric?: boolean }) {
       value={p.value}
       onChange={(e) => p.onChange(e.target.value)}
       onKeyDown={keyHandler(p)}
-      onBlur={p.onCommit}
+      onBlur={p.blurCommits === false ? undefined : p.onCommit}
     />
   )
 }
@@ -67,7 +69,7 @@ export function ChoiceEditor(p: EditorProps) {
       value={p.value}
       onChange={(e) => p.onChange(e.target.value)}
       onKeyDown={keyHandler(p)}
-      onBlur={p.onCommit}
+      onBlur={p.blurCommits === false ? undefined : p.onCommit}
     >
       <option value="" />
       {(p.options ?? []).map((o) => (
@@ -92,7 +94,7 @@ export function RefSelect(p: EditorProps) {
         value={p.value}
         onChange={(e) => p.onChange(e.target.value)}
         onKeyDown={keyHandler(p)}
-        onBlur={p.onCommit}
+        onBlur={p.blurCommits === false ? undefined : p.onCommit}
       />
       <datalist id={id}>
         {(p.options ?? []).map((o) => (

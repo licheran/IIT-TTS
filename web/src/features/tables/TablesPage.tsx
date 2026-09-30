@@ -47,7 +47,6 @@ export function TablesPage({ datasetId }: { datasetId: number }) {
         key={current.name}
         datasetId={datasetId}
         sheet={current}
-        schema={schema.data}
         highlightKey={search.get('find')}
       />
     </div>

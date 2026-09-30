@@ -38,6 +38,7 @@ export function buildColumns(
       header: labels[header] || def?.label || header,
       kind,
       required: def?.required ?? false,
+      defaultValue: def?.default ?? null,
       readOnly: def?.derive != null,
       options:
         choices.length > 0
