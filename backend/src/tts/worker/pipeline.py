@@ -44,8 +44,10 @@ def _progress_dict(progress: SolveProgress) -> dict[str, Any]:
 
 
 def expand_dataset(dataset: Dataset) -> Dataset:
-    """The expand stage. Templates are expanded here from Phase 9; until then it is a no-op."""
-    return dataset
+    """The expand stage: templates become events (a no-op on an already expanded dataset)."""
+    from tts.api.expansion import expand_with_preset
+
+    return expand_with_preset(dataset).dataset
 
 
 def run_pipeline(

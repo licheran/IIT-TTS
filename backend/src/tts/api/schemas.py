@@ -83,10 +83,15 @@ class PreflightOut(BaseModel):
 
 
 class ExpandOut(BaseModel):
+    """What expanding the templates changes: activity codes, and ordering constraints."""
+
     committed: bool
     added: list[str] = []
     changed: list[str] = []
     removed: list[str] = []
+    orders_added: int = 0
+    orders_removed: int = 0
+    problems: list[str] = []
 
 
 class SchemaOut(BaseModel):

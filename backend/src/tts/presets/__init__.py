@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 from tts.core.model import Dataset
 from tts.core.sheets import Preset
+from tts.presets import academic_weekly
 from tts.presets.academic_weekly.defaults import with_defaults as academic_defaults
 from tts.presets.academic_weekly.labels import all_labels as academic_labels
 from tts.presets.academic_weekly.labels import label as academic_label
@@ -22,6 +23,20 @@ LABELLERS: dict[str, Callable[[str], str]] = {ACADEMIC_WEEKLY.name: academic_lab
 LABEL_TABLES: dict[str, Callable[[], dict[str, str]]] = {ACADEMIC_WEEKLY.name: academic_labels}
 
 DEFAULTS: dict[str, Callable[[Dataset], Dataset]] = {ACADEMIC_WEEKLY.name: academic_defaults}
+
+ExpansionOptions = dict[str, object]  # keyword arguments of `tts.expand.templates.expand`
+
+EXPANSION: dict[str, ExpansionOptions] = {
+    ACADEMIC_WEEKLY.name: {
+        "ordering": academic_weekly.ORDERING,
+        "unpooled_delivery": academic_weekly.UNPOOLED_DELIVERY,
+    },
+}
+
+
+def expansion_options(name: str) -> ExpansionOptions:
+    """How a preset's templates expand (ordering pairs, delivery without a pool)."""
+    return dict(EXPANSION.get(name, {}))
 
 
 def with_defaults(dataset: Dataset) -> Dataset:

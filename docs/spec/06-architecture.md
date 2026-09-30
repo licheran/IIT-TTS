@@ -97,7 +97,7 @@ The core-purity test fails if the domain words listed in `CLAUDE.md` rule 1 appe
 | `PATCH/DELETE /datasets/{id}/tables/{sheet}/{code}` | Update / delete a row |
 | `POST /datasets/{id}/import` | Multipart `.xlsx` or `.zip`. Returns `{ok, errors[], summary}` |
 | `GET /datasets/{id}/export?format=xlsx\|csvzip` | Export the configuration |
-| `POST /datasets/{id}/expand?commit=false\|true` | Template preview / commit |
+| `POST /datasets/{id}/expand?commit=false\|true` | Template preview / commit. Returns `{committed, added[], changed[], removed[], orders_added, orders_removed, problems[]}` |
 | `POST /datasets/{id}/preflight` | `{issues[]}` |
 | `POST /datasets/{id}/runs` | Start a run (`RunParams`). Returns `{run_id}` |
 | `GET /runs/{id}` | Status, progress, score, diagnostics |

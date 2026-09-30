@@ -4,10 +4,12 @@ from fastapi import APIRouter
 
 from tts.api.deps import DbSession
 from tts.api.errors import ApiError
+from tts.api.expansion import expand_with_preset
 from tts.api.schemas import (
     DatasetCreate,
     DatasetOut,
     DatasetPatch,
+    ExpandOut,
     IssueOut,
     PreflightOut,
     RefOut,
@@ -90,6 +92,25 @@ def get_schema(dataset_id: int, session: DbSession) -> SchemaOut:
         sheets=list(preset.sheets),
         labels=labels(preset.name),
         resource_types=list(preset.resource_types),
+    )
+
+
+@router.post("/{dataset_id}/expand")
+def expand_templates(dataset_id: int, session: DbSession, commit: bool = False) -> ExpandOut:
+    """Preview (default) or commit the expansion of the dataset's templates into activities."""
+    repo = DatasetRepo(session)
+    expansion = expand_with_preset(repo.load(dataset_id))
+    diff = expansion.diff
+    if commit and not diff.empty:
+        repo.save(dataset_id, expansion.dataset)
+    return ExpandOut(
+        committed=commit and not diff.empty,
+        added=list(diff.added),
+        changed=list(diff.changed),
+        removed=list(diff.removed),
+        orders_added=diff.orders_added,
+        orders_removed=diff.orders_removed,
+        problems=list(expansion.problems),
     )
 
 
