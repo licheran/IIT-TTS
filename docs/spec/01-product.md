@@ -83,7 +83,7 @@ A timetable is conflict-free only across the resources **in the same solve**. In
 | FR-17 | Build sessions from configuration: modules at one level, each mandatory or optional, with session kinds; groups (under a programme) with their optional modules; and teachers with the modules they teach. Session kinds (length, delivery, room type, groups per session, sessions per week) are configured by the user | 18, 21 |
 | FR-18 | The solver decides which groups share a session, in blocks of the configured number of groups (even sizes, the same companions every time a session repeats in the week), and which of a module's teachers takes it. The room seats every student of the groups | 19, 20 |
 | FR-19 | The result is the Activities table. A manual edit makes the next run a complete rebuild that keeps the edited values. Each edit is checked straight away | 22 |
-| FR-20 | Teacher workload fairness: a weekly cap, even sharing among a module's teachers, and the same teacher for a group | 24 |
+| FR-20 | Teacher workload fairness: a weekly cap, even sharing among a module's teachers, and the same teacher for a group | 25 |
 
 ## 5. Non-functional requirements (targets)
 

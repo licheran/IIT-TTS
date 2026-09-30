@@ -97,8 +97,19 @@ Option 1, with these rules:
 - **Edits do not travel in a workbook.** Exporting a configured dataset and importing it elsewhere brings the configuration, not the edits. A later format version could add a small sheet for them.
 - **One flag per module:** because mandatory/optional is a field of the module, one module cannot be mandatory for one degree and optional for another at the same level. That needs two module rows (two codes).
 - **No subgroups in version 2.** A version 1 dataset with a group under a group stays valid as a hand-made dataset. A version 2 workbook with one is refused.
-- **Phases:** 18 (spec updates), 19 (core and verifier), 20 (solver), 21 (academic configuration, format version 2), 22 (editing sessions: edits and complete rebuild), 23 (retire Templates and ActivityGroups; wiki), 24 (teacher fairness, last).
+- **Phases:** 18 (spec updates), 19 (core and verifier), 20 (solver), 21 (academic configuration, format version 2), 22 (editing sessions: edits and complete rebuild), 23 (retire Templates and ActivityGroups; wiki), 24 (the Session table, see the amendment below), 25 (teacher fairness, last).
 - **Decisions to review** (proposals the user has not yet confirmed):
   - the even split (sizes differ by at most one) rather than "as full as possible" (3 + 3 + 3 + 1);
   - the one-flag-per-module limit above;
   - that an edit waits for **Rebuild** instead of starting a run by itself.
+
+## Amendment 1 (2026-09-30): a Session table instead of `Modules.sessions`
+
+Decided by the user after Phase 23; built in Phase 24 (`docs/plan/phase-24-session-table.md`), where the specs are updated.
+
+- A module's sessions move from the inline list `Modules.sessions` (`LEC;TUT;LAB(start_pattern=3H,max_groups=2)`) to a new sheet **`Session`**: one row per module and session type, with the columns `module`, `session_type`, `start_pattern`, `delivery`, `room_type`, `max_groups`, `teachers`, `weekly` and `tags`. A blank cell takes the session type's value; a filled cell overrides it for that module only. So a module's lecture can have several groups per session and its tutorial one, each set per module.
+- `Teachers.modules` is unchanged (`module` or `module:KIND`).
+- Workbook format version 2 is **amended, not bumped**: no version 2 file exists outside the repository, and the `l6-config.xlsx` fixture is regenerated. A version 2 file with a `Modules.sessions` column is refused.
+- The demands, and the session and edit codes, are unchanged (`<module>-<session_type>`), so the solver, the verifier and Phase 22's edits need no change.
+- **Why:** the inline list is a small language inside one cell: no dropdowns, errors that point at a whole string, and no sorting or filtering. A table gives each setting its own checked cell.
+
