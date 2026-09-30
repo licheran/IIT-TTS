@@ -24,7 +24,7 @@ The home page lists your datasets and lets you create and delete them.
 
 A new dataset is almost empty.
 
-- It has the preset's tables, all without rows, except that an **academic_weekly** dataset already holds its default preferences in the Constraints table (`AC-GAPS`, `AC-TGAPS` and an inactive `AC-TRAVEL`). See the constraints section for what they do.
+- It has the preset's tables, all without rows, except that an **academic_weekly** dataset already holds its default preferences in the Constraints table (`AC-GAPS`, `AC-TGAPS` and an inactive `AC-TRAVEL`). See [Default constraints](../constraints/defaults.md) for what they do.
 - It has **no days, no periods and no start patterns**. Fill in the Days, Periods and Start patterns tables first, or import a workbook that has them.
 
 The fastest way to start is to import a workbook (see [Import / export](import-export.md)). The repository has two samples you can try: `backend/tests/fixtures/l6/l6.xlsx` for the academic preset and `backend/tests/fixtures/exams/exams.xlsx` for the exams preset.

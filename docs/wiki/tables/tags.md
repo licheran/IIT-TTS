@@ -65,7 +65,7 @@ Clauses combine with `;` (all of them must match). A few examples:
 | `type:StudentGroup;tag:university=UOW` | every group tagged for the UOW |
 | `type:Room;tag:room_type=lab;tag:wing!=B` | labs that are not in wing B, or have no wing |
 
-A tag belongs to **the row itself**. A group does not inherit its programme's tags: tag the groups if you want to select groups. To select everything below a programme, use `under:` instead (see the selector page).
+A tag belongs to **the row itself**. A group does not inherit its programme's tags: tag the groups if you want to select groups. To select everything below a programme, use `under:` instead (see [Selectors](../constraints/selectors.md)).
 
 ## Suggested tags
 
@@ -82,5 +82,6 @@ The FET import marks each activity with `fet_label=<its original time label>`. I
 
 ## Related
 
+- [Selectors](../constraints/selectors.md)
 - [All tables](README.md)
 - [Basics](../basics.md)

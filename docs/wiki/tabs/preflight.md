@@ -51,3 +51,4 @@ An L6 workbook in which the teacher `HAWE` is marked unavailable on every day re
 
 - [Tables](tables.md)
 - [Run](run.md)
+- [Constraints](../constraints/README.md)

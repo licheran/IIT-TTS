@@ -18,7 +18,7 @@ When a resource (a teacher, a room, a group) **cannot** be used, or had better n
 ## Rules
 
 - **`unavailable`** is always obeyed: no activity is placed on that resource in that slot. Because breaks cannot be used anyway, `unavailable` rows on breaks have no effect.
-- **`avoid`** only has effect if the Constraints table also has a constraint of type `avoid` whose `scope` covers the resource. Without one, `avoid` rows are kept and ignored. See the constraints section.
+- **`avoid`** only has effect if the Constraints table also has a constraint of type `avoid` whose `scope` covers the resource. Without one, `avoid` rows are kept and ignored. See the [`avoid`](../constraints/avoid.md) constraint.
 - `period` `*` marks every period of the day.
 - Setting a teacher unavailable for too many periods makes pre-flight report `over_demand`.
 

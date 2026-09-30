@@ -72,4 +72,5 @@ The name in brackets is the sheet name in an Excel or CSV file. In the app the t
 ## Related
 
 - [Tags](tags.md)
+- [Constraints and selectors](../constraints/README.md)
 - [Glossary](../glossary.md)

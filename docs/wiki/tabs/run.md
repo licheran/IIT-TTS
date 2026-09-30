@@ -38,7 +38,7 @@ While the run is going, four figures update every second:
 - **Bound**: the lowest score the solver still thinks is possible. When best score and bound meet, the timetable is proven best.
 - **Elapsed (s)**: time used so far.
 
-When the run is finished and you have soft rules, a **Score breakdown** table shows, for each soft constraint, its **Penalty** (how much it was broken), its **Weight** and the **Score** (penalty × weight), largest first. It tells you which rule to look at if the score is not what you hoped.
+When the run is finished and you have soft rules, a **Score breakdown** table (see [Constraints](../constraints/README.md)) shows, for each soft constraint, its **Penalty** (how much it was broken), its **Weight** and the **Score** (penalty × weight), largest first. It tells you which rule to look at if the score is not what you hoped.
 
 ## Statuses
 

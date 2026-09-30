@@ -26,7 +26,7 @@ Rules that **generate activities**. One template row stands for a whole set of a
 ## Rules
 
 - **`mode`** is one of `joint` (one activity with all matching groups together), `per_group` (one activity per matching group) or `batched` (the matching groups are sorted by code and cut into batches of `batch_size`; one activity per batch).
-- **`groups`** is a selector, for example `under:L6 SE` for every group below the SE programme, or `code:"L6 CS / G13"` for one group. See the Selectors page.
+- **`groups`** is a selector, for example `under:L6 SE` for every group below the SE programme, or `code:"L6 CS / G13"` for one group. See [Selectors](../constraints/selectors.md).
 - **`batch_size`** is required when `mode` is `batched`, and ignored otherwise.
 - Generated activities are named `<module>-<kind>-<nn>` and carry the template's code in their `template` column.
 - See [Templates and Expand](../tabs/templates-expand.md) for the preview and commit.

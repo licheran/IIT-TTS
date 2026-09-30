@@ -20,7 +20,7 @@ Your timetable rules beyond the ones that always hold. Each row is one rule, har
 
 ## Rules
 
-- **`type`** must be one of the catalogue types. Any other name is refused at import. The constraints section lists every type and its `params`.
+- **`type`** must be one of the catalogue types. Any other name is refused at import. The [constraints section](../constraints/README.md) lists every type and its `params`.
 - **`scope`** must pick the right kind of thing for the type: resources for some types, activities for others. The wrong kind is refused at import.
 - **Hard** rules are never broken. If they cannot all hold, the run is `infeasible` and the conflicting rules are named. **Soft** rules add `weight × penalty` to the score, and the solver tries to lower it.
 - An inactive rule is ignored completely (for example the default `AC-TRAVEL`).
