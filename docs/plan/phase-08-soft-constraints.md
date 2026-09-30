@@ -11,7 +11,7 @@
 - [x] P8.2 Objective and score breakdown stored on the run (`score_breakdown` keyed by constraint code).
 - [x] P8.3 Academic defaults (spec 04 §3) in `presets/academic_weekly/defaults.py`. They are applied to new datasets and to `import-fet` output.
 - [x] P8.4 `mode=two_phase` in `RunParams` (spec 05 §4.4).
-- [ ] P8.5 Catalogue completeness test (spec 06 §8, gate 4).
+- [x] P8.5 Catalogue completeness test (spec 06 §8, gate 4).
 - [x] P8.6 Remove the xfail from the Phase 5 `max_days` broken variant.
 
 ## Acceptance
