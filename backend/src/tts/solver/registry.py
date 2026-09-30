@@ -17,10 +17,11 @@ COMPILERS: dict[str, Compiler] = {}
 
 def _register() -> None:
     """Fill `COMPILERS`, one line per type (imported here: the compilers import this module)."""
-    from tts.solver.constraints import max_per_day
+    from tts.solver.constraints import max_gaps, max_per_day
 
     COMPILERS.update(
         {
+            "max_gaps": max_gaps.compile,
             "max_per_day": max_per_day.compile,
         }
     )
