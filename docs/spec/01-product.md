@@ -9,7 +9,7 @@ Status: **Authoritative.** Requirement IDs (FR-n, NFR-n) are referenced from the
 - every hard rule holds while soft rules are optimised.
 
 Users declare entities and relationships as tables, either in the app or through an Excel/CSV workbook. IIT-TTS then goes through four steps:
-1. It **expands** templates into events.
+1. It **prepares** the events: from a configuration, each demand (for example, a module's tutorials) is split by the solver into sessions; in a hand-made dataset, templates expand into events.
 2. It **pre-flight checks** the data.
 3. It **solves** for start times and pooled resources.
 4. It **verifies** the result and publishes grids and exports for every resource.
@@ -65,10 +65,10 @@ A timetable is conflict-free only across the resources **in the same solve**. In
 | ID | Requirement | Phase |
 |---|---|---|
 | FR-1 | Create, edit and delete entities and relationships in table views | 7 |
-| FR-2 | Import and export the complete configuration as one `.xlsx` or a CSV zip, lossless on a round trip | 3 |
+| FR-2 | Import and export the complete configuration as one `.xlsx` or a CSV zip, lossless on a round trip. A configured dataset's workbook (format version 2) holds configuration only: no timetable and no edits | 3, 21 |
 | FR-3 | Reject invalid imports atomically, with *all* row-level errors reported | 3 |
 | FR-4 | Define resource types, attributes, hierarchies and tags without code changes | 1, 3 |
-| FR-5 | Expand templates into events, with a preview before committing | 9 |
+| FR-5 | *(Retired in Phase 23 for configured datasets.)* Expand templates into events, with a preview before committing. Kept for hand-made datasets and version 1 workbooks | 9 |
 | FR-6 | Run pre-flight checks. Errors block Start; warnings don't | 5 |
 | FR-7 | Start a solve with one action, with live progress and cancel | 6, 7 |
 | FR-8 | Return a conflict-free assignment meeting every hard constraint, or an explanation naming the conflicting constraints and entities | 4, 5 |
@@ -80,6 +80,10 @@ A timetable is conflict-free only across the resources **in the same solve**. In
 | FR-14 | Validate any assignment, including one imported from FET, and report every violation | 1, 2 |
 | FR-15 | Support datasets containing many levels, programmes, universities and buildings together | 10 |
 | FR-16 | Support at least one non-academic preset with no changes to the core | 11 |
+| FR-17 | Build sessions from configuration: modules at one level, each mandatory or optional, with session kinds; groups (under a programme) with their optional modules; and teachers with the modules they teach. Session kinds (length, delivery, room type, groups per session, sessions per week) are configured by the user | 18, 21 |
+| FR-18 | The solver decides which groups share a session, in blocks of the configured number of groups (even sizes, the same companions every time a session repeats in the week), and which of a module's teachers takes it. The room seats every student of the groups | 19, 20 |
+| FR-19 | The result is the Activities table. A manual edit makes the next run a complete rebuild that keeps the edited values. Each edit is checked straight away | 22 |
+| FR-20 | Teacher workload fairness: a weekly cap, even sharing among a module's teachers, and the same teacher for a group | 24 |
 
 ## 5. Non-functional requirements (targets)
 
@@ -96,7 +100,7 @@ A timetable is conflict-free only across the resources **in the same solve**. In
 
 ## 6. Non-goals (v1)
 
-- Individual student enrolment or sectioning. Students are scheduled as groups.
+- Individual student enrolment or sectioning. Students are scheduled as groups. (Splitting the *groups* of a module into sessions is in scope: FR-18.)
 - Self-service edits by teachers or students.
 - Multi-tenant SaaS. v1 is one institute per deployment.
 - A free-form rule or scripting language.
@@ -112,5 +116,10 @@ A timetable is conflict-free only across the resources **in the same solve**. In
 | Soft constraint | A preference. Breaking it adds `weight × penalty` to the score |
 | Feasible | Every event is placed and every hard constraint holds |
 | Pin | A user-fixed time and/or resource for an event |
+| Demand | A rule that the solver splits into sessions: these participants, in blocks of at most `n`, each block attending `repeat` sessions of one kind |
+| Block | The participants of a demand that share its sessions |
+| Session | One scheduled meeting. The word for an event in the academic preset (an Activities row) |
+| Edit | A value the user changed in a solver-made session. The next run is a complete rebuild that keeps it |
+| Configured / hand-made dataset | A dataset whose events come from demands / whose events were typed or imported as activities |
 | Lock | A pin derived from a published run (source `lock`) |
 | Preset | A packaged set of resource types, sheets, labels, default constraints and templates for one domain |

@@ -8,7 +8,7 @@
 
 ## Tasks
 - [x] P18.1 **Stop and ask:** the user reviews ADR-0007. Record the answers in `docs/STATUS.md` and set the ADR to Accepted (or revise it). No other task starts before this. *(Accepted 2026-09-30. Three proposals are still waiting for the user's confirmation, listed under "Decisions to review" in the ADR. They don't block P18.2–P18.6, but they are written into the specs as proposals.)*
-- [ ] P18.2 Spec 01:
+- [x] P18.2 Spec 01:
   - replace FR-5 (templates) with FR-17: "Build sessions from configuration: modules at one level, each mandatory or optional, with session kinds; groups (under a programme) with their optional modules; and teachers with the modules they teach";
   - add FR-18: "The solver decides which groups share a session, in blocks of the configured number of groups, and which of a module's teachers takes it";
   - add FR-19: "The result is the Activities table. A manual edit makes the next run a complete rebuild that keeps the edited values";
