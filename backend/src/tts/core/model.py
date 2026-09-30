@@ -8,6 +8,7 @@ the first.
 """
 
 import re
+from collections import defaultdict
 from collections.abc import Callable, Iterable, Mapping
 from datetime import time
 from typing import Annotated, Literal, Self
@@ -189,6 +190,7 @@ class Event(_Frozen):
     delivery: str = "in_person"
     tags: Tags = ()
     template: str | None = None
+    demand: str | None = None
 
     _normalise = field_validator("tags", mode="before")(_pairs)
 
@@ -254,6 +256,47 @@ class Template(_Frozen):
     active: bool = True
 
 
+class Demand(_Frozen):
+    """A rule the solver splits into events (ADR-0007, spec 02 section 1).
+
+    The `participants` (exclusive resources of one type) are divided into `blocks` blocks of at
+    most `max_participants`, with sizes differing by at most one. Each block attends `repeat`
+    events of this kind, always with the same participants. Every event has this duration, start
+    pattern, delivery and these pooled requirements. With no limit there is one block.
+    """
+
+    code: Code
+    kind: str
+    participants: tuple[Code, ...] = ()
+    reference: str | None = None
+    max_participants: int | None = Field(default=None, ge=1)
+    repeat: int = Field(default=1, ge=1)
+    duration: int = Field(ge=1)
+    start_pattern: Code
+    delivery: str = "in_person"
+    pooled: tuple[PooledSpec, ...] = ()
+    tags: Tags = ()
+
+    _normalise = field_validator("tags", mode="before")(_pairs)
+
+    @field_validator("participants")
+    @classmethod
+    def _sort_participants(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        if len(set(value)) != len(value):
+            raise ValueError("a participant is listed twice")
+        return tuple(sorted(value))
+
+    @property
+    def blocks(self) -> int:
+        """How many blocks the participants are divided into (0 when there are none)."""
+        count = len(self.participants)
+        if count == 0:
+            return 0
+        if self.max_participants is None:
+            return 1
+        return -(-count // self.max_participants)
+
+
 class Pin(_Frozen):
     """A fixed time and/or resources for one event."""
 
@@ -301,6 +344,7 @@ class Dataset(_Frozen):
     constraints: tuple[Constraint, ...] = ()
     templates: tuple[Template, ...] = ()
     pins: tuple[Pin, ...] = ()
+    demands: tuple[Demand, ...] = ()
 
     @field_validator("resource_types")
     @classmethod
@@ -357,6 +401,16 @@ class Dataset(_Frozen):
     def _sort_pins(cls, v: tuple[Pin, ...]) -> tuple[Pin, ...]:
         return _sorted_by(v, lambda x: (x.event, x.source))
 
+    @field_validator("demands")
+    @classmethod
+    def _sort_demands(cls, v: tuple[Demand, ...]) -> tuple[Demand, ...]:
+        return _sorted_by(v, lambda x: (x.code,))
+
+    @property
+    def kind(self) -> Literal["configured", "hand_made"]:
+        """`configured` when the events come from demands, else `hand_made` (spec 02 section 2)."""
+        return "configured" if self.demands else "hand_made"
+
     def validate_invariants(self) -> list[ModelIssue]:
         """Every global invariant violation (spec 02 section 2). Empty means the dataset is sound.
 
@@ -402,6 +456,7 @@ class Dataset(_Frozen):
         duplicates("event", (e.code for e in self.events))
         duplicates("constraint", (c.code for c in self.constraints))
         duplicates("template", (t.code for t in self.templates))
+        duplicates("demand", (d.code for d in self.demands))
         duplicates("day", (d.code for d in self.time.days))
         duplicates("period", (p.code for p in self.time.periods))
         duplicates("start_pattern", (s.code for s in self.time.start_patterns))
@@ -489,7 +544,104 @@ class Dataset(_Frozen):
             for code in t.fixed:
                 unknown("template", t.code, "resource", code, set(resources))
 
+        self._demand_issues(add, unknown, types, resources, patterns, references)
         return issues
+
+    def _demand_issues(
+        self,
+        add: Callable[[str, str, str, str], None],
+        unknown: Callable[[str, str, str, str, set[str]], None],
+        types: dict[str, ResourceType],
+        resources: dict[str, Resource],
+        patterns: set[str],
+        references: set[str],
+    ) -> None:
+        """Invariants 6 and 7 of spec 02 (demands and their edits)."""
+        demand_codes = {d.code for d in self.demands}
+        participant_type: dict[str, str | None] = {}
+        for d in self.demands:
+            unknown("demand", d.code, "start pattern", d.start_pattern, patterns)
+            if d.reference is not None:
+                unknown("demand", d.code, "reference", d.reference, references)
+            for code in d.participants:
+                unknown("demand", d.code, "participant", code, set(resources))
+            known = [code for code in d.participants if code in resources]
+            for code in known:
+                found = types.get(resources[code].type)
+                if found is not None and not found.exclusive:
+                    add(
+                        "demand_participant_not_exclusive",
+                        "demand",
+                        d.code,
+                        f'participant "{code}" is not of an exclusive type',
+                    )
+            found_types = {resources[code].type for code in known}
+            if len(found_types) > 1:
+                add(
+                    "demand_mixed_participants",
+                    "demand",
+                    d.code,
+                    "participants are of different types: " + ", ".join(sorted(found_types)),
+                )
+            participant_type[d.code] = next(iter(found_types)) if len(found_types) == 1 else None
+            for spec in d.pooled:
+                rtype = types.get(spec.resource_type)
+                if rtype is None:
+                    add(
+                        "unknown_reference",
+                        "demand",
+                        d.code,
+                        f'unknown resource type "{spec.resource_type}"',
+                    )
+                elif not rtype.exclusive:
+                    add(
+                        "pooled_not_exclusive",
+                        "demand",
+                        d.code,
+                        f"type {spec.resource_type} is not exclusive",
+                    )
+
+        declared: dict[str, list[str]] = defaultdict(list)
+        for f in self.fixed:
+            declared[f.event].append(f.resource)
+        owners = {d.code: d for d in self.demands}
+        for e in self.events:
+            if e.demand is None:
+                if self.demands:
+                    add(
+                        "mixed_dataset",
+                        "event",
+                        e.code,
+                        "a dataset with demands cannot also have events without a demand",
+                    )
+                continue
+            unknown("event", e.code, "demand", e.demand, demand_codes)
+            owner = owners.get(e.demand)
+            if owner is None:
+                continue
+            kind = participant_type.get(owner.code)
+            taken = [
+                code
+                for code in declared.get(e.code, ())
+                if code in resources and resources[code].type == kind
+            ]
+            for code in taken:
+                if code not in owner.participants:
+                    add(
+                        "edit_outside_demand",
+                        "event",
+                        e.code,
+                        f'"{code}" is not a participant of demand "{owner.code}"',
+                    )
+            limit = owner.max_participants
+            if limit is not None and len(taken) > limit:
+                add(
+                    "edit_too_large",
+                    "event",
+                    e.code,
+                    f"{len(taken)} participants, more than the limit of {limit} of demand "
+                    f'"{owner.code}"',
+                )
 
 
 def _matches_kind(value: AttrValue, kind: str) -> bool:

@@ -8,7 +8,7 @@
 - `backend/src/tts/core/model.py`, `core/verifier.py`, `core/hierarchy.py`, `core/constraints/`, `preflight/checks.py`
 
 ## Tasks
-- [ ] P19.1 Core model:
+- [x] P19.1 Core model:
   - `Demand` (frozen, sorted by code in `Dataset.demands`), `Demand.blocks` (`⌈|participants| / max_participants⌉`, 1 with no limit) and `Event.demand`;
   - the invariants in `Dataset.validate_invariants`:
     - participants exist and are exclusive;

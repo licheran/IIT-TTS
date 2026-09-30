@@ -88,6 +88,11 @@ These come from the structure of the data. Import and the table editor normally 
 | `bad_attribute` | `resource "GP": attribute "abbreviation" is not str` | An attribute has the wrong kind of value |
 | `unexpected_capacity` | `resource "AAM": type Teacher has no capacity` | A capacity was given to a type that has none. Only groups and rooms have one |
 | `pooled_not_exclusive` | `pooled "…#0": type Campus is not exclusive` | An activity asks for a resource of a type that can be shared. Only exclusive types (groups, teachers, rooms) can be chosen |
+| `demand_participant_not_exclusive` | `demand "6SENG005C-TUT": participant "L6 SE" is not of an exclusive type` | A demand (the groups a module's sessions are split between) names something that can be shared, such as a programme. Name the groups themselves. Only datasets built from configuration have demands |
+| `demand_mixed_participants` | `demand "6SENG005C-TUT": participants are of different types: Room, StudentGroup` | The participants of one demand must all be of the same type. Split it into two |
+| `edit_outside_demand` | `event "6SENG005C-TUT-03": "L6 SE / G99" is not a participant of demand "6SENG005C-TUT"` | An edited session keeps a group that the module does not teach. Undo the edit, or add the group to the module |
+| `edit_too_large` | `event "6SENG005C-TUT-03": 4 participants, more than the limit of 3 of demand "6SENG005C-TUT"` | An edited session keeps more groups together than the session type allows. Undo the edit, or raise the limit |
+| `mixed_dataset` | `event "X-LEC-01": a dataset with demands cannot also have events without a demand` | A dataset built from configuration also has activities typed by hand. Use one or the other |
 
 If the data has one of these problems, **only** these issues are shown, because the other checks need sound data. Fix them and press **Check again**.
 

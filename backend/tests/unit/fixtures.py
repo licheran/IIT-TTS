@@ -21,12 +21,14 @@ from tts.core.model import (
     Constraint,
     Dataset,
     Day,
+    Demand,
     Event,
     FixedRequirement,
     Period,
     Pin,
     PooledChoice,
     PooledRequirement,
+    PooledSpec,
     Resource,
     ResourceType,
     Result,
@@ -118,6 +120,7 @@ def make_dataset(
     availability: Iterable[Availability] = (),
     pins: Iterable[Pin] = (),
     constraints: Iterable[Constraint] = (),
+    demands: Iterable[Demand] = (),
     days: int = 2,
     periods: int = 4,
     breaks: Iterable[int] = (),
@@ -135,10 +138,38 @@ def make_dataset(
         availability=tuple(availability),
         pins=tuple(pins),
         constraints=tuple(constraints),
+        demands=tuple(demands),
     )
     if validate:
         assert ds.validate_invariants() == []
     return ds
+
+
+def demand(
+    code: str = "d1",
+    participants: Sequence[str] = ("g1", "g2", "g3"),
+    limit: int | None = 2,
+    repeat: int = 1,
+    duration: int = 1,
+    pattern: str = "all",
+    pooled: Sequence[PooledSpec] | None = None,
+    kind: str = "K",
+) -> Demand:
+    """A demand over `participants`, by default needing one room (type R) that seats them all."""
+    if pooled is None:
+        pooled = (
+            PooledSpec(resource_type="R", capacity_rule=CapacityRule.parse("sum_of_fixed:G")),
+        )
+    return Demand(
+        code=code,
+        kind=kind,
+        participants=tuple(participants),
+        max_participants=limit,
+        repeat=repeat,
+        duration=duration,
+        start_pattern=pattern,
+        pooled=tuple(pooled),
+    )
 
 
 def pick(ordinal: int, *resources: str) -> PooledChoice:
