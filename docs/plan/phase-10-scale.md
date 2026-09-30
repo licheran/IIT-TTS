@@ -7,7 +7,7 @@
 - `docs/spec/05-solver.md` §7
 
 ## Tasks
-- [ ] P10.1 `tests/scale/generate.py`: a synthetic workbook generator. Parameters:
+- [x] P10.1 `tests/scale/generate.py`: a synthetic workbook generator. Parameters:
   - levels (L4–L7), programmes (CS, SE, BDS, AIDS, …), universities (UOW, RGU, …),
   - groups per programme, modules per level,
   - share of teachers shared across programmes,
