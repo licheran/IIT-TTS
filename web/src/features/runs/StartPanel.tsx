@@ -165,6 +165,7 @@ export function StartPanel({ datasetId }: { datasetId: number }) {
               </Link>
             </div>
           )}
+          <ScoreBreakdown run={run.data} />
           <ErrorList
             title="Why it did not finish"
             errors={run.data.diagnostics
@@ -200,5 +201,41 @@ export function RunProgress({ run }: { run: RunOut }) {
         <dd>{formatNumber(progress.elapsed_s, 1)}</dd>
       </div>
     </dl>
+  )
+}
+
+interface ScoreLine {
+  penalty: number
+  weight: number
+  score: number
+}
+
+/** The weighted soft penalties of a run, largest first. */
+export function ScoreBreakdown({ run }: { run: RunOut }) {
+  const lines = Object.entries(run.score_breakdown as Record<string, ScoreLine>).sort(
+    ([a, x], [b, y]) => y.score - x.score || a.localeCompare(b),
+  )
+  if (lines.length === 0) return null
+  return (
+    <table className="w-full max-w-xl text-sm" aria-label="Score breakdown">
+      <thead>
+        <tr className="border-b border-neutral-300 text-left">
+          <th className="p-1">Constraint</th>
+          <th className="p-1 text-right">Penalty</th>
+          <th className="p-1 text-right">Weight</th>
+          <th className="p-1 text-right">Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {lines.map(([code, line]) => (
+          <tr key={code} className="border-b border-neutral-200">
+            <td className="p-1">{code}</td>
+            <td className="p-1 text-right">{line.penalty}</td>
+            <td className="p-1 text-right">{line.weight}</td>
+            <td className="p-1 text-right">{line.score}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   )
 }

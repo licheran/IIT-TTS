@@ -10,6 +10,7 @@ from typing import Any
 
 from tts.core.model import Dataset, Diagnostic, Ref, Result
 from tts.core.run import RunParams
+from tts.core.score import score as score_of
 from tts.core.verifier import hard_violations, verify
 from tts.preflight.checks import has_errors, run_preflight
 from tts.presets import labeller
@@ -125,10 +126,14 @@ def run_pipeline(
         for v in violations
         if v.severity != "soft"
     )
-    score = stats.objective
-    if bad:
-        return PipelineOutcome(
-            "invalid", outcome.result, tuple(diagnostics), score=score, progress=final
-        )
-    status = "cancelled_partial" if cancelled else "succeeded"
-    return PipelineOutcome(status, outcome.result, tuple(diagnostics), score=score, progress=final)
+    scored = score_of(dataset, violations)
+    breakdown = {code: line.model_dump() for code, line in scored.breakdown.items()}
+    status = "invalid" if bad else "cancelled_partial" if cancelled else "succeeded"
+    return PipelineOutcome(
+        status,
+        outcome.result,
+        tuple(diagnostics),
+        score=scored.total,
+        score_breakdown=breakdown,
+        progress=final,
+    )

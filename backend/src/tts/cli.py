@@ -8,6 +8,7 @@ import typer
 
 from tts.core.model import Dataset, Result, Violation
 from tts.core.run import RunParams
+from tts.core.score import Score, score
 from tts.core.verifier import hard_violations, verify
 from tts.io.csvzip import export_csvzip, import_csvzip
 from tts.io.fet_html import (
@@ -72,6 +73,15 @@ def _summarise(violations: list[Violation]) -> str:
     soft = sum(v.severity == "soft" for v in violations)
     warnings = sum(v.severity == "warning" for v in violations)
     return f"{hard} hard violation(s), {soft} soft, {warnings} warning(s)"
+
+
+def _print_score(result: Score) -> None:
+    """The weighted score and its largest parts."""
+    parts = sorted(result.breakdown.items(), key=lambda item: (-item[1].score, item[0]))
+    detail = ", ".join(
+        f"{code} {line.score} ({line.penalty} x {line.weight})" for code, line in parts
+    )
+    typer.echo(f"Score: {result.total}" + (f" ({detail})" if detail else "") + ".")
 
 
 def _preflight(command: str, dataset: Dataset) -> list[Issue]:
@@ -157,6 +167,7 @@ def solve(
 
     violations = verify(data.dataset, outcome.result)
     typer.echo(f"Verifier: {_summarise(violations)}.")
+    _print_score(score(data.dataset, violations))
     if hard_violations(violations):
         for violation in hard_violations(violations):
             typer.echo(f"Violation: {violation.message}", err=True)
@@ -187,6 +198,7 @@ def validate(
     for violation in violations:
         typer.echo(f"{violation.severity.upper()} {violation.constraint_code}: {violation.message}")
     typer.echo(f"Verifier: {_summarise(violations)}.")
+    _print_score(score(data.dataset, violations))
     if hard_violations(violations):
         raise typer.Exit(code=3)
 

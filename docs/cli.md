@@ -161,7 +161,7 @@ The steps, in order:
 1. **Read** the workbook (all or nothing). Any `Assignments` sheet in it is ignored, and a note says so.
 2. **Pre-flight.** Warnings are printed and the solve continues. An error stops here (exit 4).
 3. **Solve** with OR-Tools CP-SAT for the hard rules. It prints `Solver: <status> in <s> s (<n> worker(s), seed <k>, <c> conflicts).`. Declared constraints the solver cannot compile yet are refused if hard (exit 1) and skipped with a `Warning:` if soft.
-4. **Verify.** The independent verifier re-checks the result and prints `Verifier: N hard violation(s), M soft, K warning(s).`. A result with a hard violation is a bug: it is printed as `Violation:` lines and **not written** (exit 3).
+4. **Verify.** The independent verifier re-checks the result and prints `Verifier: N hard violation(s), M soft, K warning(s).`, then `Score: S (CODE s (p x w), …).`: the weighted sum of the soft penalties, largest part first (spec 04 §0). A result with a hard violation is a bug: it is printed as `Violation:` lines and **not written** (exit 3).
 5. **Write** the workbook with the `Assignments` sheet, and print `Wrote <file>.`. The run is labelled `seed-<k>`, and your `_meta` and `x_` columns are kept.
 
 | Exit code | When |
@@ -203,7 +203,7 @@ tts validate <workbook>
 |---|---|
 | `<workbook>` | A workbook (`.xlsx` or CSV `.zip`) with an `Assignments` sheet. Must exist. |
 
-Every finding is printed as `<SEVERITY> <constraint code>: <message>` (for example `HARD H1: …` for a double-booking), followed by `Verifier: N hard violation(s), M soft, K warning(s).`. Hard violations make the result invalid. Soft violations are preferences with a penalty, and warnings are informational (for example, a declared constraint type the verifier does not check yet).
+Every finding is printed as `<SEVERITY> <constraint code>: <message>` (for example `HARD H1: …` for a double-booking), followed by `Verifier: N hard violation(s), M soft, K warning(s).` and `Score: S …` (the weighted soft penalties). Hard violations make the result invalid. Soft violations are preferences with a penalty, and warnings are informational (for example, a declared constraint type the verifier does not check yet).
 
 The check covers the implicit hard rules H0–H5 (every event placed at an allowed start, no double-booking, availability, capacity, requirement match, pins) and every active declared constraint that has a verifier. It does not run pre-flight and does not solve.
 

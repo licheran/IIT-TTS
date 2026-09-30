@@ -169,3 +169,30 @@ def test_cancelling_a_queued_run_ends_it_at_once(client, l6_dataset) -> None:
     run_id = start(client, dataset_id)
     assert client.post(f"/runs/{run_id}/cancel").json()["status"] == "cancelled"
     assert client.post(f"/runs/{run_id}/cancel").status_code == 200  # cancelling twice is harmless
+
+
+def test_a_run_stores_the_verifier_score_and_its_breakdown(
+    client, worker, l6_dataset, session_factory
+) -> None:
+    group = "L6 SE / G1"
+    rule = Constraint(
+        code="FEW-DAYS",
+        type="max_days",
+        scope=f'code:"{group}"',
+        params={"max": 1},
+        hard=False,
+        weight=7,
+    )
+    dataset_id = import_dataset(client, l6_dataset)
+    with session_factory() as session:
+        DatasetRepo(session).save(
+            dataset_id, l6_dataset.model_copy(update={"constraints": (rule,)})
+        )
+        session.commit()
+    run_id = start(client, dataset_id, time_limit_s=20, num_workers=2)
+    worker.run_once()
+    run = client.get(f"/runs/{run_id}").json()
+    assert run["status"] == "succeeded"
+    line = run["score_breakdown"]["FEW-DAYS"]
+    assert line["weight"] == 7 and line["penalty"] >= 1
+    assert run["score"] == line["score"] == 7 * line["penalty"]

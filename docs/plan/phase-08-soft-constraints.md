@@ -8,7 +8,7 @@
 
 ## Tasks
 - [x] P8.1 Implement C1–C14. Each type needs a `core/constraints/<type>.py` verify, a `solver/constraints/<type>.py` compile, and the three tests required by spec 04 §4. Do one type per commit.
-- [ ] P8.2 Objective and score breakdown stored on the run (`score_breakdown` keyed by constraint code).
+- [x] P8.2 Objective and score breakdown stored on the run (`score_breakdown` keyed by constraint code).
 - [ ] P8.3 Academic defaults (spec 04 §3) in `presets/academic_weekly/defaults.py`. They are applied to new datasets and to `import-fet` output.
 - [ ] P8.4 `mode=two_phase` in `RunParams` (spec 05 §4.4).
 - [ ] P8.5 Catalogue completeness test (spec 06 §8, gate 4).
