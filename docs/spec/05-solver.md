@@ -55,18 +55,16 @@ The preset derives **demands** from the configuration (`02-domain-model.md` §6.
 | Unused resource | warning | `Room [1LA] -GP is never a candidate` |
 | Soft constraint on empty scope | warning | `C-GAPS: scope matches nothing` |
 | **Demands** | | |
-| No teacher for a module and kind | error | `6SENG005C TUT: no teacher lists this module` |
-| Teacher pool too small for the load | error | `6SENG005C TUT: 4 sessions at once need 4 teachers, 3 can teach it` |
-| A block cannot fit any room | error | `6SENG005C TUT: no Room with room_type=lab and capacity ≥ 90` (the largest possible block: the `⌈m/k⌉` biggest groups) |
+| A pooled requirement of a demand with too few candidates (for example no teacher of the module) | error | kind `no_candidate`: `6SENG005C-TUT: needs 1 Teacher but only 0 match "code:…"` |
+| A block cannot fit any room | error | `6SENG005C-TUT: no Room matching "tag:room_type=lab" with capacity ≥ 90` (the block no split can avoid: the biggest participant alone, or `⌈total size / k⌉`, whichever is more) |
 | A participant's demand over its free periods | error | `L6 SE / G1: needs 26 periods, 24 available` |
 | Pooled pressure from demands | warning | `Rooms room_type=lab: 64 periods needed, 60 available` (sessions = blocks × `repeat`) |
-| A module with sessions and no groups | warning | `6SENG005C: no group takes this module` |
-| A module with no session types | warning | `6SENG005C: no session types, nothing to schedule` |
-| Nothing to schedule | warning | `No demands and no events: the timetable would be empty` |
-| An edit that does not match | error | `6SENG005C-TUT-03: group "L6 SE / G99" is not a participant of demand 6SENG005C-TUT` |
-| `code:` scope with demands | warning | `C-SAT: scope names no declared event, while demands make events with codes only after solving` |
-| `uses:` scope, hard | error | `C-X: a hard rule with a uses: scope cannot be enforced on sessions the solver creates` |
-| `uses:` scope, soft | warning | `C-X: only declared events are optimised for this scope; the score is still exact` |
+| A demand with no participants | warning | kind `empty_demand`: `6SENG005C-TUT: no participants, nothing to schedule` |
+| Nothing to schedule | warning | kind `nothing_to_schedule`: `No demands and no events: the timetable would be empty` |
+| An edit that does not match | error | kinds `edit_outside_demand` (`event "6SENG005C-TUT-03": "L6 SE / G99" is not a participant of demand "6SENG005C-TUT"`) and `edit_too_large`, reported with the data-model rules |
+| `code:` scope with demands | warning | kind `code_scope_with_demands`: `C-SAT: scope names no declared event, while demands make events with codes only after solving` |
+| `uses:` scope, hard | error | kind `uses_scope_unsupported`: `C-X: a hard rule with a uses: scope cannot be enforced on sessions the solver creates` |
+| `uses:` scope, soft | warning | kind `uses_scope_declared_only`: `C-X: only declared events are optimised for this scope; the score is still exact` |
 
 "Available" means periods that are not breaks, minus `unavailable` availability rows. Demand is the sum of the durations of the events that occupy the resource. For pooled types, demand and supply are counted over the candidate sets.
 

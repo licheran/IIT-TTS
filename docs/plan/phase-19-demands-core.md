@@ -35,7 +35,7 @@
   - event-scoped types select them with `ref:`, `kind:`, `tag:` and `uses:`.
 
   One extra test per catalogue type with a created event in scope.
-- [ ] P19.5 Pre-flight checks for demands, from spec 05 §3:
+- [x] P19.5 Pre-flight checks for demands, from spec 05 §3:
   - no candidate pooled resource for a demand: the biggest possible block (the `⌈m/k⌉` largest groups) must fit a room of the type, and the teacher pool must not be empty;
   - a participant's demand is more than its available periods;
   - pooled pressure for demands (the blocks × `repeat` × duration);

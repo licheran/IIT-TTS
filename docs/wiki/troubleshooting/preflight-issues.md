@@ -75,6 +75,14 @@ Click the links on an issue to open the row it names.
 
 **Fix:** Correct `params` in the [Constraints](../tables/Constraints.md) table. Each type's page lists its parameters: see the [constraint list](../constraints/README.md).
 
+### `uses_scope_unsupported`
+
+**Message:** `C-X: a hard rule with a uses: scope cannot be enforced on events the solver creates`
+
+**Meaning:** The data is built from configuration, so the solver decides which groups share each session. A hard rule whose scope starts with `uses:(…)` depends on those groups, so the solver cannot promise it.
+
+**Fix:** Select the sessions by `kind:`, `ref:` (the module) or `tag:` instead, or make the rule soft. See [Selectors](../constraints/selectors.md).
+
 ### Data model rules
 
 These come from the structure of the data. Import and the table editor normally stop them before you see them, but pre-flight reports them under these kinds if they occur. The message starts with the kind of row and its key, for example `resource "L6 SE / G1": …`.
@@ -121,6 +129,38 @@ If the data has one of these problems, **only** these issues are shown, because 
 **Meaning:** The selector of an active soft constraint picks nothing, so the rule has no effect.
 
 **Fix:** Check the selector and the tags or codes it names. See [Selectors](../constraints/selectors.md).
+
+### `nothing_to_schedule`
+
+**Message:** `No demands and no events: the timetable would be empty`
+
+**Meaning:** There is nothing to place. A run would finish at once with an empty timetable.
+
+**Fix:** Add activities (or, when the data is built from configuration, modules with session types and groups that take them).
+
+### `empty_demand`
+
+**Message:** `6SENG005C-TUT: no participants, nothing to schedule`
+
+**Meaning:** A module's session kind has no groups taking it, so it makes no sessions. Only datasets built from configuration have demands.
+
+**Fix:** Make sure the module is mandatory for some groups, or that some groups list it among their options.
+
+### `code_scope_with_demands`
+
+**Message:** `C-SAT: scope names no declared event, while demands make events with codes only after solving`
+
+**Meaning:** A rule's scope names activities by code, but the sessions the solver creates have no codes until it has run, so the rule picks nothing.
+
+**Fix:** Select the sessions by `kind:`, `ref:` or `tag:` instead of `code:`.
+
+### `uses_scope_declared_only`
+
+**Message:** `C-X: only declared events are optimised for this scope; the score is still exact`
+
+**Meaning:** A soft rule's scope starts with `uses:(…)`. The solver cannot aim for it on sessions it creates, but the score always counts them correctly.
+
+**Fix:** Use `kind:`, `ref:` or `tag:` in the scope if you want the solver to optimise it.
 
 ## Related
 
