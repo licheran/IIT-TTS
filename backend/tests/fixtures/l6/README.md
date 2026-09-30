@@ -53,3 +53,12 @@ The 6CCGD007C LEC on Thursday is labelled `[6.00pm -8.00pm], [ONLINE]` but sits 
 ## Privacy
 
 The export is old and deprecated, and its teacher codes are example codes only (confirmed by the user on 2026-09-30), so the repository can be public.
+
+## `templates.xlsx`
+
+L6 with its activities written as templates (Phase 9, P9.4): single-group activities that share
+their teachers and room type become one `per_group` template, and each multi-group activity a
+`joint` template. It has no activities; expanding the templates gives them back. Regenerate it
+with `uv run python tests/fixtures/l6/make_templates.py` (from `backend/`);
+`test_l6_templates.py` checks that the committed file is what the script writes, and that the
+expansion matches `expected.json` (groups and LEC/TUT counts per module).
