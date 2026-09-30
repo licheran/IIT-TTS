@@ -155,7 +155,7 @@ def test_the_format_version_is_one() -> None:
 
 def test_the_preset_is_registered_and_serialisable() -> None:
     assert get_preset(PRESET_NAME) is PRESET
-    assert set(PRESETS) == {PRESET_NAME}
+    assert set(PRESETS) == {PRESET_NAME, "exams"}  # the second preset (Phase 11)
     assert Preset.model_validate_json(PRESET.model_dump_json()) == PRESET
 
 

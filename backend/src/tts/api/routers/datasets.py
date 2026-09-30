@@ -18,7 +18,15 @@ from tts.api.schemas import (
 from tts.api.workbooks import preset_of
 from tts.core.model import Dataset
 from tts.preflight.checks import has_errors, run_preflight
-from tts.presets import PRESETS, UnknownPresetError, get_preset, labeller, labels, with_defaults
+from tts.presets import (
+    FORMAT_VERSIONS,
+    PRESETS,
+    UnknownPresetError,
+    get_preset,
+    labeller,
+    labels,
+    with_defaults,
+)
 from tts.store.repositories import DatasetInfo, DatasetRepo
 
 presets_router = APIRouter(tags=["datasets"])
@@ -84,11 +92,9 @@ def delete_dataset(dataset_id: int, session: DbSession) -> None:
 def get_schema(dataset_id: int, session: DbSession) -> SchemaOut:
     """The preset's sheet definitions and labels. They drive the table editors."""
     preset = preset_of(session, dataset_id)
-    from tts.presets.academic_weekly.sheets import FORMAT_VERSION
-
     return SchemaOut(
         preset=preset.name,
-        format_version=FORMAT_VERSION,
+        format_version=FORMAT_VERSIONS[preset.name],
         sheets=list(preset.sheets),
         labels=labels(preset.name),
         resource_types=list(preset.resource_types),

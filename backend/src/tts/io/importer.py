@@ -785,6 +785,7 @@ class _Build:
         pooled: list[PooledRequirement] = []
         for row in self.rows("event"):
             code = row.value("code")
+            optional = {"delivery": row.value("delivery")}  # a sheet may not have the column
             events.append(
                 Event(
                     code=code,
@@ -792,9 +793,9 @@ class _Build:
                     duration=row.value("duration"),
                     start_pattern=row.value("start_pattern"),
                     reference=row.value("reference"),
-                    delivery=row.value("delivery"),
                     tags=row.value("tags") or {},
                     template=row.value("template"),
+                    **{k: v for k, v in optional.items() if v is not None},
                 )
             )
             for column in row.sheet.columns:

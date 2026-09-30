@@ -9,20 +9,36 @@ from tts.presets.academic_weekly.defaults import with_defaults as academic_defau
 from tts.presets.academic_weekly.labels import all_labels as academic_labels
 from tts.presets.academic_weekly.labels import label as academic_label
 from tts.presets.academic_weekly.preset import PRESET as ACADEMIC_WEEKLY
+from tts.presets.academic_weekly.sheets import FORMAT_VERSION as ACADEMIC_FORMAT
+from tts.presets.exams.defaults import with_defaults as exams_defaults
+from tts.presets.exams.labels import all_labels as exams_labels
+from tts.presets.exams.labels import label as exams_label
+from tts.presets.exams.preset import PRESET as EXAMS
+from tts.presets.exams.sheets import FORMAT_VERSION as EXAMS_FORMAT
 
 
 class UnknownPresetError(KeyError):
     """No preset has that name."""
 
 
-PRESETS: dict[str, Preset] = {ACADEMIC_WEEKLY.name: ACADEMIC_WEEKLY}
+PRESETS: dict[str, Preset] = {ACADEMIC_WEEKLY.name: ACADEMIC_WEEKLY, EXAMS.name: EXAMS}
 
+FORMAT_VERSIONS: dict[str, int] = {ACADEMIC_WEEKLY.name: ACADEMIC_FORMAT, EXAMS.name: EXAMS_FORMAT}
 
-LABELLERS: dict[str, Callable[[str], str]] = {ACADEMIC_WEEKLY.name: academic_label}
+LABELLERS: dict[str, Callable[[str], str]] = {
+    ACADEMIC_WEEKLY.name: academic_label,
+    EXAMS.name: exams_label,
+}
 
-LABEL_TABLES: dict[str, Callable[[], dict[str, str]]] = {ACADEMIC_WEEKLY.name: academic_labels}
+LABEL_TABLES: dict[str, Callable[[], dict[str, str]]] = {
+    ACADEMIC_WEEKLY.name: academic_labels,
+    EXAMS.name: exams_labels,
+}
 
-DEFAULTS: dict[str, Callable[[Dataset], Dataset]] = {ACADEMIC_WEEKLY.name: academic_defaults}
+DEFAULTS: dict[str, Callable[[Dataset], Dataset]] = {
+    ACADEMIC_WEEKLY.name: academic_defaults,
+    EXAMS.name: exams_defaults,
+}
 
 ExpansionOptions = dict[str, object]  # keyword arguments of `tts.expand.templates.expand`
 
