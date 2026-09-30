@@ -22,6 +22,7 @@ Status: **Authoritative.** Each type is implemented as `core/constraints/<type>.
 | H3 | `capacity` | Each chosen pooled resource has `capacity ≥` the requirement's capacity rule. `sum_of_fixed:<Type>` means the sum of the capacities of the event's fixed resources of that type (and their exclusive descendants, if the fixed resource is a grouping node) | always hard |
 | H4 | `requirement_match` | Each chosen pooled resource matches the requirement's filter | always hard |
 | H5 | `pin` | The assignment equals the pin in every field the pin sets | always hard |
+| H6 | `demand_cover` | For each demand, its events (declared and created) form blocks, meaning events with the same participants. Each participant is in exactly one block. There are exactly `k = ⌈m / max_participants⌉` blocks (`m` participants; `k = 1` with no limit). Each block has exactly `repeat` events and at most `max_participants` participants. Block sizes differ by at most one. Every created event has the demand's duration, start pattern and pooled requirements | always hard |
 
 ## 2. Declared constraints (v1 catalogue)
 
@@ -57,10 +58,25 @@ Rules for every declared type:
 
 `AC-TRAVEL` is created with `active: false`: the institute needs no free period for a change of building (answered 2026-09-30), and a user can switch it on. `AC-SAT` exists only when the time model has a Saturday. The defaults are added to new datasets and to `tts import-fet` output (unless `--no-defaults`).
 
-Lecture-before-tutorial ordering is added per module by the expander (`05-solver.md` §2) as soft `order` constraints with weight 1.
+Lecture-before-tutorial ordering is added per module by the expander (`05-solver.md` §2) as soft `order` constraints with weight 1. It applies to hand-made datasets only (see §5).
 
 ## 4. Test requirements for each type
 
 1. `verify` returns the exact expected penalty on at least three hand-built cases (0, 1 and several violations).
 2. `compile` + solve on a small instance finds an optimum where `verify` gives the same penalty as the solver's objective term.
 3. The hard version on a deliberately impossible instance is INFEASIBLE, and the explanation lists this constraint instance's code.
+
+## 5. Created events and the declared constraints
+
+Sessions the solver creates from a demand (ADR-0007) are events like any other once the solver has chosen their blocks. The verifier makes them real first (each created event gets its participants as fixed resources), then runs H0–H5 and every declared type unchanged. The solver's model treats them as follows.
+
+| Kind of constraint | Types | With created events |
+|---|---|---|
+| **Resource-scoped** | C1, C2, C3, C10, C13, C14 | Work on the resource's occupancy. A created event occupies a participant exactly when the participant is in its block, so the penalty counts it through that membership. No change to the semantics |
+| **Event-scoped** | C4–C9, C11, C12 | The scope selects created events by properties known before solving: `kind:`, `ref:`, `tag:` and `type:`-free selectors. A created event has its demand's kind, reference and tags. They then behave as any event |
+| Scope with `code:` | event-scoped | Codes of created events do not exist before solving, so `code:` selects declared events only. The verifier, which sees the real codes, may select more. Pre-flight warns when a `code:` scope matches no declared event while demands exist |
+| Scope with `uses:` | event-scoped | Which resources a created event uses depends on the grouping. The solver ignores created events for a `uses:` scope. Pre-flight gives an **error** when such a constraint is hard (the solver could not enforce it) and a **warning** when it is soft (the solver optimises only the declared events, while the score is still measured exactly by the verifier) |
+
+**No automatic ordering.** The expander's `AUTO-ORDER:` constraints need event codes, so they are not generated for configured datasets. A lecture-before-tutorial rule has to be written as an `order` constraint over declared events, or left to the administrator.
+
+**Academic defaults** (spec 04 §3) apply unchanged: `AC-GAPS`, `AC-TGAPS` and `AC-SAT` select by resource type or event kind.

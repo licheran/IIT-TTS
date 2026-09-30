@@ -27,7 +27,7 @@
   - validation messages for every new column.
 
   Keep the version 1 table as its own section: version 1 still imports into, and exports from, a hand-made dataset. Add a note to `docs/STATUS.md`, as rule 4 requires.
-- [ ] P18.5 Spec 04:
+- [x] P18.5 Spec 04:
   - H6 `demand_cover`, with its semantics: blocks, `repeat` events per block with the same participants, and even block sizes;
   - how each of C1–C14 treats created events: resource-scoped types through membership; event-scoped types and `code:` scopes.
 - [ ] P18.6 Spec 05:
