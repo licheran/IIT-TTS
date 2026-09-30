@@ -46,6 +46,7 @@ Excel/CSV or table editor ──► Validate ──► Expand templates ──�
 | [Constraints](docs/spec/04-constraints.md) | The constraint catalogue and its exact semantics |
 | [Solver](docs/spec/05-solver.md) | CP-SAT formulation, pre-flight, explanations |
 | [Architecture](docs/spec/06-architecture.md) | Packages, API, tech stack, quality gates |
+| [User wiki](docs/wiki/README.md) | Every tab and table of the app, how tags and constraints work, and what to do when something fails |
 | [Command line](docs/cli.md) | Every `tts` command, option, output and exit code |
 | [Roadmap](docs/plan/ROADMAP.md) | Build phases and acceptance criteria |
 | [ADRs](docs/adr/README.md) | Architecture decisions |

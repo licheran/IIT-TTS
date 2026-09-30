@@ -10,6 +10,7 @@ const WEB_PORT = 5180
 
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: '**/wiki-shots.spec.ts',
   timeout: 180_000,
   fullyParallel: false,
   workers: 1,
