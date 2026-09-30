@@ -16,10 +16,17 @@ from tts.api.schemas import (
 from tts.api.workbooks import preset_of
 from tts.core.model import Dataset
 from tts.preflight.checks import has_errors, run_preflight
-from tts.presets import UnknownPresetError, get_preset, labeller, labels
+from tts.presets import PRESETS, UnknownPresetError, get_preset, labeller, labels
 from tts.store.repositories import DatasetInfo, DatasetRepo
 
+presets_router = APIRouter(tags=["datasets"])
 router = APIRouter(prefix="/datasets", tags=["datasets"])
+
+
+@presets_router.get("/presets")
+def list_presets() -> list[str]:
+    """The names of the presets a dataset can be created from."""
+    return sorted(PRESETS)
 
 
 def _out(info: DatasetInfo) -> DatasetOut:
@@ -78,23 +85,38 @@ def get_schema(dataset_id: int, session: DbSession) -> SchemaOut:
     return SchemaOut(
         preset=preset.name,
         format_version=FORMAT_VERSION,
-        sheets=[s.model_dump(mode="json") for s in preset.sheets],
+        sheets=list(preset.sheets),
         labels=labels(preset.name),
-        resource_types=[t.model_dump(mode="json") for t in preset.resource_types],
+        resource_types=list(preset.resource_types),
     )
 
 
 @router.post("/{dataset_id}/preflight")
 def preflight(dataset_id: int, session: DbSession) -> PreflightOut:
     dataset = DatasetRepo(session).load(dataset_id)
+    preset = preset_of(session, dataset_id)
     issues = run_preflight(dataset, labeller(dataset.preset))
+    type_of = {r.code: r.type for r in dataset.resources}
+    sheet_of_type = {s.resource_type: s.name for s in preset.sheets if s.resource_type}
+    sheet_of_target: dict[str, str] = {
+        s.target: s.name for s in preset.sheets if s.target in ("event", "constraint")
+    }
+
+    def sheet_for(kind: str, code: str) -> str | None:
+        if kind == "resource":
+            return sheet_of_type.get(type_of.get(code, ""))
+        return sheet_of_target.get(kind)
+
     return PreflightOut(
         issues=[
             IssueOut(
                 severity=i.severity,
                 kind=i.kind,
                 message=i.message,
-                refs=[RefOut(kind=r.kind, code=r.code) for r in i.refs],
+                refs=[
+                    RefOut(kind=r.kind, code=r.code, sheet=sheet_for(r.kind, r.code))
+                    for r in i.refs
+                ],
             )
             for i in issues
         ],

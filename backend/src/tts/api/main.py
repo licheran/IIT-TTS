@@ -29,6 +29,7 @@ def create_app(url: str | None = None, migrate: bool = True) -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
+    app.include_router(datasets.presets_router)
     app.include_router(datasets.router)
     app.include_router(tables.router)
     app.include_router(io.router)

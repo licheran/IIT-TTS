@@ -14,7 +14,9 @@
     "typecheck": "tsc -b --noEmit",
     "e2e": "playwright test",
     "gen:api": "openapi-typescript http://localhost:8000/openapi.json -o src/api/schema.ts",
-    "gen:api:file": "openapi-typescript openapi.json -o src/api/schema.ts"
+    "gen:api:file": "openapi-typescript openapi.json -o src/api/schema.ts",
+    "dump:api": "uv run --project ../backend python -m tts.api.dump_openapi openapi.json",
+    "gen:api:local": "pnpm dump:api && pnpm gen:api:file"
   },
   "dependencies": {
     "@tanstack/react-query": "5.104.0",

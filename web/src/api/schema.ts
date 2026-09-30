@@ -21,10 +21,948 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/presets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Presets
+         * @description The names of the presets a dataset can be created from.
+         */
+        get: operations["list_presets_presets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/datasets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Datasets */
+        get: operations["list_datasets_datasets_get"];
+        put?: never;
+        /** Create Dataset */
+        post: operations["create_dataset_datasets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/datasets/{dataset_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Dataset */
+        get: operations["get_dataset_datasets__dataset_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Dataset */
+        delete: operations["delete_dataset_datasets__dataset_id__delete"];
+        options?: never;
+        head?: never;
+        /** Rename Dataset */
+        patch: operations["rename_dataset_datasets__dataset_id__patch"];
+        trace?: never;
+    };
+    "/datasets/{dataset_id}/schema": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Schema
+         * @description The preset's sheet definitions and labels. They drive the table editors.
+         */
+        get: operations["get_schema_datasets__dataset_id__schema_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/datasets/{dataset_id}/preflight": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preflight */
+        post: operations["preflight_datasets__dataset_id__preflight_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/datasets/{dataset_id}/tables/{sheet}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Rows
+         * @description Rows of a sheet. `sort` is a column name, with a leading `-` for descending.
+         */
+        get: operations["list_rows_datasets__dataset_id__tables__sheet__get"];
+        put?: never;
+        /** Add Row */
+        post: operations["add_row_datasets__dataset_id__tables__sheet__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/datasets/{dataset_id}/tables/{sheet}/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Row */
+        delete: operations["remove_row_datasets__dataset_id__tables__sheet___key__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Row */
+        patch: operations["patch_row_datasets__dataset_id__tables__sheet___key__patch"];
+        trace?: never;
+    };
+    "/datasets/{dataset_id}/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Workbook
+         * @description Replace the dataset with the workbook's content. Any problem changes nothing.
+         */
+        post: operations["import_workbook_datasets__dataset_id__import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/datasets/{dataset_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Workbook */
+        get: operations["export_workbook_datasets__dataset_id__export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/datasets/{dataset_id}/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Runs */
+        get: operations["list_runs_datasets__dataset_id__runs_get"];
+        put?: never;
+        /**
+         * Start Run
+         * @description Snapshot and hash the dataset, then queue a run. The worker picks it up.
+         */
+        post: operations["start_run_datasets__dataset_id__runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Run */
+        get: operations["get_run_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/{run_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Run */
+        post: operations["cancel_run_runs__run_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/{run_id}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Assignments */
+        get: operations["assignments_runs__run_id__assignments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/{run_id}/grid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Grid */
+        get: operations["grid_runs__run_id__grid_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/{a}/diff/{b}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Diff */
+        get: operations["diff_runs__a__diff__b__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/{run_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publish
+         * @description Make this run the dataset's published one. Any other published run is unpublished.
+         */
+        post: operations["publish_runs__run_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/{run_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export
+         * @description Export a run: HTML grids, a workbook with the assignments, or a CSV list.
+         *
+         *     `code` limits it to one resource, `type` to the resources of one type.
+         */
+        get: operations["export_runs__run_id__export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate
+         * @description Upload a workbook (`.xlsx` or CSV `.zip`) with an Assignments sheet, or a FET groups HTML.
+         *
+         *     Nothing is stored. Every violation is returned.
+         */
+        post: operations["validate_validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        /** AssignmentOut */
+        AssignmentOut: {
+            /** Event */
+            event: string;
+            /** Kind */
+            kind: string;
+            /** Reference */
+            reference: string | null;
+            /** Day */
+            day: string;
+            /** Start Period */
+            start_period: string;
+            /** End Period */
+            end_period: string;
+            /** Fixed */
+            fixed: string[];
+            /** Chosen */
+            chosen: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** AttributeDef */
+        AttributeDef: {
+            /** Name */
+            name: string;
+            /**
+             * Kind
+             * @default str
+             * @enum {string}
+             */
+            kind: "str" | "int" | "bool";
+        };
+        /** Body_import_workbook_datasets__dataset_id__import_post */
+        Body_import_workbook_datasets__dataset_id__import_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_validate_validate_post */
+        Body_validate_validate_post: {
+            /** File */
+            file: string;
+        };
+        /**
+         * ColumnDef
+         * @description One column of a sheet.
+         *
+         *     `refs` lists the sheets whose codes the value must name (for a `list` column, each item).
+         *     `required_when` is a (column, value) pair: the column is required when that other column
+         *     holds that value. `expands_to` marks a convenience column: on import its items become rows of
+         *     the named join sheet, and it is never written on export. A column with `derive` is
+         *     descriptive: written on export only, computed as one of `event.reference`, `event.kind`,
+         *     `end` (the end time of the last covered period), `fixed:<join sheet>` (the event's fixed
+         *     resources that sheet lists) or `ancestors:<resource sheet>` (the chosen resources' ancestors
+         *     of that sheet's type).
+         */
+        ColumnDef: {
+            /** Name */
+            name: string;
+            /** Field */
+            field: string;
+            /**
+             * Kind
+             * @default str
+             * @enum {string}
+             */
+            kind: "str" | "int" | "bool" | "time" | "list" | "pairs" | "json" | "selector";
+            /**
+             * Required
+             * @default false
+             */
+            required: boolean;
+            /** Required When */
+            required_when?: [
+                string,
+                string
+            ] | null;
+            /**
+             * Refs
+             * @default []
+             */
+            refs: string[];
+            /**
+             * Allow Star
+             * @default false
+             */
+            allow_star: boolean;
+            /**
+             * Choices
+             * @default []
+             */
+            choices: string[];
+            /** Minimum */
+            minimum?: number | null;
+            /** Default */
+            default?: string | number | boolean | null;
+            /** Expands To */
+            expands_to?: string | null;
+            /** Derive */
+            derive?: string | null;
+            /**
+             * Label
+             * @default
+             */
+            label: string;
+        };
+        /** DatasetCreate */
+        DatasetCreate: {
+            /** Name */
+            name: string;
+            /** Preset */
+            preset: string;
+        };
+        /** DatasetOut */
+        DatasetOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Preset */
+            preset: string;
+            /** Version */
+            version: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** DatasetPatch */
+        DatasetPatch: {
+            /** Name */
+            name: string;
+        };
+        /** DiagnosticOut */
+        DiagnosticOut: {
+            /** Kind */
+            kind: string;
+            /** Severity */
+            severity: string;
+            /** Message */
+            message: string;
+            /**
+             * Refs
+             * @default []
+             */
+            refs: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Details
+             * @default []
+             */
+            details: string[];
+            /**
+             * Minimal
+             * @default true
+             */
+            minimal: boolean;
+        };
+        /** DiffOut */
+        DiffOut: {
+            /** A */
+            a: number;
+            /** B */
+            b: number;
+            /** Changes */
+            changes: components["schemas"]["EventChange"][];
+        };
+        /**
+         * EventChange
+         * @description How one event differs between two results.
+         *
+         *     `kind` is `moved`, `resources`, `added` or `removed`.
+         */
+        EventChange: {
+            /** Event */
+            event: string;
+            /** Kind */
+            kind: string;
+            before: components["schemas"]["Placement"] | null;
+            after: components["schemas"]["Placement"] | null;
+        };
+        /** Grid */
+        Grid: {
+            /** Resource */
+            resource: string;
+            /** Days */
+            days: components["schemas"]["GridDay"][];
+            /** Periods */
+            periods: components["schemas"]["GridPeriod"][];
+            /** Cells */
+            cells: components["schemas"]["GridCell"][];
+        };
+        /**
+         * GridCell
+         * @description One event in the grid.
+         *
+         *     `row` is the index of its first period and `span` the number of periods it covers, so it is
+         *     drawn as one block. Events of a resource that is not exclusive can overlap in time: `lane`
+         *     and `lanes` say how to place them side by side (lane 0 of 1 when nothing overlaps).
+         */
+        GridCell: {
+            /** Event */
+            event: string;
+            /** Kind */
+            kind: string;
+            /** Reference */
+            reference: string | null;
+            /** Day */
+            day: string;
+            /** Start Period */
+            start_period: string;
+            /** Day Index */
+            day_index: number;
+            /** Row */
+            row: number;
+            /** Span */
+            span: number;
+            /** Duration */
+            duration: number;
+            /** Fixed */
+            fixed: string[];
+            /** Chosen */
+            chosen: string[];
+            /**
+             * Lane
+             * @default 0
+             */
+            lane: number;
+            /**
+             * Lanes
+             * @default 1
+             */
+            lanes: number;
+        };
+        /** GridDay */
+        GridDay: {
+            /** Code */
+            code: string;
+            /** Label */
+            label: string;
+        };
+        /** GridPeriod */
+        GridPeriod: {
+            /** Code */
+            code: string;
+            /** Start */
+            start: string;
+            /** End */
+            end: string;
+            /** Is Break */
+            is_break: boolean;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /** ImportProblem */
+        ImportProblem: {
+            /** Sheet */
+            sheet: string;
+            /** Row */
+            row?: number | null;
+            /** Col */
+            col?: number | null;
+            /** Column */
+            column?: string | null;
+            /** Message */
+            message: string;
+            /** Text */
+            text: string;
+        };
+        /** ImportResult */
+        ImportResult: {
+            /** Ok */
+            ok: boolean;
+            /**
+             * Errors
+             * @default []
+             */
+            errors: components["schemas"]["ImportProblem"][];
+            /**
+             * Summary
+             * @default {}
+             */
+            summary: {
+                [key: string]: number;
+            };
+        };
+        /** IssueOut */
+        IssueOut: {
+            /** Severity */
+            severity: string;
+            /** Kind */
+            kind: string;
+            /** Message */
+            message: string;
+            /**
+             * Refs
+             * @default []
+             */
+            refs: components["schemas"]["tts__api__schemas__RefOut"][];
+        };
+        /** KeyOut */
+        KeyOut: {
+            /** Key */
+            key: string;
+        };
+        /** Placement */
+        Placement: {
+            /** Day */
+            day: string;
+            /** Start Period */
+            start_period: string;
+            /** Resources */
+            resources: string[];
+        };
+        /**
+         * PooledMapping
+         * @description Columns that stand for a pooled requirement (for example a room type and a count).
+         */
+        PooledMapping: {
+            /** Resource Type */
+            resource_type: string;
+            /** Tag */
+            tag: string;
+            /** Capacity Rule */
+            capacity_rule: string;
+            /** Type Column */
+            type_column: string;
+            /** Count Column */
+            count_column?: string | null;
+        };
+        /** PreflightOut */
+        PreflightOut: {
+            /** Issues */
+            issues: components["schemas"]["IssueOut"][];
+            /** Has Errors */
+            has_errors: boolean;
+        };
+        /**
+         * ResourceType
+         * @description A kind of resource. An exclusive type can be used by at most one event per period.
+         */
+        ResourceType: {
+            /** Code */
+            code: string;
+            /**
+             * Exclusive
+             * @default false
+             */
+            exclusive: boolean;
+            /**
+             * Has Capacity
+             * @default false
+             */
+            has_capacity: boolean;
+            /**
+             * Attribute Schema
+             * @default []
+             */
+            attribute_schema: components["schemas"]["AttributeDef"][];
+        };
+        /** RowIn */
+        RowIn: {
+            /** Values */
+            values: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * RowOut
+         * @description One table row. `key` identifies it in `PATCH` and `DELETE` (parts joined by U+001F).
+         */
+        RowOut: {
+            /** Key */
+            key: string;
+            /** Values */
+            values: {
+                [key: string]: unknown;
+            };
+        };
+        /** RunCreated */
+        RunCreated: {
+            /** Run Id */
+            run_id: number;
+        };
+        /** RunOut */
+        RunOut: {
+            /** Id */
+            id: number;
+            /** Dataset Id */
+            dataset_id: number;
+            /** Status */
+            status: string;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Input Hash */
+            input_hash: string;
+            /** Progress */
+            progress: {
+                [key: string]: unknown;
+            };
+            /** Score */
+            score: number | null;
+            /** Score Breakdown */
+            score_breakdown: {
+                [key: string]: unknown;
+            };
+            /** Cancel Requested */
+            cancel_requested: boolean;
+            /** Published */
+            published: boolean;
+            /** Attempts */
+            attempts: number;
+            /** Created At */
+            created_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Diagnostics
+             * @default []
+             */
+            diagnostics: components["schemas"]["DiagnosticOut"][];
+        };
+        /**
+         * RunParams
+         * @description How to solve. `num_workers=None` means one worker per CPU.
+         *
+         *     `mode`: `optimise` searches for the best score within the time limit, `feasible` stops at the
+         *     first solution, `two_phase` finds a feasible solution and then optimises from it. With no soft
+         *     constraints they behave alike.
+         */
+        RunParams: {
+            /**
+             * Time Limit S
+             * @default 120
+             */
+            time_limit_s: number;
+            /** Num Workers */
+            num_workers?: number | null;
+            /**
+             * Seed
+             * @default 0
+             */
+            seed: number;
+            /**
+             * Mode
+             * @default optimise
+             * @enum {string}
+             */
+            mode: "optimise" | "feasible" | "two_phase";
+            /**
+             * Lock Published
+             * @default true
+             */
+            lock_published: boolean;
+        };
+        /** SchemaOut */
+        SchemaOut: {
+            /** Preset */
+            preset: string;
+            /** Format Version */
+            format_version: number;
+            /** Sheets */
+            sheets: components["schemas"]["SheetDef"][];
+            /** Labels */
+            labels: {
+                [key: string]: string;
+            };
+            /** Resource Types */
+            resource_types: components["schemas"]["ResourceType"][];
+        };
+        /**
+         * SheetDef
+         * @description One sheet: its columns and the core table its rows become.
+         */
+        SheetDef: {
+            /** Name */
+            name: string;
+            /**
+             * Target
+             * @enum {string}
+             */
+            target: "meta" | "day" | "period" | "start_pattern" | "resource" | "reference" | "template" | "event" | "fixed" | "availability" | "constraint" | "pin" | "assignment";
+            /** Columns */
+            columns: components["schemas"]["ColumnDef"][];
+            /** Resource Type */
+            resource_type?: string | null;
+            /** Reference Type */
+            reference_type?: string | null;
+            pooled?: components["schemas"]["PooledMapping"] | null;
+            /**
+             * Export Only
+             * @default false
+             */
+            export_only: boolean;
+            /**
+             * Label
+             * @default
+             */
+            label: string;
+        };
+        /** TablePage */
+        TablePage: {
+            /** Sheet */
+            sheet: string;
+            /** Headers */
+            headers: string[];
+            /** Rows */
+            rows: components["schemas"]["RowOut"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** ValidateOut */
+        ValidateOut: {
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "workbook" | "fet";
+            /** Valid */
+            valid: boolean;
+            /** Hard */
+            hard: number;
+            /** Soft */
+            soft: number;
+            /** Warnings */
+            warnings: number;
+            /** Events */
+            events: number;
+            /** Placed */
+            placed: number;
+            /** Violations */
+            violations: components["schemas"]["ViolationOut"][];
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
+        };
+        /** ViolationOut */
+        ViolationOut: {
+            /** Code */
+            code: string;
+            /** Constraint Code */
+            constraint_code: string;
+            /** Severity */
+            severity: string;
+            /** Penalty */
+            penalty: number;
+            /** Refs */
+            refs: components["schemas"]["tts__api__routers__validate__RefOut"][];
+            /** Message */
+            message: string;
+        };
+        /** RefOut */
+        tts__api__routers__validate__RefOut: {
+            /** Kind */
+            kind: string;
+            /** Code */
+            code: string;
+        };
+        /**
+         * RefOut
+         * @description An entity a finding is about. `sheet` is the table that holds it, to link to its row.
+         */
+        tts__api__schemas__RefOut: {
+            /** Kind */
+            kind: string;
+            /** Code */
+            code: string;
+            /** Sheet */
+            sheet?: string | null;
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;
@@ -51,6 +989,769 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    list_presets_presets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+        };
+    };
+    list_datasets_datasets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatasetOut"][];
+                };
+            };
+        };
+    };
+    create_dataset_datasets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DatasetCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatasetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_dataset_datasets__dataset_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatasetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_dataset_datasets__dataset_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rename_dataset_datasets__dataset_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DatasetPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatasetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_schema_datasets__dataset_id__schema_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchemaOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preflight_datasets__dataset_id__preflight_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreflightOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_rows_datasets__dataset_id__tables__sheet__get: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+                sort?: string | null;
+                filter?: string;
+            };
+            header?: never;
+            path: {
+                dataset_id: number;
+                sheet: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TablePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_row_datasets__dataset_id__tables__sheet__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+                sheet: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RowIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_row_datasets__dataset_id__tables__sheet___key__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+                sheet: string;
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_row_datasets__dataset_id__tables__sheet___key__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+                sheet: string;
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RowIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_workbook_datasets__dataset_id__import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_workbook_datasets__dataset_id__import_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_workbook_datasets__dataset_id__export_get: {
+        parameters: {
+            query?: {
+                format?: "xlsx" | "csvzip";
+            };
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_runs_datasets__dataset_id__runs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_run_datasets__dataset_id__runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RunParams"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_run_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_run_runs__run_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assignments_runs__run_id__assignments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    grid_runs__run_id__grid_get: {
+        parameters: {
+            query: {
+                code: string;
+                type?: string | null;
+            };
+            header?: never;
+            path: {
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Grid"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    diff_runs__a__diff__b__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                a: number;
+                b: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiffOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_runs__run_id__publish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_runs__run_id__export_get: {
+        parameters: {
+            query?: {
+                format?: "html" | "xlsx" | "csv";
+                type?: string | null;
+                code?: string | null;
+            };
+            header?: never;
+            path: {
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_validate_validate_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

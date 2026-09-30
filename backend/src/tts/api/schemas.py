@@ -5,6 +5,9 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from tts.core.model import ResourceType
+from tts.core.sheets import SheetDef
+
 
 class DatasetCreate(BaseModel):
     name: str = Field(min_length=1, max_length=200)
@@ -60,8 +63,11 @@ class ImportResult(BaseModel):
 
 
 class RefOut(BaseModel):
+    """An entity a finding is about. `sheet` is the table that holds it, to link to its row."""
+
     kind: str
     code: str
+    sheet: str | None = None
 
 
 class IssueOut(BaseModel):
@@ -86,6 +92,6 @@ class ExpandOut(BaseModel):
 class SchemaOut(BaseModel):
     preset: str
     format_version: int
-    sheets: list[dict[str, Any]]
+    sheets: list[SheetDef]
     labels: dict[str, str]
-    resource_types: list[dict[str, Any]]
+    resource_types: list[ResourceType]

@@ -91,6 +91,7 @@ The core-purity test fails if the domain words listed in `CLAUDE.md` rule 1 appe
 |---|---|
 | `GET /health` | Liveness |
 | `GET/POST /datasets` · `GET/PATCH/DELETE /datasets/{id}` | Manage datasets (`POST` takes `{name, preset}`) |
+| `GET /presets` | Names of the available presets |
 | `GET /datasets/{id}/schema` | The preset's sheet definitions and labels (drive the UI) |
 | `GET/POST /datasets/{id}/tables/{sheet}` | List rows (`?page,size,sort,filter`) / create a row |
 | `PATCH/DELETE /datasets/{id}/tables/{sheet}/{code}` | Update / delete a row |

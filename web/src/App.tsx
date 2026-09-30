@@ -1,21 +1,30 @@
 import { useQuery } from '@tanstack/react-query'
-import { api } from '@/api/client'
+import { Link } from 'react-router-dom'
+import { api, unwrap } from '@/api/client'
+import { AppRoutes } from './routes'
 
 export function App() {
   const health = useQuery({
     queryKey: ['health'],
-    queryFn: async () => {
-      const { data, error } = await api.GET('/health')
-      if (error) throw new Error('API unreachable')
-      return data
-    },
+    queryFn: () => unwrap(api.GET('/health')),
     retry: false,
+    refetchInterval: 15000,
   })
   const status = health.isPending ? '…' : health.isError ? 'unreachable' : health.data?.status
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">IIT-TTS</h1>
-      <p role="status">API: {status}</p>
-    </main>
+    <div className="mx-auto flex min-h-screen max-w-[1400px] flex-col gap-4 p-4">
+      <header className="flex items-center gap-4 border-b border-neutral-300 pb-3">
+        <Link to="/" className="text-xl font-bold">
+          IIT-TTS
+        </Link>
+        <span className="text-sm text-neutral-600">IIT TimeTabling Solution</span>
+        <p role="status" className="ml-auto text-sm">
+          API: {status}
+        </p>
+      </header>
+      <main className="flex-1">
+        <AppRoutes />
+      </main>
+    </div>
   )
 }
