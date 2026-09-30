@@ -25,8 +25,8 @@ Work through the phases in order. A phase is done when all its tasks are ticked 
 | 18 | [phase-18-sessions-design.md](phase-18-sessions-design.md) | Configured sessions: ADR-0007 approved, specs updated | FR-17–FR-20 (new) |
 | 19 | [phase-19-demands-core.md](phase-19-demands-core.md) | Demands in the core, verifier (H6) and pre-flight | FR-18, FR-14 |
 | 20 | [phase-20-demands-solver.md](phase-20-demands-solver.md) | The solver splits demands into sessions and picks teachers | FR-18, FR-8 |
-| 21 | [phase-21-academic-configuration.md](phase-21-academic-configuration.md) | Session types, module sessions, teacher modules, programme and group modules (format version 2) | FR-17, FR-2 |
-| 22 | [phase-22-editable-timetable.md](phase-22-editable-timetable.md) | Activities as the editable timetable; edited fields are kept | FR-19, FR-10 |
+| 21 | [phase-21-academic-configuration.md](phase-21-academic-configuration.md) | Session types; modules with level, mandatory/optional and sessions; teacher modules; group options (format version 2, configuration only) | FR-17, FR-2 |
+| 22 | [phase-22-editable-timetable.md](phase-22-editable-timetable.md) | Editing sessions; every edit is kept by a complete rebuild | FR-19, FR-10 |
 | 23 | [phase-23-retire-templates.md](phase-23-retire-templates.md) | Templates, ActivityGroups, ActivityTeachers and Pins retired from the academic preset | FR-17 |
 | 24 | [phase-24-teacher-fairness.md](phase-24-teacher-fairness.md) | Teacher workload cap, balance and continuity | FR-20 |
 

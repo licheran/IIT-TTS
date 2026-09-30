@@ -8,18 +8,18 @@
 
 ## Tasks
 - [ ] P24.1 **Stop and ask:** confirm the three rules below, their default hard/soft settings and weights, and whether "share of the load" means equal shares or shares set per teacher. Update spec 04 and the ADR log with the answers.
-- [ ] P24.2 C16 `max_load` (resources):
+- [ ] P24.2 C15 `max_load` (resources):
   - params `max:int`, `unit: "events"|"periods"`;
   - the occupied periods (or sessions) of each resource over the week are at most `max`;
   - penalty: the excess.
 
   The academic column `Teachers.max_hours` (whole number ≥ 0, blank for no limit) becomes a hard `max_load` per teacher. That column is a format change, so bump or amend version 2 before release and note it in STATUS. Verify, compile and the three tests.
-- [ ] P24.3 C17 `balance_load` (resources):
+- [ ] P24.3 C16 `balance_load` (resources):
   - within the scope, the difference between the most and the least loaded resource (in periods), or the deviation from each resource's share when shares are given;
   - penalty: that difference.
 
   The academic default is `FAIR-<module>` over each module's teachers, soft. Verify, compile and the three tests.
-- [ ] P24.4 C18 `same_resource` (events):
+- [ ] P24.4 C17 `same_resource` (events):
   - params `type: <ResourceType>`, `per: <ResourceType>`;
   - for each resource of type `per` (a group), its events in scope use the same pooled resource of type `type` (a teacher);
   - penalty: the number of events that don't use the most common one.
@@ -31,4 +31,4 @@
 ## Acceptance
 - On `l6-config.xlsx` with `max_hours` set for every teacher, no teacher exceeds it (verifier: 0 hard violations).
 - Load balance and continuity improve against a run without them. The score breakdown shows each rule's penalty.
-- The catalogue gate lists 18 types, each with verify, compile and three tests.
+- The catalogue gate lists 17 types, each with verify, compile and three tests.
