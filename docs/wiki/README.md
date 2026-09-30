@@ -28,8 +28,9 @@ If a step fails, the troubleshooting pages, which are still being written, will 
 |---|---|
 | Basics | [Basics](basics.md), [Glossary](glossary.md) |
 | The tabs | [Datasets](tabs/datasets.md), [Tables](tabs/tables.md), [Templates and Expand](tabs/templates-expand.md), [Import / export](tabs/import-export.md), [Pre-flight](tabs/preflight.md), [Run](tabs/run.md), [Timetable](tabs/timetable.md), [Runs](tabs/runs.md) |
+| The tables | [Overview of all tables](tables/README.md), [Tags](tables/tags.md), and one page for each table, listed in the overview |
 
-More sections are added as they are written: every table, the constraints and the selector language, troubleshooting, and the exams preset.
+More sections are added as they are written: the constraints and the selector language, troubleshooting, and the exams preset.
 
 ## Two presets
 

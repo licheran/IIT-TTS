@@ -21,11 +21,11 @@ A cell that holds several items separates them with `;`, for example `HAWE;HARR`
 
 ### Key=value pairs (tags)
 
-A `tags` cell holds pairs separated by `;`, each written `key=value`, for example `university=UOW;floor=2`. How tags are used is explained on the tags page, which is still being written.
+A `tags` cell holds pairs separated by `;`, each written `key=value`, for example `university=UOW;floor=2`. How tags are used is explained on the [Tags](tables/tags.md) page.
 
 ### Blank cells
 
-- An empty cell means "nothing", or the default where the table has one. The table pages, which are still being written, will list the default of every column.
+- An empty cell means "nothing", or the default where the table has one. The [table pages](tables/README.md) list the default of every column.
 - A blank is never the same as `0` or `false`.
 
 ### True and false

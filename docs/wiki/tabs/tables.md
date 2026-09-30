@@ -2,7 +2,7 @@
 
 ## What it's for
 
-The Tables tab is where you enter and correct your data. It has **one tab per table** (Days, Periods, Groups, Teachers, Rooms, Activities and so on). The names come from the preset. Each table is described on its own page in the table reference.
+The Tables tab is where you enter and correct your data. It has **one tab per table** (Days, Periods, Groups, Teachers, Rooms, Activities and so on). The names come from the preset. Each table is described on its own page in the [table reference](../tables/README.md).
 
 Everything you change here is checked straight away by the same rules as an import, and saved. There is no Save button.
 
@@ -77,6 +77,7 @@ To add three teachers to the Teachers table: click the `code` field of the entry
 
 ## Related
 
+- [The tables](../tables/README.md), one page for each, and [Tags](../tables/tags.md)
 - [Templates and Expand](templates-expand.md)
 - [Import / export](import-export.md)
 - [Basics](../basics.md)

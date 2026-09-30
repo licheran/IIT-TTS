@@ -9,7 +9,7 @@
 - `backend/src/tts/core/sheets.py` (what `kind`, `required_when`, `refs`, `choices`, `allow_star` and `stored_as` mean)
 
 ## Tasks
-- [ ] P14.1 `tables/README.md`: the sheet order, and a diagram of how sheets refer to each other:
+- [x] P14.1 `tables/README.md`: the sheet order, and a diagram of how sheets refer to each other:
   - University → Level → Programme → Group;
   - Campus → Building → Room;
   - Module, which Templates and Activities refer to;
@@ -17,7 +17,7 @@
   - Availability, Constraints and Pins.
 
   It also says which sheets are generated (Activities from Templates; Assignments is export-only).
-- [ ] P14.2 One page per sheet, in workbook order: `_meta`, `Days`, `Periods`, `StartPatterns`, `Universities`, `Levels`, `Programmes`, `Groups`, `Teachers`, `Campuses`, `Buildings`, `Rooms`, `Modules`, `Templates`, `Activities`, `ActivityGroups`, `ActivityTeachers`, `Availability`, `Constraints`, `Pins`, `Assignments`. Each page has:
+- [x] P14.2 One page per sheet, in workbook order: `_meta`, `Days`, `Periods`, `StartPatterns`, `Universities`, `Levels`, `Programmes`, `Groups`, `Teachers`, `Campuses`, `Buildings`, `Rooms`, `Modules`, `Templates`, `Activities`, `ActivityGroups`, `ActivityTeachers`, `Availability`, `Constraints`, `Pins`, `Assignments`. Each page has:
   - **What it is**, and when you edit it;
   - a **Columns** table: `Column | Meaning | Type | Required | Default | Allowed values or refers to`. Types are plain words: text, whole number, time (HH:MM), true/false, list, key=value pairs, selector, JSON. The source is `ColumnDef` plus spec 03 §2;
   - the rules that aren't obvious, for example:
@@ -33,14 +33,14 @@
     - `Assignments` columns that are derived;
   - an L6 example row;
   - the import errors the sheet typically produces (linked to Phase 16 once it exists).
-- [ ] P14.3 `tables/tags.md`:
+- [x] P14.3 `tables/tags.md`:
   - the `key=value;key=value` format;
   - which sheets have a `tags` column (every resource sheet, Modules and Activities);
   - that `room_type` is stored as the tag `room_type=<value>`;
   - how tags are used: `tag:k=v` and `tag:k!=v` in constraint scopes, template groups and room filters;
   - suggested conventions, clearly marked as suggestions (for example `university=UOW`, `floor=2`);
   - a table of each sheet, whether it accepts tags, and which tags the engine itself reads.
-- [ ] P14.4 The tables check in `test_wiki.py`: each `SheetDef` in `SHEETS` has `tables/<Sheet>.md`. Its Columns table lists every `ColumnDef.name`, and its Required and Default cells match `required`, `required_when` and `default`. Every sheet with a `tags` column links to `tags.md`.
+- [x] P14.4 The tables check in `test_wiki.py`: each `SheetDef` in `SHEETS` has `tables/<Sheet>.md`. Its Columns table lists every `ColumnDef.name`, and its Required and Default cells match `required`, `required_when` and `default`. Every sheet with a `tags` column links to `tags.md`.
 
 ## Acceptance
 - All 21 academic sheets are documented.

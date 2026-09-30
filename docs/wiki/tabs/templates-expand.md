@@ -8,7 +8,7 @@ The Expand panel appears above the grid when you open the **Templates** table.
 
 ## How to use it
 
-1. Fill in the Templates table (see the Templates page of the table reference). Each row names a module, a kind such as `LEC` or `TUT`, a **mode**, the **groups** it is for, the teachers, the duration and start pattern, the room type, and how many sessions per week.
+1. Fill in the Templates table (see the [Templates](../tables/Templates.md) page of the table reference). Each row names a module, a kind such as `LEC` or `TUT`, a **mode**, the **groups** it is for, the teachers, the duration and start pattern, the room type, and how many sessions per week.
 2. Press **Preview expansion**. Nothing is written yet.
 3. Read the preview:
    - **Added**: activities that would be created.
