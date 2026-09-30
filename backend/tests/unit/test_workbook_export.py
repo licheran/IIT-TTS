@@ -312,7 +312,10 @@ def test_a_standard_room_requirement_is_expressible() -> None:
 @pytest.mark.parametrize(
     ("pooled", "fragment"),
     [
-        ((room_requirement(), room_requirement(ordinal=1)), "one pooled requirement"),
+        (
+            (room_requirement(), room_requirement(ordinal=1)),
+            "pooled requirement 1 has no columns here",
+        ),
         ((room_requirement(ordinal=1),), "has no columns"),
         ((room_requirement(filter="tag:building=A"),), "does not test room_type"),
         ((room_requirement(filter="type:Room;tag:room_type=lab"),), "not a single tag test"),

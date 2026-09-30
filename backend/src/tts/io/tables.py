@@ -20,7 +20,7 @@ from tts.core.model import (
     Result,
 )
 from tts.core.selectors import TagClause, parse
-from tts.core.sheets import ColumnDef, Preset, SheetDef
+from tts.core.sheets import ColumnDef, PooledMapping, Preset, SheetDef
 from tts.core.timegrid import TimeGrid
 
 Cell = str | int | bool | None
@@ -163,39 +163,59 @@ class _Export:
                 + ", ".join(refs)
             )
 
-    def pooled_columns(
-        self, sheet: SheetDef, specs: list[PooledSpec], where: str
+    def pooled_fields(self, sheet: SheetDef, specs: list[PooledSpec], where: str) -> Values:
+        """The column values standing for an event's or template's pooled specs (ADR-0006).
+
+        Each spec goes to the mapping with its ordinal. A spec the columns cannot express is
+        refused rather than written lossily.
+        """
+        mappings = sheet.pooled_mappings
+        by_ordinal = {spec.ordinal: spec for spec in specs}
+        if len(by_ordinal) != len(specs):
+            raise WorkbookExportError(f"{where}: two pooled requirements share an ordinal")
+        extra = sorted(set(by_ordinal) - set(range(len(mappings))))
+        if extra:
+            raise WorkbookExportError(
+                f"{where}: pooled requirement {extra[0]} has no columns here"
+                if mappings
+                else f"{where}: pooled requirements have no columns here"
+            )
+        fields: Values = {}
+        for ordinal, mapping in enumerate(mappings):
+            suffix = "" if ordinal == 0 else f":{ordinal}"
+            value, count = self._pool_cells(mapping, by_ordinal.get(ordinal), where)
+            fields[f"pooled_type{suffix}"] = value
+            fields[f"pooled_count{suffix}"] = count
+        return fields
+
+    def _pool_cells(
+        self, mapping: PooledMapping, spec: PooledSpec | None, where: str
     ) -> tuple[str | None, int]:
-        """The room-type-and-count columns standing for an event's or template's pooled specs."""
-        mapping = sheet.pooled
-        if mapping is None:
-            if specs:
-                raise WorkbookExportError(f"{where}: pooled requirements have no columns here")
+        if spec is None:
             return None, 0
-        if not specs:
-            return None, 0
-        if len(specs) > 1:
-            raise WorkbookExportError(f"{where}: the workbook holds one pooled requirement")
-        spec = specs[0]
-        if (
-            spec.resource_type != mapping.resource_type
-            or spec.ordinal != 0
-            or spec.capacity_rule != CapacityRule.parse(mapping.capacity_rule)
+        if spec.resource_type != mapping.resource_type or spec.capacity_rule != CapacityRule.parse(
+            mapping.capacity_rule
         ):
             raise WorkbookExportError(f"{where}: this pooled requirement has no columns")
+        if mapping.count_column is None and spec.count != 1:
+            raise WorkbookExportError(f"{where}: count {spec.count} has no column here")
         try:
             parsed = parse(spec.filter)
         except ValueError:
             parsed = None
         clauses = parsed.clauses if parsed is not None else ()
+        if mapping.type_column is None:
+            if parsed is None or not parsed.is_all:
+                raise WorkbookExportError(
+                    f'{where}: filter "{spec.filter}" has no column here (only "all")'
+                )
+            return None, spec.count
         if len(clauses) != 1 or not isinstance(clauses[0], TagClause) or clauses[0].negate:
             raise WorkbookExportError(f'{where}: filter "{spec.filter}" is not a single tag test')
         if clauses[0].key != mapping.tag:
             raise WorkbookExportError(
                 f'{where}: filter "{spec.filter}" does not test {mapping.tag}'
             )
-        if mapping.count_column is None and spec.count != 1:
-            raise WorkbookExportError(f"{where}: count {spec.count} has no column here")
         return clauses[0].value, spec.count
 
     # -- one sheet at a time --
@@ -342,7 +362,7 @@ class _Export:
     def template_rows(self, sheet: SheetDef) -> list[Values]:
         rows = []
         for t in self.ds.templates:
-            room_type, _ = self.pooled_columns(sheet, list(t.pooled), f'template "{t.code}"')
+            pool = self.pooled_fields(sheet, list(t.pooled), f'template "{t.code}"')
             rows.append(
                 self.by_field(
                     sheet,
@@ -356,9 +376,9 @@ class _Export:
                         "fixed": format_list(t.fixed, t.code),
                         "duration": t.duration,
                         "start_pattern": t.start_pattern,
-                        "pooled_type": room_type,
                         "sessions_per_week": t.sessions_per_week,
                         "active": t.active,
+                        **pool,
                     },
                 )
             )
@@ -367,9 +387,7 @@ class _Export:
     def event_rows(self, sheet: SheetDef) -> list[Values]:
         rows = []
         for e in self.ds.events:
-            room_type, count = self.pooled_columns(
-                sheet, self.pooled.get(e.code, []), f'event "{e.code}"'
-            )
+            pool = self.pooled_fields(sheet, self.pooled.get(e.code, []), f'event "{e.code}"')
             rows.append(
                 self.by_field(
                     sheet,
@@ -380,10 +398,9 @@ class _Export:
                         "duration": e.duration,
                         "start_pattern": e.start_pattern,
                         "delivery": e.delivery,
-                        "pooled_type": room_type,
-                        "pooled_count": count,
                         "template": e.template,
                         "tags": format_pairs(e.tags, e.code),
+                        **pool,
                     },
                 )
             )
@@ -465,6 +482,14 @@ class _Export:
                 "day": a.day,
                 "resources": format_list(chosen, a.event),
             }
+            split = _ordinal_columns(sheet)
+            if split:  # one column per pooled requirement (ADR-0006)
+                by_ordinal = {c.ordinal: sorted(c.resources) for c in a.chosen}
+                if set(by_ordinal) - {0, *split}:
+                    raise WorkbookExportError(f"{a.event}: a chosen requirement has no column")
+                fields["resources"] = format_list(by_ordinal.get(0, []), a.event)
+                for n in split:
+                    fields[f"resources:{n}"] = format_list(by_ordinal.get(n, []), a.event)
             start_period = periods.get(a.start_period)
             if start_period is not None:
                 fields["start"] = format_time(start_period.start)
@@ -546,6 +571,16 @@ def build_tables(data: WorkbookData, preset: Preset) -> list[Table]:
             )
         tables.append(Table(sheet.name, headers, tuple(cells)))
     return tables
+
+
+def _ordinal_columns(sheet: SheetDef) -> list[int]:
+    """The ordinals n of a sheet's `resources:<n>` columns (chosen resources per requirement)."""
+    found = []
+    for column in sheet.columns:
+        name, _, ordinal = column.field.partition(":")
+        if name == "resources" and ordinal.isdigit():
+            found.append(int(ordinal))
+    return sorted(found)
 
 
 def _note(notes: Mapping[str, str], header: str, defined_names: set[str]) -> Cell:

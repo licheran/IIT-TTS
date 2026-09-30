@@ -87,12 +87,20 @@ class ColumnDef(_Frozen):
 
 
 class PooledMapping(_Frozen):
-    """Columns that stand for a pooled requirement (for example a room type and a count)."""
+    """Columns that stand for a pooled requirement (for example a room type and a count).
+
+    With a `type_column`, the requirement's filter is the tag test `tag=<value>` and a blank value
+    means no requirement. Without one, any resource of `resource_type` will do (filter `all`) and
+    the requirement exists whenever its count is at least 1. Without a `count_column` the count
+    is 1. The n-th mapping of a sheet (ADR-0006) is the requirement with ordinal n, and its
+    columns use the fields `pooled_type:<n>` and `pooled_count:<n>` (plain `pooled_type` and
+    `pooled_count` for the first).
+    """
 
     resource_type: str
-    tag: str
     capacity_rule: str
-    type_column: str
+    tag: str | None = None
+    type_column: str | None = None
     count_column: str | None = None
 
 
@@ -105,11 +113,17 @@ class SheetDef(_Frozen):
     resource_type: str | None = None
     reference_type: str | None = None
     pooled: PooledMapping | None = None
+    more_pooled: tuple[PooledMapping, ...] = ()
     export_only: bool = False
     label: str = ""
 
     def column(self, name: str) -> ColumnDef | None:
         return next((c for c in self.columns if c.name == name), None)
+
+    @property
+    def pooled_mappings(self) -> tuple[PooledMapping, ...]:
+        """Every pooled mapping, in ordinal order (ADR-0006)."""
+        return ((self.pooled,) if self.pooled is not None else ()) + self.more_pooled
 
     @property
     def required_columns(self) -> tuple[str, ...]:

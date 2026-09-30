@@ -546,15 +546,40 @@ class _Import:
             except SelectorError as error:
                 self.issue_at(row, "scope", error.message)
 
-    def pooled_of(self, row: _Row) -> tuple[str, int] | None:
-        """(type, count) requested by an event's room columns, or None. Records issues."""
-        mapping = row.sheet.pooled
-        if mapping is None:
-            return None
-        kind = row.values.get(mapping.type_column)
+    def pooled_of(self, row: _Row) -> list[tuple[int, PooledMapping, str | None, int]]:
+        """(ordinal, mapping, type value, count) of each pooled requirement a row asks for.
+
+        Records issues. Mappings without a type column (ADR-0006) ask for any resource of their
+        type whenever their count is at least 1.
+        """
+        found = []
+        for ordinal, mapping in enumerate(row.sheet.pooled_mappings):
+            wanted = (
+                self._typed_pool(row, mapping)
+                if mapping.type_column is not None
+                else self._untyped_pool(row, mapping)
+            )
+            if wanted is not None:
+                found.append((ordinal, mapping, wanted[0], wanted[1]))
+        return found
+
+    def _untyped_pool(self, row: _Row, mapping: PooledMapping) -> tuple[None, int] | None:
+        if mapping.count_column is None:
+            return None, 1
+        count = row.values.get(mapping.count_column)
+        if count is None:
+            column = row.sheet.column(mapping.count_column)
+            default = column.default if column is not None else None
+            count = default if isinstance(default, int) and not isinstance(default, bool) else 1
+        return (None, count) if count >= 1 else None
+
+    def _typed_pool(self, row: _Row, mapping: PooledMapping) -> tuple[str, int] | None:
+        """A type column (for example a room type) with an optional count column."""
+        assert mapping.type_column is not None
+        type_column = mapping.type_column
+        kind = row.values.get(type_column)
         count = row.values.get(mapping.count_column) if mapping.count_column else None
         online = row.values.get("delivery") == "online"
-        type_column = mapping.type_column
         if mapping.count_column is None:
             return (kind, 1) if kind else None
         count_column = mapping.count_column
@@ -600,7 +625,10 @@ class _Import:
             self.issue_at(row, row.column_name("parent") or "parent", f"cycle {path}")
 
 
-def _tag_selector(mapping: PooledMapping, value: str) -> str:
+def _pool_filter(mapping: PooledMapping, value: str | None) -> str:
+    """The filter of a pooled requirement: a tag test, or `all` for a mapping without a type."""
+    if mapping.tag is None or value is None:
+        return "all"
     return format_selector(Selector((TagClause(mapping.tag, value),)))
 
 
@@ -726,18 +754,16 @@ class _Build:
         )
 
     def template(self, row: _Row) -> Template:
-        mapping = row.sheet.pooled
-        pooled = self.imp.pooled_of(row)
-        specs: tuple[PooledSpec, ...] = ()
-        if mapping is not None and pooled is not None:
-            specs = (
-                PooledSpec(
-                    resource_type=mapping.resource_type,
-                    count=pooled[1],
-                    filter=_tag_selector(mapping, pooled[0]),
-                    capacity_rule=CapacityRule.parse(mapping.capacity_rule),
-                ),
+        specs = tuple(
+            PooledSpec(
+                resource_type=mapping.resource_type,
+                ordinal=ordinal,
+                count=count,
+                filter=_pool_filter(mapping, value),
+                capacity_rule=CapacityRule.parse(mapping.capacity_rule),
             )
+            for ordinal, mapping, value, count in self.imp.pooled_of(row)
+        )
         return Template(
             code=row.value("code"),
             kind=row.value("kind"),
@@ -774,14 +800,14 @@ class _Build:
             for column in row.sheet.columns:
                 if column.expands_to is not None:
                     fixed |= {(code, item) for item in row.values.get(column.name) or ()}
-            mapping, wanted = row.sheet.pooled, self.imp.pooled_of(row)
-            if mapping is not None and wanted is not None:
+            for ordinal, mapping, value, count in self.imp.pooled_of(row):
                 pooled.append(
                     PooledRequirement(
                         event=code,
                         resource_type=mapping.resource_type,
-                        count=wanted[1],
-                        filter=_tag_selector(mapping, wanted[0]),
+                        ordinal=ordinal,
+                        count=count,
+                        filter=_pool_filter(mapping, value),
                         capacity_rule=CapacityRule.parse(mapping.capacity_rule),
                     )
                 )
@@ -813,13 +839,19 @@ class _Build:
         run = ""
         for row in rows:
             run = run or row.value("run") or ""
-            rooms = row.value("resources") or ()
+            chosen = [(0, row.value("resources") or ())]
+            for column in row.sheet.columns:  # one column per requirement (ADR-0006)
+                name, _, ordinal = column.field.partition(":")
+                if name == "resources" and ordinal.isdigit():
+                    chosen.append((int(ordinal), row.value(column.field) or ()))
             assignments.append(
                 Assignment(
                     event=row.value("event"),
                     day=row.value("day"),
                     start_period=by_start[row.value("start")][0],
-                    chosen=(PooledChoice(ordinal=0, resources=rooms),) if rooms else (),
+                    chosen=tuple(
+                        PooledChoice(ordinal=n, resources=items) for n, items in chosen if items
+                    ),
                 )
             )
         return Result(assignments=tuple(assignments)), run
