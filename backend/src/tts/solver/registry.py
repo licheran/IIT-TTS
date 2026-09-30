@@ -17,10 +17,26 @@ COMPILERS: dict[str, Compiler] = {}
 
 def _register() -> None:
     """Fill `COMPILERS`, one line per type (imported here: the compilers import this module)."""
-    from tts.solver.constraints import max_days, max_gaps, max_per_day
+    from tts.solver.constraints import (
+        consecutive,
+        max_days,
+        max_gaps,
+        max_per_day,
+        min_days_between,
+        not_overlapping,
+        order,
+        same_day,
+        same_start,
+    )
 
     COMPILERS.update(
         {
+            "not_overlapping": not_overlapping.compile,
+            "consecutive": consecutive.compile,
+            "order": order.compile,
+            "same_day": same_day.compile,
+            "same_start": same_start.compile,
+            "min_days_between": min_days_between.compile,
             "max_days": max_days.compile,
             "max_gaps": max_gaps.compile,
             "max_per_day": max_per_day.compile,
