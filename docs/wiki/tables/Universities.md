@@ -29,3 +29,4 @@ This table is empty in the L6 sample.
 
 - [All tables](README.md)
 - [Basics](../basics.md)
+- [Import and editing errors](../troubleshooting/import-errors.md): what each message means and how to fix it

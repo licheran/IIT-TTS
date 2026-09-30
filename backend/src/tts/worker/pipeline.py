@@ -105,6 +105,15 @@ def run_pipeline(
             core = explain(dataset, label)
             if core is not None:
                 diagnostics.append(core)
+            elif not outcome.problems:
+                diagnostics.append(
+                    Diagnostic(
+                        kind="infeasible_unexplained",
+                        message="No timetable can satisfy every hard rule, but the conflicting "
+                        "rules could not be found in the time available. Try making some hard "
+                        "constraints soft, or allow more rooms and times.",
+                    )
+                )
             return PipelineOutcome("infeasible", diagnostics=tuple(diagnostics), progress=final)
         diagnostics.append(
             Diagnostic(

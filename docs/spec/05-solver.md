@@ -88,6 +88,7 @@ If the status is INFEASIBLE:
 2. Solve with every `a_g` as an assumption, then read `SufficientAssumptionsForInfeasibility()`.
 3. Shrink the core greedily. Drop `a_g`; if the model is still infeasible, keep it dropped. Each re-solve has a short time limit (default 5 s). The total budget is 60 s.
 4. Store one `diagnostic` of kind `infeasible_core`. Its `refs` list the groups, and its message names entities by code, for example: `Conflicting rules: Teacher HAWE unavailable Tue–Thu; 8 events of 2 periods for HAWE; no_overlap(HAWE)`.
+5. If no core is found within that time (the first proof needs more than the per-solve limit), store one `diagnostic` of kind `infeasible_unexplained` saying so, so that an infeasible run never ends without a message. It is added only when compilation found no reason of its own (`infeasible_reason`).
 
 ## 6. Verifier (`core/verifier.py`)
 

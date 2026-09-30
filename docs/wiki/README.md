@@ -15,7 +15,7 @@ This wiki is for the people who prepare the data and run the timetable. It expla
 | 5 | Read the timetable of any group, teacher or room, and export it | [Timetable](tabs/timetable.md) |
 | 6 | Compare runs, publish the one you want, run again | [Runs](tabs/runs.md) |
 
-If a step fails, the troubleshooting pages, which are still being written, will explain each message and how to fix it.
+If a step fails, the [troubleshooting pages](troubleshooting/README.md) explain each message and how to fix it.
 
 ## Start here
 
@@ -29,9 +29,10 @@ If a step fails, the troubleshooting pages, which are still being written, will 
 | Basics | [Basics](basics.md), [Glossary](glossary.md) |
 | The tabs | [Datasets](tabs/datasets.md), [Tables](tabs/tables.md), [Templates and Expand](tabs/templates-expand.md), [Import / export](tabs/import-export.md), [Pre-flight](tabs/preflight.md), [Run](tabs/run.md), [Timetable](tabs/timetable.md), [Runs](tabs/runs.md) |
 | The tables | [Overview of all tables](tables/README.md), [Tags](tables/tags.md), and one page for each table, listed in the overview |
+| Troubleshooting | [Where to start](troubleshooting/README.md), [Import and editing errors](troubleshooting/import-errors.md), [Pre-flight issues](troubleshooting/preflight-issues.md), [Run statuses and messages](troubleshooting/run-statuses.md), [Infeasible runs](troubleshooting/infeasible.md) |
 | Constraints | [Constraints overview](constraints/README.md), [Selectors](constraints/selectors.md), [Default constraints](constraints/defaults.md), and one page for each of the fourteen types, listed in the overview |
 
-More sections are added as they are written: troubleshooting, and the exams preset.
+The exams preset's tables are added in a later section.
 
 ## Two presets
 

@@ -62,3 +62,4 @@ Run the L6 sample twice with seeds 1 and 2. Both succeed. Tick both under Compar
 
 - [Run](run.md)
 - [Timetable](timetable.md)
+- [Run statuses and messages](../troubleshooting/run-statuses.md)

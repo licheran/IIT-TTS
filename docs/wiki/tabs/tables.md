@@ -80,4 +80,5 @@ To add three teachers to the Teachers table: click the `code` field of the entry
 - [The tables](../tables/README.md), one page for each, and [Tags](../tables/tags.md)
 - [Templates and Expand](templates-expand.md)
 - [Import / export](import-export.md)
+- [Import and editing errors](../troubleshooting/import-errors.md)
 - [Basics](../basics.md)

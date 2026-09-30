@@ -35,3 +35,4 @@ An illustration (the L6 sample workbook has no rows in this table):
 
 - [All tables](README.md)
 - [Basics](../basics.md)
+- [Import and editing errors](../troubleshooting/import-errors.md): what each message means and how to fix it

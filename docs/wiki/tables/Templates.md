@@ -44,3 +44,4 @@ From the L6 sample written as templates (`templates.xlsx`):
 
 - [All tables](README.md)
 - [Basics](../basics.md)
+- [Import and editing errors](../troubleshooting/import-errors.md): what each message means and how to fix it

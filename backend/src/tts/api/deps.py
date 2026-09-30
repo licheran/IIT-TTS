@@ -24,4 +24,6 @@ def db_session(request: Request) -> Iterator[Session]:
         session.close()
 
 
-DbSession = Annotated[Session, Depends(db_session)]
+# `scope="function"` ends the dependency, and so commits, before the response is sent. The default
+# (the request) commits after it, and a client that reads straight after a write could miss it.
+DbSession = Annotated[Session, Depends(db_session, scope="function")]

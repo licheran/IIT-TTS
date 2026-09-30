@@ -13,6 +13,15 @@ export function formatNumber(value: unknown, digits = 0): string {
   return typeof value === 'number' ? value.toFixed(digits) : '–'
 }
 
+/** The errors of a run, and the text of a crash that only the run's progress holds. */
+export function whyNotFinished(run: RunOut): { message: string }[] {
+  const found = run.diagnostics
+    .filter((d) => d.severity === 'error')
+    .map((d) => ({ message: d.message }))
+  const crash = (run.progress as Record<string, unknown>).error
+  return typeof crash === 'string' && crash !== '' ? [...found, { message: crash }] : found
+}
+
 export function statusText(run: RunOut): string {
   return run.status.replace('_', ' ')
 }
@@ -166,12 +175,7 @@ export function StartPanel({ datasetId }: { datasetId: number }) {
             </div>
           )}
           <ScoreBreakdown run={run.data} />
-          <ErrorList
-            title="Why it did not finish"
-            errors={run.data.diagnostics
-              .filter((d) => d.severity === 'error')
-              .map((d) => ({ message: d.message }))}
-          />
+          <ErrorList title="Why it did not finish" errors={whyNotFinished(run.data)} />
         </section>
       )}
     </div>

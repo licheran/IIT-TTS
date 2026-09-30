@@ -10,17 +10,17 @@
 - `docs/spec/05-solver.md` (explanations)
 
 ## Tasks
-- [ ] P16.1 `troubleshooting/import-errors.md`:
+- [x] P16.1 `troubleshooting/import-errors.md`:
   - how to read `Sheet!R<row>C<col> [column]: message`;
   - one entry per message the importer emits, each with cause and fix: missing column, required value, duplicate code, unknown code, bad number, time or boolean, bad selector or JSON, unknown constraint type, hierarchy cycle, format version, unknown header, file too large.
-- [ ] P16.2 `troubleshooting/preflight-issues.md`: one entry per issue kind in `preflight/checks.py` (for example `no_candidate`, `invalid_constraint`, overload, capacity). Each gives its severity, what it means and how to fix it.
-- [ ] P16.3 `troubleshooting/run-statuses.md`: queued, running, succeeded, infeasible, blocked, invalid, failed, cancelled, cancelled_partial, and a stale run that was re-queued. For each: what happened, and what to do next.
-- [ ] P16.4 `troubleshooting/infeasible.md`:
+- [x] P16.2 `troubleshooting/preflight-issues.md`: one entry per issue kind in `preflight/checks.py` (for example `no_candidate`, `invalid_constraint`, overload, capacity). Each gives its severity, what it means and how to fix it.
+- [x] P16.3 `troubleshooting/run-statuses.md`: queued, running, succeeded, infeasible, blocked, invalid, failed, cancelled, cancelled_partial, and a stale run that was re-queued. For each: what happened, and what to do next.
+- [x] P16.4 `troubleshooting/infeasible.md`:
   - how to read the conflicting-rules explanation;
   - common fixes: widen availability, add rooms, relax a hard constraint to soft, remove pins;
   - a short FAQ: a slow solve, a poor score, clashes between datasets (`tts clashes`), a row that shows an error.
-- [ ] P16.5 The troubleshooting check in `test_wiki.py`: every issue kind in `preflight/checks.py` and every run status appears in the pages. A test reproduces each import-error message that has an entry and checks the page quotes it.
-- [ ] P16.6 Link the error pages from each table page's "typical errors" section (P14.2).
+- [x] P16.5 The troubleshooting check in `test_wiki.py`: every issue kind in `preflight/checks.py` and every run status appears in the pages. A test reproduces each import-error message that has an entry and checks the page quotes it.
+- [x] P16.6 Link the error pages from each table page's "typical errors" section (P14.2).
 
 ## Acceptance
 - Every message the importer and pre-flight can produce, and every run status, has an entry with a cause and a fix.

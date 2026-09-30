@@ -39,9 +39,9 @@ Pre-flight checks your data **before** solving, in a fraction of a second. It fi
 | A resource nothing can use | `unused_resource` | warning | `Room [1LA] -GP is never a candidate` |
 | A constraint whose scope matches nothing | `empty_scope` | warning | `C-GAPS: scope matches nothing` |
 
-Duplicate codes, unknown attributes and the other rules of the data model are reported under their own kinds (`duplicate_code`, `unknown_attribute`, and so on). The troubleshooting pages list them all.
+Duplicate codes, unknown attributes and the other rules of the data model are reported under their own kinds (`duplicate_code`, `unknown_attribute`, and so on). The [pre-flight issues](../troubleshooting/preflight-issues.md) page lists them all.
 
-"Available" means the periods that are not breaks, minus the periods the resource is marked `unavailable`. "Needed" is the sum of the durations of the activities that occupy the resource. The troubleshooting pages explain every message and how to fix it.
+"Available" means the periods that are not breaks, minus the periods the resource is marked `unavailable`. "Needed" is the sum of the durations of the activities that occupy the resource. The [pre-flight issues](../troubleshooting/preflight-issues.md) page explains every message and how to fix it.
 
 ## Example
 
@@ -52,3 +52,4 @@ An L6 workbook in which the teacher `HAWE` is marked unavailable on every day re
 - [Tables](tables.md)
 - [Run](run.md)
 - [Constraints](../constraints/README.md)
+- [Pre-flight issues](../troubleshooting/preflight-issues.md)

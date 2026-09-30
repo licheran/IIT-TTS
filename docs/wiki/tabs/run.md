@@ -42,6 +42,8 @@ When the run is finished and you have soft rules, a **Score breakdown** table (s
 
 ## Statuses
 
+[Run statuses and messages](../troubleshooting/run-statuses.md) explains each one in more detail.
+
 | Status | Meaning |
 |---|---|
 | `queued` | Waiting for a free worker |
@@ -63,3 +65,5 @@ On the L6 sample (77 activities), Start with the defaults. The run is `queued`, 
 - [Pre-flight](preflight.md)
 - [Timetable](timetable.md)
 - [Runs](runs.md)
+- [Run statuses and messages](../troubleshooting/run-statuses.md)
+- [Infeasible runs](../troubleshooting/infeasible.md)

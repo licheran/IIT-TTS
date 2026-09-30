@@ -59,3 +59,4 @@ An exported file imported again gives the same data. The exported Activities she
 - [Basics](../basics.md)
 - [Tables](tables.md)
 - [Pre-flight](preflight.md)
+- [Import and editing errors](../troubleshooting/import-errors.md)
