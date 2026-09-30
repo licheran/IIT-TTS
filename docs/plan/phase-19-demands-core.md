@@ -36,7 +36,7 @@
 
   One extra test per catalogue type with a created event in scope.
 - [x] P19.5 Pre-flight checks for demands, from spec 05 §3:
-  - no candidate pooled resource for a demand: the biggest possible block (the `⌈m/k⌉` largest groups) must fit a room of the type, and the teacher pool must not be empty;
+  - no candidate pooled resource for a demand: a room must seat the block no split can avoid (the biggest participant, or `⌈total size / k⌉` if more), and a pool (for example teachers) must have at least `count` candidates;
   - a participant's demand is more than its available periods;
   - pooled pressure for demands (the blocks × `repeat` × duration);
   - a demand with no participants (warning);
@@ -46,6 +46,6 @@
   Each check gets a test and a message with codes.
 
 ## Acceptance
-- `tts validate` on a hand-written result with created events reports exactly the violations each broken variant should have, and none for the correct one.
+- `verify()` on a hand-written result with created events reports exactly the violations each broken variant should have, and none for the correct one (`tts validate` reads workbooks, which cannot hold created events).
 - The core purity and import-linter checks pass, and the verifier imports nothing from `solver/`.
 - L6 still gives the figures in `expected.json`.
