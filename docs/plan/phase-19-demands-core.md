@@ -21,7 +21,7 @@
   - the result type carries created events: code, demand, kind, duration, participants, and their assignments;
   - the occupancy helpers (`Hierarchy.occupied_resources` and the clash finder) treat a created event like a declared event whose fixed resources are its participants;
   - round-trip tests of the result JSON.
-- [ ] P19.3 Verifier H6 `demand_cover`:
+- [x] P19.3 Verifier H6 `demand_cover`:
   - the events of a demand (declared plus created) group into blocks by their participants;
   - each participant is in exactly one block;
   - there are `Demand.blocks` blocks, each with exactly `repeat` events and at most `max_participants` participants;

@@ -33,8 +33,9 @@ class Placement:
 
 
 class VerifyContext:
-    def __init__(self, dataset: Dataset, result: Result) -> None:
+    def __init__(self, dataset: Dataset, result: Result, base: Dataset | None = None) -> None:
         self.dataset = dataset
+        self.base = dataset if base is None else base  # before created events were made real
         self.result = result
         self.hierarchy = Hierarchy(dataset)
         self.grid = TimeGrid(dataset.time)

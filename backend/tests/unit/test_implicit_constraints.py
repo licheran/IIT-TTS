@@ -536,7 +536,7 @@ def test_the_context_skips_events_it_cannot_decode() -> None:
 
 def test_the_implicit_constraints_are_registered_in_catalogue_order() -> None:
     codes = [m.CODE for m in implicit_types()]  # type: ignore[attr-defined]
-    assert codes == ["H0", "H1", "H2", "H3", "H4", "H5"]
+    assert codes == ["H0", "H1", "H2", "H3", "H4", "H5", "H6"]
     assert list(IMPLICIT) == [
         "placement",
         "no_overlap",
@@ -544,6 +544,7 @@ def test_the_implicit_constraints_are_registered_in_catalogue_order() -> None:
         "capacity",
         "requirement_match",
         "pin",
+        "demand_cover",
     ]
 
 

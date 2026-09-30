@@ -1,6 +1,6 @@
 """Registry of constraint modules, keyed by type name.
 
-Implicit constraints (H0 ... H5) always run, in catalogue order. Declared types are added to
+Implicit constraints (H0 ... H6) always run, in catalogue order. Declared types are added to
 `DECLARED` as their modules are written (Phase 8), one line each. An explicit table, not module
 scanning, so what the verifier supports is visible in one place.
 """
@@ -9,6 +9,7 @@ from tts.core.constraints import (
     avoid,
     capacity,
     consecutive,
+    demand_cover,
     max_days,
     max_gaps,
     max_per_day,
@@ -36,6 +37,7 @@ IMPLICIT: dict[str, ConstraintType] = {
     capacity.TYPE: capacity,
     requirement_match.TYPE: requirement_match,
     pin.TYPE: pin,
+    demand_cover.TYPE: demand_cover,
 }
 
 DECLARED: dict[str, ConstraintType] = {  # catalogue order (spec 04 section 2)

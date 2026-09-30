@@ -9,6 +9,7 @@ from collections.abc import Iterable
 
 from tts.core.constraints.context import VerifyContext
 from tts.core.constraints.registry import declared_type, implicit_types
+from tts.core.demands import realise
 from tts.core.model import Dataset, Ref, Result, Violation
 
 UNSUPPORTED = "unsupported_constraint"
@@ -18,9 +19,12 @@ def verify(dataset: Dataset, result: Result) -> list[Violation]:
     """Every violation, in a deterministic order: implicit rules H0 to H5, then declared types.
 
     A declared constraint whose type has no verifier yet gives one warning and is not checked.
-    Inactive constraints are ignored.
+    Inactive constraints are ignored. Events the solver created (`result.created`) are made real
+    first, so every rule applies to them like to declared events.
     """
-    context = VerifyContext(dataset, result)
+    base = dataset
+    dataset = realise(base, result)
+    context = VerifyContext(dataset, result, base=base)
     found: list[Violation] = []
     for implicit in implicit_types():
         found.extend(implicit.verify(dataset, result, context))
