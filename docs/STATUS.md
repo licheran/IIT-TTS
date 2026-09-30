@@ -1,6 +1,6 @@
 # Status
 
-**Current phase:** 18, configured sessions: specs and approval. **Next task:** P18.2 (spec 01). ADR-0007 is Accepted; three of its proposals wait for your confirmation (Open questions). Also waiting: ADR-0006 (Proposed) and the wiki in `docs/wiki/`.
+**Current phase:** 19, demands in the core, the verifier and pre-flight. **Next task:** P19.1 (core model). ADR-0007 is Accepted; three of its proposals wait for your confirmation (Open questions). Also waiting: ADR-0006 (Proposed) and the wiki in `docs/wiki/`.
 
 **Phases 0 to 11 are complete** and **Phase 3 is complete apart from one manual check**. 
 
@@ -24,7 +24,7 @@
 | 15 Wiki: constraints and selectors | Done. Acceptance: all 14 types, the selector language and the defaults are documented; each type page's Parameters table matches its `Params` model (`test_wiki_constraints.py`); the example row of every type is accepted by the importer and by pre-flight against L6; the selector examples parse and their L6 counts are right. |
 | 16 Wiki: troubleshooting | Done. Acceptance: every message the importer and pre-flight can give, and every run status and diagnostic kind, has an entry with a cause and a fix; 40 import messages are reproduced by the test and quoted on the page (`test_wiki_troubleshooting.py`). |
 | 17 Wiki: exams preset | Done. Acceptance: every sheet of the exams preset is covered (ten pages, the four shared sheets link to the academic pages, and the test proves they have the same columns); `test_wiki_exams.py` passes. |
-| 18 Configured sessions: specs and approval | In progress: ADR-0007 Accepted (P18.1); specs next. |
+| 18 Configured sessions: specs and approval | Done. Acceptance: ADR-0007 Accepted; specs 01–06 updated and consistent (demands, blocks, created events, format version 2, H6, pre-flight checks, result storage). |
 | 19 Demands: core, verifier, pre-flight | Not started. |
 | 20 Demands: solver | Not started. |
 | 21 Academic configuration (format version 2) | Not started. |
@@ -162,3 +162,4 @@ Answered on 2026-09-30 (ADR-0007):
 | 2026-09-30 | P18.2 | Spec 01: FR-17 to FR-20 added, FR-2 says a configured dataset's workbook is configuration only, FR-5 marked retired for configured datasets (kept for hand-made ones), the student-sectioning non-goal clarified (splitting groups is in scope), glossary gains Demand, Block, Session, Edit, configured/hand-made. |
 | 2026-09-30 | P18.3 | Spec 02: Demand, Block and created event added to §1 (a declared event of a demand is an edit); invariants 6–7 (demand participants and repeat; a dataset is configured or hand-made); occupancy of created events; the academic configuration mapping table (§6.1). |
 | 2026-09-30 | P18.4 | Spec 03 (**workbook format change, rule 4**): new §2a, `academic_weekly` format_version **2** (configuration only) with the new sheet SessionTypes and the new columns `Modules.level/programmes/optional/sessions`, `Teachers.modules`, `Groups.options`; `Groups.parent` only a programme; no Templates/Activities/ActivityGroups/ActivityTeachers/Pins/Assignments. Version 1 stays for hand-made datasets and exams. The maximum format version is per preset. Validation messages for every new column (§3). **Note:** lists use the workbook's `;` separator (rule 5), not commas: `Modules.sessions` is `LEC;TUT;LAB(start_pattern=3H,max_groups=2)`. |
+| 2026-09-30 | P18.6 | Spec 05: pipeline says `prepare` (templates for hand-made datasets, demands for configured ones); new §2.2 Demands → sessions (block count, even split, repetition, codes, edits as fixed blocks, complete rebuild); the demand pre-flight checks; §4.1a variables (membership literals, symmetry breaking, hint); explanation rule sets of kind `demand`; §8 result storage. Spec 06: `core/demands.py`, `presets/.../configuration.py`, tables `created_event`/`created_participant` and `event.demand`, the sessions/timetable endpoints, the `sessions/` web feature. **Refinements recorded in the specs while reading the code:** (1) a `uses:` scope on a rule cannot be enforced on solver-made sessions: pre-flight error if hard, warning if soft (score still exact); (2) no `AUTO-ORDER` for configured datasets; (3) an edited teacher is carried by the edit's pin resources, like a room. **Phase 18 acceptance:** specs 01–06 agree with ADR-0007; unit tests still pass (1,185). |

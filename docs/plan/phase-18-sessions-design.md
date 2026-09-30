@@ -30,7 +30,7 @@
 - [x] P18.5 Spec 04:
   - H6 `demand_cover`, with its semantics: blocks, `repeat` events per block with the same participants, and even block sizes;
   - how each of C1–C14 treats created events: resource-scoped types through membership; event-scoped types and `code:` scopes.
-- [ ] P18.6 Spec 05:
+- [x] P18.6 Spec 05:
   - the pipeline for configured datasets, with no expand step (§1);
   - the new §2, "Demands": block count, even split, edits as declared events;
   - pre-flight checks for demands:

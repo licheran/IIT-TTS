@@ -27,7 +27,7 @@ flowchart LR
     RES[Results + exports]
   end
   subgraph worker["worker (Python)"]
-    PIPE[expand → preflight → compile → solve → decode → verify]
+    PIPE[prepare → preflight → compile → solve → decode → verify]
   end
   DB[(PostgreSQL)]
   web <-->|REST/JSON| api
@@ -48,12 +48,12 @@ flowchart LR
 ## 3. Backend packages (`backend/src/tts/`)
 
 ```
-core/            model.py  hierarchy.py  timegrid.py  selectors.py  verifier.py  constraints/<type>.py
+core/            model.py  demands.py  hierarchy.py  timegrid.py  selectors.py  verifier.py  constraints/<type>.py
 expand/          templates.py
 preflight/       checks.py
 solver/          context.py  compile.py  solve.py  decode.py  explain.py  registry.py  constraints/<type>.py
 io/              workbook.py  csvzip.py  fet_html.py  export_html.py  templates/*.html.j2
-presets/         academic_weekly/{__init__,types,sheets,labels,defaults}.py   exams/ (Phase 11)
+presets/         academic_weekly/{__init__,types,sheets,configuration,labels,defaults}.py   exams/ (Phase 11)
 store/           db.py  models.py  repositories.py  migrations/ (Alembic)
 api/             main.py  deps.py  routers/{datasets,tables,io,runs,results,validate}.py  schemas.py
 worker/          main.py  runner.py
@@ -76,7 +76,10 @@ The core-purity test fails if the domain words listed in `CLAUDE.md` rule 1 appe
 
 ## 4. Database tables
 
-`dataset`, `resource_type`, `resource`, `reference_type`, `reference`, `day`, `period`, `start_pattern`, `availability`, `event`, `event_resource`, `requirement`, `constraint`, `template`, `pin`, `run`, `assignment`, `assigned_resource`, `diagnostic`.
+`dataset`, `resource_type`, `resource`, `reference_type`, `reference`, `day`, `period`, `start_pattern`, `availability`, `event`, `event_resource`, `requirement`, `constraint`, `template`, `pin`, `run`, `assignment`, `assigned_resource`, `created_event`, `created_participant`, `diagnostic`.
+
+- `event.demand` (nullable) names the demand a declared event belongs to (an edit). Session types, module levels, optional flags and sessions, teacher modules and group options of a configured academic dataset are kept in the `attributes` of `reference` and `resource` rows, like other attributes. A demand is derived from them by the preset when a run starts, not stored.
+- `created_event` (`run_id`, `event`, `demand`) and `created_participant` (`run_id`, `event`, `resource`) belong to a run, like `assignment`.
 
 - Their columns follow `02-domain-model.md` §1.
 - JSONB columns: `attributes`, `tags`, `params`, `snapshot`, `refs`.
@@ -92,12 +95,16 @@ The core-purity test fails if the domain words listed in `CLAUDE.md` rule 1 appe
 | `GET /health` | Liveness |
 | `GET/POST /datasets` · `GET/PATCH/DELETE /datasets/{id}` | Manage datasets (`POST` takes `{name, preset}`) |
 | `GET /presets` | Names of the available presets |
-| `GET /datasets/{id}/schema` | The preset's sheet definitions and labels (drive the UI) |
+| `GET /datasets/{id}/schema` | The preset's sheet definitions and labels for the dataset's kind (drive the UI). Also returns `kind`: `configured` or `hand_made` |
 | `GET/POST /datasets/{id}/tables/{sheet}` | List rows (`?page,size,sort,filter`) / create a row |
 | `PATCH/DELETE /datasets/{id}/tables/{sheet}/{code}` | Update / delete a row |
 | `POST /datasets/{id}/import` | Multipart `.xlsx` or `.zip`. Returns `{ok, errors[], summary}` |
 | `GET /datasets/{id}/export?format=xlsx\|csvzip` | Export the configuration |
-| `POST /datasets/{id}/expand?commit=false\|true` | Template preview / commit. Returns `{committed, added[], changed[], removed[], orders_added, orders_removed, problems[]}` |
+| `POST /datasets/{id}/expand?commit=false\|true` | Template preview / commit (hand-made datasets only). Returns `{committed, added[], changed[], removed[], orders_added, orders_removed, problems[]}` |
+| `GET /datasets/{id}/sessions` | The configured dataset's sessions to schedule: each module and kind, its groups, blocks and sessions per week (Phase 21) |
+| `GET /datasets/{id}/timetable` | The Activities table of a configured dataset: the current run's sessions with the edits applied (Phase 22) |
+| `PUT/DELETE /datasets/{id}/timetable/{session}` · `DELETE /datasets/{id}/timetable` | Edit a session (day, start, rooms, teachers, groups) / undo its edit / clear all edits |
+| `GET /datasets/{id}/timetable/check` | The current run's timetable with the edits applied, checked by the verifier, without storing it |
 | `POST /datasets/{id}/preflight` | `{issues[]}` |
 | `POST /datasets/{id}/runs` | Start a run (`RunParams`). Returns `{run_id}` |
 | `GET /runs/{id}` | Status, progress, score, diagnostics |
@@ -119,6 +126,7 @@ components/   domain-neutral UI (DataTable, RefSelect, MultiRefSelect, ErrorList
 features/
   datasets/   list, create from preset
   tables/     schema-driven sheet tabs + editors
+  sessions/   the Activities table of a configured dataset: edits, undo, rebuild (Phase 22)
   io/         import/export panel with row-level errors
   preflight/  issues panel with links to rows
   runs/       start panel, progress, runs list, diff, publish
