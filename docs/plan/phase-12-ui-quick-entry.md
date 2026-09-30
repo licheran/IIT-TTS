@@ -15,7 +15,7 @@
   - on an error, the typed values stay, the message shows under the row, and focus goes to the field named in the error;
   - a second Enter while an add is still being saved is ignored;
   - tests: vitest for visibility, Tab order, Enter-adds-and-refocuses, errors and Esc. A Playwright check adds three rows to Teachers by keyboard only. The 5,000-row performance check still passes.
-- [ ] P12.2 Every timetable in one HTML file:
+- [x] P12.2 Every timetable in one HTML file:
   - the HTML export with no type or code holds every group, teacher and room timetable that has events, grouped by resource type, with a **Contents** list of links at the top and a "back to contents" link per grid. It still prints one grid per page;
   - the file is named `run-<id>-all.html`. Single-grid exports are unchanged;
   - the Timetable tab gets **Export all timetables (HTML)** and **Export all of this type (HTML)**, next to the existing buttons;

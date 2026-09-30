@@ -134,6 +134,22 @@ function ResourceGrid({
             Export this grid (HTML)
           </a>
         )}
+        {type && (
+          <a
+            className="inline-flex h-9 items-center rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-100"
+            href={runExportUrl(runId, 'html', type)}
+            download
+          >
+            Export all of this type (HTML)
+          </a>
+        )}
+        <a
+          className="inline-flex h-9 items-center rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-100"
+          href={runExportUrl(runId, 'html')}
+          download
+        >
+          Export all timetables (HTML)
+        </a>
         <a
           className="inline-flex h-9 items-center rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-100"
           href={runExportUrl(runId, 'xlsx')}

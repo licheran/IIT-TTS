@@ -1,6 +1,6 @@
 # Status
 
-**Current phase:** 12 — [UI: quick row entry and a full HTML export](plan/phase-12-ui-quick-entry.md). **Next task:** P12.1 (the always-visible entry row). Phases 0 to 11 are complete.
+**Current phase:** 13 — [Wiki: skeleton and tabs](plan/phase-13-wiki-tabs.md). **Next task:** P13.1 (the wiki skeleton and the link check). Phases 0 to 12 are complete.
 
 **Phases 0 to 11 are complete** and **Phase 3 is complete apart from one manual check**. 
 
@@ -18,7 +18,7 @@
 | 9 Templates | Done. Acceptance: L6 written as templates expands to the fixture\'s per-module groups and LEC/TUT counts; expanding twice changes nothing; hand-made activities are untouched. |
 | 10 Scale | Done. Acceptance: 2,994 synthetic events solved in 57.7 s on 8 workers (NFR-2: 15 min) by decomposition (was 569 s); staged L4→L7 in 57.2 s with no cross-stage clash. |
 | 11 Exams preset | Done. Acceptance: the exams sample imports, solves, verifies and exports through the CLI and the API, the web UI shows the exams labels, and no file in core, solver, expand or preflight changed during the phase (ADR-0006 came first). |
-| 12 UI: quick entry, full HTML export | Open. |
+| 12 UI: quick entry, full HTML export | Done. Acceptance: three Teachers rows typed by keyboard only (`web/e2e/entry.spec.ts`), focus back on the first field each time; "Export all timetables (HTML)" downloads one file whose contents links all resolve (`l6.spec.ts`, `test_api_results.py`); 1,069 backend and 43+ web tests and all e2e pass; the 5,000-row check still scrolls at p95 16.8 ms. |
 | 13 Wiki: tabs | Open. |
 | 14 Wiki: tables | Open. |
 | 15 Wiki: constraints and selectors | Open. |
@@ -126,3 +126,4 @@ _None at the moment._
 | 2026-09-30 | — | Planned the user wiki (now Phases 13–17) in `docs/wiki/` (tabs; academic tables and tags; constraints and selectors; troubleshooting; exams preset). Written for timetable administrators, academic preset first. `backend/tests/unit/test_wiki.py` will keep the pages in step with the code, growing with each phase. No product code changes planned. |
 | 2026-09-30 | — | Added Phase 12 (UI) before the wiki: an always-visible entry row on every table (Tab across fields, Enter adds and refocuses the first field) and one HTML file with every timetable. The wiki phases are renumbered 13–17. |
 | 2026-09-30 | P12.1 | Every table has an always-visible entry row under its headers (`features/tables/EntryRow.tsx`, slot `renderEntry` in `DataTable`): Tab/Shift+Tab across fields, Enter adds the row and refocuses the first field, Esc clears, a refused row keeps its values and focuses the field named in the error, an empty Enter adds nothing. Choice and true/false values are kept between rows; true/false fields start at the column's default. The old "Add row" form is gone and `SheetEditor` no longer takes `schema`. Editors gained `blurCommits` (off in the entry row, so Tab never submits). 43 unit tests, `entry.spec.ts` (three Teachers rows by keyboard only, then a refused duplicate); the 5,000-row check still scrolls at p95 16.8 ms (edit 47 ms). |
+| 2026-09-30 | P12.2 | The HTML export with no `type` or `code` is now one file with every group, teacher and room timetable: grouped by resource type (in the dataset's type order), a Contents list linking to every grid, a "back to contents" link per grid, one grid per printed page; downloaded as `run-<id>-all.html`. Single-grid and per-type exports keep their layout (no contents list for one grid). Timetable tab: "Export all timetables (HTML)" and "Export all of this type (HTML)". Spec 06 §5 updated. Tests: API (every grid present, every link resolves, each grid under its own type), anchor uniqueness unit tests, a vitest of the four link targets, the L6 e2e downloads the full file. Noted: `perf.spec.ts` once failed before creating its dataset (the Name field was still empty after `fill`, a hydration race in the test, passed on rerun); not changed. |

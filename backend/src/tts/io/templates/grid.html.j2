@@ -18,13 +18,34 @@
            background: #e0eefb; border: 1px solid #7cb0e6; overflow: hidden; }
   .event b { display: block; }
   .event .muted { color: #52606d; }
-  @media print { h2 { break-before: page; } h2:first-of-type { break-before: auto; } }
+  h2.type-heading { font-size: 1.25rem; margin: 2.5rem 0 .25rem; border-bottom: 2px solid #cbd2d9; }
+  nav#contents h2 { margin-top: 1rem; }
+  nav#contents h3 { font-size: .95rem; margin: 1rem 0 .3rem; }
+  nav#contents ul { columns: 14rem auto; margin: 0; padding-left: 1.1rem; font-size: .85rem; }
+  .back { font-size: .8rem; margin-left: .5rem; }
+  @media print { section.resource { break-before: page; } body.single section.resource { break-before: auto; } }
 </style>
 </head>
-<body>
+<body{% if not contents %} class="single"{% endif %}>
 <h1>{{ title }}</h1>
-{% for g in grids %}
-<h2>{{ g.resource }}{% if g.name %} — {{ g.name }}{% endif %} <span class="type">{{ g.type_label }}</span></h2>
+{% if contents %}
+<nav id="contents" aria-label="Contents">
+<h2>Contents</h2>
+{% for s in sections %}
+<h3><a href="#{{ s.anchor }}">{{ s.label }}</a> ({{ s.grids|length }})</h3>
+<ul>
+{% for g in s.grids %}<li><a href="#{{ g.anchor }}">{{ g.resource }}{% if g.name %} — {{ g.name }}{% endif %}</a></li>
+{% endfor %}
+</ul>
+{% endfor %}
+</nav>
+{% endif %}
+{% for s in sections %}
+{% for g in s.grids %}
+{% set tag = 'h3' if contents else 'h2' %}
+<section class="resource"{% if contents %} id="{{ g.anchor }}"{% endif %}>
+{% if contents and loop.first %}<h2 class="type-heading" id="{{ s.anchor }}">{{ s.label }}</h2>{% endif %}
+<{{ tag }}>{{ g.resource }}{% if g.name %} — {{ g.name }}{% endif %} <span class="type">{{ g.type_label }}</span>{% if contents %}<a class="back" href="#contents">↑ Contents</a>{% endif %}</{{ tag }}>
 {% if not g.grid.cells %}<p>No events.</p>{% endif %}
 <div class="grid">
   <div class="head" style="grid-row:1;grid-column:1"></div>
@@ -45,6 +66,8 @@
   </div>
   {% endfor %}
 </div>
+</section>
+{% endfor %}
 {% endfor %}
 </body>
 </html>

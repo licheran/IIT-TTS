@@ -1,3 +1,4 @@
+import re
 from collections.abc import Iterator
 from io import BytesIO
 from typing import Any
@@ -122,8 +123,59 @@ def test_the_html_export_has_a_grid_for_the_group(client: TestClient, solved) ->
 def test_the_html_export_of_a_type_has_one_grid_per_resource(client: TestClient, solved) -> None:
     run_id = solved["runs"][0]
     html = client.get(f"/runs/{run_id}/export", params={"type": "Teacher"}).text
-    assert html.count("<h2>") > 10
+    assert html.count('<section class="resource"') > 10
     assert "Teacher</span>" in html
+
+
+def _anchors(html: str) -> tuple[set[str], set[str]]:
+    ids = set(re.findall(r'\bid="([^"]+)"', html))
+    links = set(re.findall(r'href="#([^"]+)"', html))
+    return ids, links
+
+
+def test_one_html_file_holds_every_timetable_with_a_contents_list(
+    client: TestClient, solved
+) -> None:
+    run_id = solved["runs"][0]
+    response = client.get(f"/runs/{run_id}/export", params={"format": "html"})
+    assert (
+        response.headers["content-disposition"] == f'attachment; filename="run-{run_id}-all.html"'
+    )
+    html = response.text
+
+    # One grid for every group, teacher and room that has events.
+    per_type = {
+        kind: client.get(f"/runs/{run_id}/export", params={"type": kind}).text.count(
+            '<section class="resource"'
+        )
+        for kind in ("StudentGroup", "Teacher", "Room")
+    }
+    assert all(n > 5 for n in per_type.values())
+    assert html.count('<section class="resource"') == sum(per_type.values())
+
+    # Every link of the contents list reaches an element of the page.
+    ids, links = _anchors(html)
+    assert links <= ids and "contents" in links
+    assert len(links) == sum(per_type.values()) + 3 + 1  # grids, three type headings, "back"
+
+    # One section per resource type, and every grid sits under the heading of its own type.
+    headings = re.findall(r'<h2 class="type-heading" id="([^"]+)">([^<]+)</h2>', html)
+    assert sorted(label for _, label in headings) == ["Group", "Room", "Teacher"]
+    body = html[html.index("<section") :]
+    chunks = re.split(r'<h2 class="type-heading"', body)[1:]
+    assert len(chunks) == 3
+    for chunk in chunks:
+        label = re.match(r' id="[^"]+">([^<]+)</h2>', chunk)
+        assert label is not None
+        assert set(re.findall(r'<span class="type">([^<]+)</span>', chunk)) == {label.group(1)}
+
+
+def test_a_single_grid_export_has_no_contents_list(client: TestClient, solved) -> None:
+    run_id = solved["runs"][0]
+    response = client.get(f"/runs/{run_id}/export", params={"type": "StudentGroup", "code": GROUP})
+    assert response.headers["content-disposition"].endswith(f'run-{run_id}.html"')
+    assert '<nav id="contents"' not in response.text
+    assert 'class="type-heading"' not in response.text
 
 
 def test_the_xlsx_export_reads_back_with_its_assignments(

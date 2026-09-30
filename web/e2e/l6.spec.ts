@@ -56,4 +56,16 @@ test('L6: import, edit a room, pre-flight, solve, view a grid and export it', as
   const html = readFileSync(file, 'utf-8')
   expect(html).toContain('L6 SE / G1')
   expect(html).toContain('class="event"')
+
+  // Every timetable in one file, with a contents list that links to each one.
+  const all = page.waitForEvent('download')
+  await page.getByRole('link', { name: 'Export all timetables (HTML)' }).click()
+  const everything = await all
+  expect(everything.suggestedFilename()).toMatch(/^run-\d+-all\.html$/)
+  const full = readFileSync((await everything.path())!, 'utf-8')
+  expect(full).toContain('<nav id="contents"')
+  expect(full).toContain('L6 SE / G1')
+  expect(full.match(/<section class="resource"/g)!.length).toBeGreaterThan(50)
+  const links = [...full.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]!)
+  for (const id of new Set(links)) expect(full).toContain(`id="${id}"`)
 })

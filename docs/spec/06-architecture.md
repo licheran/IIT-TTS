@@ -104,7 +104,7 @@ The core-purity test fails if the domain words listed in `CLAUDE.md` rule 1 appe
 | `POST /runs/{id}/cancel` · `POST /runs/{id}/publish` | Cancel / publish |
 | `GET /runs/{id}/assignments` | Assignment list |
 | `GET /runs/{id}/grid?type=<ResourceType>&code=<code>` | Weekly grid JSON for one resource |
-| `GET /runs/{id}/export?format=html\|xlsx\|csv&type=&code=` | Result export |
+| `GET /runs/{id}/export?format=html\|xlsx\|csv&type=&code=` | Result export. `code` limits it to one resource and `type` to one resource type. With neither, the HTML holds every group, teacher and room timetable in one file (`run-<id>-all.html`), grouped by type, with a contents list linking to each grid |
 | `GET /runs/{a}/diff/{b}` | Events that moved between runs |
 | `GET /clashes` | Clashes between the published runs of different datasets that share resource codes (P10.3) |
 | `POST /validate` | Upload a workbook, with assignments or a FET HTML export. Returns violations |

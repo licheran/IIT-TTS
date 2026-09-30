@@ -151,7 +151,8 @@ def export(
 ) -> Response:
     """Export a run: HTML grids, a workbook with the assignments, or a CSV list.
 
-    `code` limits it to one resource, `type` to the resources of one type.
+    `code` limits it to one resource, `type` to the resources of one type. With neither, the HTML
+    holds every timetable (groups, teachers and rooms) in one file, with a contents list.
     """
     dataset, result = _load(session, run_id)
     if code is not None:
@@ -172,7 +173,9 @@ def export(
         return _download(text.encode("utf-8"), "text/csv; charset=utf-8", f"run-{run_id}.csv")
     title = f"Timetable — run {run_id}" + (f" — {code}" if code else "")
     html = render_html(dataset, result, resources, title, label)
-    return _download(html.encode("utf-8"), "text/html; charset=utf-8", f"run-{run_id}.html")
+    everything = type is None and code is None
+    name = f"run-{run_id}-all.html" if everything else f"run-{run_id}.html"
+    return _download(html.encode("utf-8"), "text/html; charset=utf-8", name)
 
 
 def _download(payload: bytes, media_type: str, filename: str) -> Response:
