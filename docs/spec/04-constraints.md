@@ -73,7 +73,8 @@ Sessions the solver creates from a demand (ADR-0007) are events like any other o
 | Kind of constraint | Types | With created events |
 |---|---|---|
 | **Resource-scoped** | C1, C2, C3, C10, C13, C14 | Work on the resource's occupancy. A created event occupies a participant exactly when the participant is in its block, so the penalty counts it through that membership. No change to the semantics |
-| **Event-scoped** | C4–C9, C11, C12 | The scope selects created events by properties known before solving: `kind:`, `ref:`, `tag:` and `type:`-free selectors. A created event has its demand's kind, reference and tags. They then behave as any event |
+| **Event-scoped** | C4, C5, C6, C9, C11, C12 | The scope selects created events by properties known before solving: `kind:`, `ref:`, `tag:` and `type:`-free selectors. A created event has its demand's kind, reference and tags. They then behave as any event |
+| Types that name events | C7 `order`, C8 `consecutive` | `params.sequence` lists event codes, and the codes of sessions the solver creates do not exist before solving, so these two apply to declared events only (hand-made events, or edits of a configured dataset) |
 | Scope with `code:` | event-scoped | Codes of created events do not exist before solving, so `code:` selects declared events only. The verifier, which sees the real codes, may select more. Pre-flight warns when a `code:` scope matches no declared event while demands exist |
 | Scope with `uses:` | event-scoped | Which resources a created event uses depends on the grouping. The solver ignores created events for a `uses:` scope. Pre-flight gives an **error** when such a constraint is hard (the solver could not enforce it) and a **warning** when it is soft (the solver optimises only the declared events, while the score is still measured exactly by the verifier) |
 
