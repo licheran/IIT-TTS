@@ -6,20 +6,25 @@ scanning, so what the verifier supports is visible in one place.
 """
 
 from tts.core.constraints import (
+    avoid,
     capacity,
     consecutive,
     max_days,
     max_gaps,
     max_per_day,
+    max_span,
     min_days_between,
     no_overlap,
     not_overlapping,
     order,
     pin,
     placement,
+    preferred_resources,
+    preferred_times,
     requirement_match,
     same_day,
     same_start,
+    travel_gap,
     unavailable,
 )
 from tts.core.constraints.base import ConstraintType
@@ -33,16 +38,21 @@ IMPLICIT: dict[str, ConstraintType] = {
     pin.TYPE: pin,
 }
 
-DECLARED: dict[str, ConstraintType] = {
-    not_overlapping.TYPE: not_overlapping,
-    consecutive.TYPE: consecutive,
-    order.TYPE: order,
-    same_day.TYPE: same_day,
-    same_start.TYPE: same_start,
-    min_days_between.TYPE: min_days_between,
-    max_days.TYPE: max_days,
-    max_gaps.TYPE: max_gaps,
+DECLARED: dict[str, ConstraintType] = {  # catalogue order (spec 04 section 2)
     max_per_day.TYPE: max_per_day,
+    max_gaps.TYPE: max_gaps,
+    max_days.TYPE: max_days,
+    min_days_between.TYPE: min_days_between,
+    same_start.TYPE: same_start,
+    same_day.TYPE: same_day,
+    order.TYPE: order,
+    consecutive.TYPE: consecutive,
+    not_overlapping.TYPE: not_overlapping,
+    travel_gap.TYPE: travel_gap,
+    preferred_times.TYPE: preferred_times,
+    preferred_resources.TYPE: preferred_resources,
+    avoid.TYPE: avoid,
+    max_span.TYPE: max_span,
 }
 
 

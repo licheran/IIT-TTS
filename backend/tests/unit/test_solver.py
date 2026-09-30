@@ -8,7 +8,7 @@ from tts.core.run import RunParams
 from tts.core.verifier import hard_violations, verify
 from tts.solver import registry
 from tts.solver.compile import compile_model
-from tts.solver.registry import UnsupportedConstraintError
+from tts.solver.registry import COMPILERS, UnsupportedConstraintError
 from tts.solver.solve import SolveOutcome, solve, solve_model
 
 QUICK = RunParams(time_limit_s=20, num_workers=1, seed=0)
@@ -282,13 +282,17 @@ def test_a_multi_slot_event_occupies_every_slot_it_covers() -> None:
 # --- Declared constraints ------------------------------------------------------------------------
 
 
-def test_a_hard_constraint_with_no_compiler_is_refused() -> None:
+def test_a_hard_constraint_with_no_compiler_is_refused(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delitem(COMPILERS, "max_days")
     ds = one_event(constraints=[Constraint(code="C1", type="max_days", scope="type:G", hard=True)])
     with pytest.raises(UnsupportedConstraintError, match='hard constraint "C1"'):
         compile_model(ds)
 
 
-def test_a_soft_constraint_with_no_compiler_is_ignored_with_a_warning() -> None:
+def test_a_soft_constraint_with_no_compiler_is_ignored_with_a_warning(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delitem(COMPILERS, "max_days")
     ds = one_event(constraints=[Constraint(code="C1", type="max_days", scope="type:G", hard=False)])
     outcome = solved(ds)
     assert outcome.warnings == (

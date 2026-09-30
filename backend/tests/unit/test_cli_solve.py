@@ -27,6 +27,7 @@ from tts.io.csvzip import import_csvzip
 from tts.io.tables import WorkbookData
 from tts.io.workbook import export_xlsx, import_xlsx
 from tts.presets.academic_weekly.preset import PRESET
+from tts.solver.registry import COMPILERS
 
 runner = CliRunner()
 L6_HTML = Path(__file__).resolve().parents[1] / "fixtures" / "l6" / "fet-groups-export.html"
@@ -206,7 +207,11 @@ def test_solve_reports_a_clean_preflight(tmp_path: Path) -> None:
     assert "Pre-flight: 0 error(s), 0 warning(s)." in result.output
 
 
-def test_solve_refuses_a_hard_constraint_it_cannot_compile(tmp_path: Path) -> None:
+def test_solve_refuses_a_hard_constraint_it_cannot_compile(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delitem(COMPILERS, "max_gaps")
+
     def add_hard(workbook: object) -> None:
         row = ["C1", "max_gaps", "type:StudentGroup", '{"max": 2}', True, 1, True]
         workbook["Constraints"].append(row)  # type: ignore[index]
@@ -218,7 +223,11 @@ def test_solve_refuses_a_hard_constraint_it_cannot_compile(tmp_path: Path) -> No
     assert "not supported by the solver yet" in result.output
 
 
-def test_solve_warns_about_a_soft_constraint_it_cannot_compile(tmp_path: Path) -> None:
+def test_solve_warns_about_a_soft_constraint_it_cannot_compile(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delitem(COMPILERS, "max_gaps")
+
     def add_soft(workbook: object) -> None:
         row = ["C1", "max_gaps", "type:StudentGroup", '{"max": 2}', False, 1, True]
         workbook["Constraints"].append(row)  # type: ignore[index]

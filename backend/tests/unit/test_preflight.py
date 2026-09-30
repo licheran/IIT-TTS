@@ -375,6 +375,8 @@ def test_a_type_nobody_requests_is_not_reported_as_unused() -> None:
 
 
 def soft(code: str, scope: str, type_: str = "max_gaps", **changes: object) -> Constraint:
+    """A soft constraint with valid parameters, so only its scope is under test."""
+    changes.setdefault("params", {"max": 2} if type_ == "max_gaps" else {})
     return Constraint(code=code, type=type_, scope=scope, hard=False, **changes)  # type: ignore[arg-type]
 
 

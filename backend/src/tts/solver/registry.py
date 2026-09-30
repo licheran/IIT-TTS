@@ -16,30 +16,43 @@ COMPILERS: dict[str, Compiler] = {}
 
 
 def _register() -> None:
-    """Fill `COMPILERS`, one line per type (imported here: the compilers import this module)."""
+    """Fill `COMPILERS`, one line per type in catalogue order.
+
+    Imported here because the compilers import this module.
+    """
     from tts.solver.constraints import (
+        avoid,
         consecutive,
         max_days,
         max_gaps,
         max_per_day,
+        max_span,
         min_days_between,
         not_overlapping,
         order,
+        preferred_resources,
+        preferred_times,
         same_day,
         same_start,
+        travel_gap,
     )
 
     COMPILERS.update(
         {
-            "not_overlapping": not_overlapping.compile,
-            "consecutive": consecutive.compile,
-            "order": order.compile,
-            "same_day": same_day.compile,
-            "same_start": same_start.compile,
-            "min_days_between": min_days_between.compile,
-            "max_days": max_days.compile,
-            "max_gaps": max_gaps.compile,
             "max_per_day": max_per_day.compile,
+            "max_gaps": max_gaps.compile,
+            "max_days": max_days.compile,
+            "min_days_between": min_days_between.compile,
+            "same_start": same_start.compile,
+            "same_day": same_day.compile,
+            "order": order.compile,
+            "consecutive": consecutive.compile,
+            "not_overlapping": not_overlapping.compile,
+            "travel_gap": travel_gap.compile,
+            "preferred_times": preferred_times.compile,
+            "preferred_resources": preferred_resources.compile,
+            "avoid": avoid.compile,
+            "max_span": max_span.compile,
         }
     )
 

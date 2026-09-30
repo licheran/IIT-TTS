@@ -91,7 +91,10 @@ def with_constraints(*constraints: Constraint) -> Dataset:
     return good_dataset().model_copy(update={"constraints": constraints})
 
 
-def test_a_declared_type_without_a_verifier_gives_one_warning() -> None:
+def test_a_declared_type_without_a_verifier_gives_one_warning(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delitem(DECLARED, "max_days")
     ds = with_constraints(Constraint(code="C1", type="max_days", scope="type:G", params={"max": 1}))
     found = verify(ds, good_result())
     assert len(found) == 1
@@ -101,7 +104,8 @@ def test_a_declared_type_without_a_verifier_gives_one_warning() -> None:
     assert '"max_days"' in v.message
 
 
-def test_each_unsupported_instance_is_reported() -> None:
+def test_each_unsupported_instance_is_reported(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delitem(DECLARED, "max_days")
     ds = with_constraints(
         Constraint(code="C1", type="max_days"),
         Constraint(code="C2", type="max_days"),
