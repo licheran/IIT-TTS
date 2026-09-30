@@ -18,11 +18,12 @@ conflict. The model is otherwise identical, so the two modes agree on feasibilit
 """
 
 from collections import defaultdict
+from collections.abc import Iterable
 
 from ortools.sat.python import cp_model
 
 from tts.core.candidates import Candidates
-from tts.core.model import Availability, Dataset, Pin
+from tts.core.model import Availability, Dataset, Pin, PooledRequirement
 from tts.core.selectors import SelectorError
 from tts.core.timegrid import TimeGridError, covered_slots
 from tts.solver.context import CompileContext
@@ -193,6 +194,9 @@ def _pooled_variables(
                     f'filter "{q.filter}" of requirement {label}: {error.message}'
                 )
         domain = ctx.domains[q.event]
+        pinned = _pinned_choice(ctx, pins.get(q.event, ()), q, eligible)
+        if pinned is not None:
+            eligible = pinned
         candidates: list[str] = []
         for code in eligible:
             rows = unavailable.get(code, [])
@@ -239,6 +243,22 @@ def _pooled_variables(
 
     if not ctx.times_only:
         _pinned_resources(ctx, pins)
+
+
+def _pinned_choice(
+    ctx: CompileContext, event_pins: Iterable[Pin], q: PooledRequirement, eligible: Iterable[str]
+) -> tuple[str, ...] | None:
+    """The only possible choice for a requirement, when pins already make it; else None.
+
+    When an event has one pooled requirement and its pins name exactly `count` resources that
+    can serve it, every solution uses those (H5), so the other candidates need no variables.
+    This keeps locked events of earlier stages small (P10.5). Not used when explaining.
+    """
+    if ctx.explain or sum(1 for other in ctx.dataset.pooled if other.event == q.event) != 1:
+        return None
+    named = {r for pin in event_pins for r in pin.resources}
+    usable = tuple(code for code in eligible if code in named)
+    return usable if named and len(usable) == q.count else None
 
 
 def _pinned_resources(ctx: CompileContext, pins: dict[str, list[Pin]]) -> None:

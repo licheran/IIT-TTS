@@ -34,15 +34,26 @@ def test_a_dataset_where_only_requirements_look_at_the_choice_is_decomposable() 
 @pytest.mark.parametrize(
     "change",
     [
-        {"pins": (Pin(event="e0", resources=("r1",)),)},
+        {"pins": (Pin(event="e0", resources=("r1", "r2")),)},
         {"availability": (unavailable("r1", "d1", "p1"),)},
         {"constraints": (rule("preferred_resources", "all", filter="code:r1"),)},
         {"constraints": (rule("max_per_day", "type:R", max=1),)},
     ],
-    ids=["pinned resource", "unavailable candidate", "choice rule", "rule on candidates"],
+    ids=["pin naming too many", "unavailable candidate", "choice rule", "rule on candidates"],
 )
 def test_anything_that_looks_at_the_choice_prevents_decomposition(change) -> None:
     assert not decomposable(rooms_dataset(**change))
+
+
+def test_locks_that_decide_the_choice_keep_it_decomposable_and_are_kept() -> None:
+    lock = Pin(event="e0", day="d1", start_period="p2", resources=("r2",), source="lock")
+    ds = rooms_dataset(pins=(lock,))
+    assert decomposable(ds)
+    outcome = solve_decomposed(ds, PARAMS)
+    assert outcome.result is not None
+    e0 = next(a for a in outcome.result.assignments if a.event == "e0")
+    assert (e0.start_period, e0.chosen[0].resources) == ("p2", ("r2",))
+    assert hard_violations(verify(ds, outcome.result)) == []
 
 
 def test_the_decomposed_solve_is_valid() -> None:

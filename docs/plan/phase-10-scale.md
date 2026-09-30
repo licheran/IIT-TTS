@@ -17,7 +17,7 @@
 - [x] P10.2 Staged solving by scope selector (for example `uses:(under:L4)`), with earlier stages locked. Available in the CLI (`--stage`) and the API (`RunParams.stage_scope`).
 - [x] P10.3 A cross-dataset clash report: check every published run that shares resource codes and report the clashes.
 - [x] P10.4 Profile, then apply only the measured wins from spec 05 §7 (symmetry breaking, decomposition, hints). Record the before and after numbers in STATUS.
-- [ ] P10.5 Scale tests (`scale` marker): about 3,000 events, feasible in ≤ 15 min on 8 cores (NFR-2). Staged L4→L7 has no cross-stage clashes.
+- [x] P10.5 Scale tests (`scale` marker): about 3,000 events, feasible in ≤ 15 min on 8 cores (NFR-2). Staged L4→L7 has no cross-stage clashes.
 
 ## Acceptance
 - The P10.5 tests pass, or the gap is measured and documented, with an ADR for the next step.

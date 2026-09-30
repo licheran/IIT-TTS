@@ -11,8 +11,9 @@ and candidate), although that choice is a matching once the times are known. So:
    sufficient), solve the full model, hinted with the step 1 times, for the time that is left.
 
 It is used only when nothing but the requirements depends on which pooled resource is chosen:
-no pin names a resource, no pooled candidate has unavailable periods, and no declared constraint
-looks at pooled choices or at resources that can be chosen. Otherwise, and for small models,
+a pin that names resources must decide its event's only requirement exactly (as the locks of an
+earlier stage do), no pooled candidate has unavailable periods, and no declared constraint looks
+at pooled choices or at resources that can be chosen. Otherwise, and for small models,
 `solve_dataset` solves the full model directly. Every result is verified by the caller as usual.
 """
 
@@ -52,11 +53,31 @@ def pooled_candidates(dataset: Dataset) -> dict[tuple[str, int], tuple[str, ...]
     return found
 
 
+def _pins_decide(dataset: Dataset, candidates: dict[tuple[str, int], tuple[str, ...]]) -> bool:
+    """True when every pin that names resources decides its event's only requirement exactly
+    (as locks from an earlier stage do): the times step then treats those resources as taken."""
+    requirements: dict[str, list[tuple[int, int]]] = {}
+    for q in dataset.pooled:
+        requirements.setdefault(q.event, []).append((q.ordinal, q.count))
+    for pin in dataset.pins:
+        if not pin.resources:
+            continue
+        needs = requirements.get(pin.event, [])
+        if len(needs) != 1:
+            return False
+        ordinal, count = needs[0]
+        usable = set(candidates.get((pin.event, ordinal), ()))
+        if len(pin.resources) != count or not set(pin.resources) <= usable:
+            return False
+    return True
+
+
 def decomposable(dataset: Dataset) -> bool:
-    """True when only the requirements depend on the choice of pooled resources."""
-    if any(p.resources for p in dataset.pins):
-        return False
+    """True when only the requirements (and locks that decide them) depend on the choice of
+    pooled resources."""
     candidates = pooled_candidates(dataset)
+    if not _pins_decide(dataset, candidates):
+        return False
     choosable = {r for codes in candidates.values() for r in codes}
     if any(a.resource in choosable and a.status == "unavailable" for a in dataset.availability):
         return False
@@ -109,8 +130,15 @@ def solve_decomposed(
     times = solve_model(compile_model(dataset, times_only=True), params, on_progress, control)
     if times.result is None or (control is not None and control.stopped):
         return times  # infeasible, out of time or cancelled: no timetable either way
+    decided = {p.event: p.resources for p in dataset.pins if p.resources}
     pins = tuple(
-        Pin(event=a.event, day=a.day, start_period=a.start_period, source="lock")
+        Pin(
+            event=a.event,
+            day=a.day,
+            start_period=a.start_period,
+            resources=decided.get(a.event, ()),
+            source="lock",
+        )
         for a in times.result.assignments
     )
     pinned = dataset.model_copy(update={"pins": pins})
