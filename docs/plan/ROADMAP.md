@@ -22,5 +22,12 @@ Work through the phases in order. A phase is done when all its tasks are ticked 
 | 15 | [phase-15-wiki-constraints.md](phase-15-wiki-constraints.md) | Wiki: constraint types and the selector language | — |
 | 16 | [phase-16-wiki-troubleshooting.md](phase-16-wiki-troubleshooting.md) | Wiki: every error, issue and run status, with fixes | — |
 | 17 | [phase-17-wiki-exams.md](phase-17-wiki-exams.md) | Wiki: the exams preset's tables | — |
+| 18 | [phase-18-sessions-design.md](phase-18-sessions-design.md) | Configured sessions: ADR-0007 approved, specs updated | FR-17–FR-20 (new) |
+| 19 | [phase-19-demands-core.md](phase-19-demands-core.md) | Demands in the core, verifier (H6) and pre-flight | FR-18, FR-14 |
+| 20 | [phase-20-demands-solver.md](phase-20-demands-solver.md) | The solver splits demands into sessions and picks teachers | FR-18, FR-8 |
+| 21 | [phase-21-academic-configuration.md](phase-21-academic-configuration.md) | Session types, module sessions, teacher modules, programme and group modules (format version 2) | FR-17, FR-2 |
+| 22 | [phase-22-editable-timetable.md](phase-22-editable-timetable.md) | Activities as the editable timetable; edited fields are kept | FR-19, FR-10 |
+| 23 | [phase-23-retire-templates.md](phase-23-retire-templates.md) | Templates, ActivityGroups, ActivityTeachers and Pins retired from the academic preset | FR-17 |
+| 24 | [phase-24-teacher-fairness.md](phase-24-teacher-fairness.md) | Teacher workload cap, balance and continuity | FR-20 |
 
-The biggest technical risk is retired at the end of Phase 4, when L6 solves unpinned. Phases 5–11 are product work. Phase 12 is a UI refinement. Phases 13–17 are documentation: the user wiki in `docs/wiki/`, kept in step with the code by `backend/tests/unit/test_wiki.py`.
+The biggest technical risk is retired at the end of Phase 4, when L6 solves unpinned. Phases 5–11 are product work. Phase 12 is a UI refinement. Phases 13–17 are documentation: the user wiki in `docs/wiki/`, kept in step with the code by `backend/tests/unit/test_wiki.py`. Phases 18–24 build timetables from configuration (ADR-0007): the new risk is solve time once the solver decides which groups share a session, measured in P20.8.

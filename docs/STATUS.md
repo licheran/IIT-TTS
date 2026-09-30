@@ -1,6 +1,6 @@
 # Status
 
-**Current phase:** none: all phases (0–17) are complete. **Next:** your review of the decisions logged below, of ADR-0006 (Proposed) and of the wiki in `docs/wiki/`.
+**Current phase:** 18, configured sessions: specs and approval. **Next task:** P18.1, your review of ADR-0007 (Proposed) and its open decisions (listed under Open questions). No code changes until it is Accepted. Also waiting: ADR-0006 (Proposed) and the wiki in `docs/wiki/`.
 
 **Phases 0 to 11 are complete** and **Phase 3 is complete apart from one manual check**. 
 
@@ -24,6 +24,13 @@
 | 15 Wiki: constraints and selectors | Done. Acceptance: all 14 types, the selector language and the defaults are documented; each type page's Parameters table matches its `Params` model (`test_wiki_constraints.py`); the example row of every type is accepted by the importer and by pre-flight against L6; the selector examples parse and their L6 counts are right. |
 | 16 Wiki: troubleshooting | Done. Acceptance: every message the importer and pre-flight can give, and every run status and diagnostic kind, has an entry with a cause and a fix; 40 import messages are reproduced by the test and quoted on the page (`test_wiki_troubleshooting.py`). |
 | 17 Wiki: exams preset | Done. Acceptance: every sheet of the exams preset is covered (ten pages, the four shared sheets link to the academic pages, and the test proves they have the same columns); `test_wiki_exams.py` passes. |
+| 18 Configured sessions: specs and approval | Not started: waiting for your review of ADR-0007. |
+| 19 Demands: core, verifier, pre-flight | Not started. |
+| 20 Demands: solver | Not started. |
+| 21 Academic configuration (format version 2) | Not started. |
+| 22 Activities as the editable timetable | Not started. |
+| 23 Retire Templates and ActivityGroups | Not started. |
+| 24 Teacher fairness | Not started. |
 
 **Decisions waiting for you** are in the log below (search for "review"). One that matters soon: the core names for template modes (P9, decided in the 2026-09-29 plan: `joint`/`each`/`batched`, with the preset showing `per_group`).
 **Format version:** workbook `format_version` 1
@@ -48,7 +55,20 @@ Answered by the user on 2026-09-30.
 - **Repository.** Public. The FET export in the fixture is old and deprecated, and its teacher codes are examples only, so nothing sensitive is committed. `l6.xlsx` may be committed.
 
 ## Open questions (need answers from the user)
-_None at the moment._
+From ADR-0007 (P18.1), asked 2026-09-30:
+1. Accept ADR-0007 (the solver creates sessions from demands and decides which groups share each one)?
+2. The core name "demand" for "these participants each attend `repeat` sessions of this kind".
+3. With `weekly` ≥ 2, must a group sit with the same other groups in every session of the week? Proposed: no.
+4. Subgroups: do they inherit their parent group's modules, with only groups directly under a programme splitting sessions? Proposed: yes.
+5. Excel edits: is a `locked` column naming the kept fields (`groups;rooms;day;start;teachers`) acceptable? The web UI fills it automatically.
+6. The default weight of `fewest_events` (a preference for fewer sessions). Proposed: soft, weight 1.
+
+Already answered on 2026-09-30:
+- the solver decides which groups share a session;
+- session types are configured by the user;
+- the limit is a number of groups per session, and the room must seat all their students;
+- edited fields are kept and the rest is recomputed;
+- teacher fairness is the last phase (24).
 
 ## Log
 | Date | Task | Notes |
@@ -134,3 +154,4 @@ _None at the moment._
 | 2026-09-30 | fix(api) | **A write was committed after the response was sent.** The request's database session was a FastAPI dependency with `yield`, whose exit code (the commit) runs after the response by default, so a client that read straight after a POST could miss its own write. It showed up as a flaky e2e (`perf.spec.ts`, `exams.spec.ts`: the new dataset missing from the list, about 1 run in 3). `DbSession` is now `Depends(db_session, scope="function")`, which commits before the response is sent. `test_api_commit_before_response.py` calls the app at ASGI level and checks that the row is in the database when the last body chunk is sent (it failed before the change). Full backend suite and three e2e runs pass. |
 | 2026-09-30 | P17.1–P17.3 | Exams section in `docs/wiki/exams/`: the overview (what differs from the academic preset, how to start, what the program does for you, reading the result) and a page for each of the ten sheets that differ (Days, Sessions, Cohorts, Halls, Invigilators, Papers, Exams, ExamCohorts, Pins, Assignments). `_meta`, `StartPatterns`, `Availability` and `Constraints` link to the academic pages; `test_wiki_exams.py` checks that their columns are identical. **The wiki is complete (Phases 13–17).** |
 | 2026-09-30 | — | Final check of Phases 12–17 on the Docker stack: `docker compose up --build`, `scripts/smoke.sh` passes (import L6, pre-flight, run, grid, HTML export) with the commit-before-response change. Backend: 1,285 fast tests, ruff, mypy. Web: lint, typecheck, 47 unit tests, 4 e2e (three clean repeat runs). Still open: auth, CI on GitHub not checked (no `gh`), the manual look at the `l6.xlsx` dropdowns in Excel, ADR-0006 (Proposed), and the decisions marked "to review". |
+| 2026-09-30 | plan | Phases 18–24 and ADR-0007 (Proposed): build timetables from configuration. Teachers teach modules; modules list session kinds from a user-configured Session types table; programmes have mandatory and optional modules; groups take the mandatory ones and their chosen options. The solver decides which groups share a session (up to a number of groups, the room seating all their students) and which of a module's teachers takes it. Activities becomes the editable timetable: edited fields are kept by the next run, the rest is recomputed. Templates, ActivityGroups, ActivityTeachers and Pins leave the academic preset in format version 2; version 1 files (L6) still import. Teacher fairness is Phase 24. Found while planning: an empty Activities table solves as `optimal` with no warning (no pre-flight check for "nothing to schedule"); not changed yet. |
