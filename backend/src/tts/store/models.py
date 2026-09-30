@@ -168,6 +168,8 @@ class EventRow(_Coded):
     delivery: Mapped[str] = mapped_column(String(50), default="in_person")
     tags: Mapped[list[Any]] = mapped_column(Json, default=list)
     template: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # The demand a declared event belongs to: set for an edit of a configured dataset (ADR-0007).
+    demand: Mapped[str | None] = mapped_column(String(200), nullable=True)
 
 
 class EventResourceRow(_Coded):

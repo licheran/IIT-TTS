@@ -4,7 +4,7 @@ from fastapi import APIRouter
 
 from tts.api.deps import DbSession
 from tts.api.errors import ApiError
-from tts.api.expansion import expand_with_preset
+from tts.api.expansion import expand_with_preset, preflight_with_preset
 from tts.api.schemas import (
     DatasetCreate,
     DatasetOut,
@@ -17,13 +17,11 @@ from tts.api.schemas import (
 )
 from tts.api.workbooks import preset_of
 from tts.core.model import Dataset
-from tts.preflight.checks import has_errors, run_preflight
+from tts.preflight.checks import has_errors
 from tts.presets import (
-    FORMAT_VERSIONS,
     PRESETS,
     UnknownPresetError,
     get_preset,
-    labeller,
     labels,
     with_defaults,
 )
@@ -39,11 +37,12 @@ def list_presets() -> list[str]:
     return sorted(PRESETS)
 
 
-def _out(info: DatasetInfo) -> DatasetOut:
+def _out(info: DatasetInfo, kind: str = "configured") -> DatasetOut:
     return DatasetOut(
         id=info.id,
         name=info.name,
         preset=info.preset,
+        kind=kind,
         version=info.version,
         created_at=info.created_at,
         updated_at=info.updated_at,
@@ -52,7 +51,8 @@ def _out(info: DatasetInfo) -> DatasetOut:
 
 @router.get("")
 def list_datasets(session: DbSession) -> list[DatasetOut]:
-    return [_out(i) for i in DatasetRepo(session).list()]
+    repo = DatasetRepo(session)
+    return [_out(i, repo.kind(i.id)) for i in repo.list()]
 
 
 @router.post("", status_code=201)
@@ -70,17 +70,19 @@ def create_dataset(body: DatasetCreate, session: DbSession) -> DatasetOut:
         )
     )
     dataset_id = repo.create(body.name, preset.name, seed)
-    return _out(repo.info(dataset_id))
+    return _out(repo.info(dataset_id), repo.kind(dataset_id))
 
 
 @router.get("/{dataset_id}")
 def get_dataset(dataset_id: int, session: DbSession) -> DatasetOut:
-    return _out(DatasetRepo(session).info(dataset_id))
+    repo = DatasetRepo(session)
+    return _out(repo.info(dataset_id), repo.kind(dataset_id))
 
 
 @router.patch("/{dataset_id}")
 def rename_dataset(dataset_id: int, body: DatasetPatch, session: DbSession) -> DatasetOut:
-    return _out(DatasetRepo(session).rename(dataset_id, body.name))
+    repo = DatasetRepo(session)
+    return _out(repo.rename(dataset_id, body.name), repo.kind(dataset_id))
 
 
 @router.delete("/{dataset_id}", status_code=204)
@@ -94,7 +96,8 @@ def get_schema(dataset_id: int, session: DbSession) -> SchemaOut:
     preset = preset_of(session, dataset_id)
     return SchemaOut(
         preset=preset.name,
-        format_version=FORMAT_VERSIONS[preset.name],
+        kind=DatasetRepo(session).kind(dataset_id),
+        format_version=preset.format_version,
         sheets=list(preset.sheets),
         labels=labels(preset.name),
         resource_types=list(preset.resource_types),
@@ -124,7 +127,7 @@ def expand_templates(dataset_id: int, session: DbSession, commit: bool = False) 
 def preflight(dataset_id: int, session: DbSession) -> PreflightOut:
     dataset = DatasetRepo(session).load(dataset_id)
     preset = preset_of(session, dataset_id)
-    issues = run_preflight(dataset, labeller(dataset.preset))
+    issues = preflight_with_preset(dataset)
     type_of = {r.code: r.type for r in dataset.resources}
     sheet_of_type = {s.resource_type: s.name for s in preset.sheets if s.resource_type}
     sheet_of_target: dict[str, str] = {

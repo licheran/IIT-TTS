@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from fixtures import demand, ev, make_dataset, res
-from tts.core.model import Dataset, Event, ModelIssue, PooledSpec
+from tts.core.model import Dataset, Event, ModelIssue, PooledSpec, Template
 
 
 def kinds(issues: list[ModelIssue]) -> list[str]:
@@ -139,7 +139,14 @@ def test_hand_made_events_and_demands_do_not_mix() -> None:
     assert "mixed_dataset" in kinds(ds.validate_invariants())
 
 
-def test_the_kind_of_a_dataset_follows_its_demands() -> None:
-    assert Dataset().kind == "hand_made"
+def test_the_kind_of_a_dataset_follows_its_events() -> None:
+    from fixtures import ev
+
+    assert Dataset().kind == "configured"  # nothing typed by hand
     assert make_dataset(resources=GROUPS, events=(ev("e1"),)).kind == "hand_made"
     assert configured(demand()).kind == "configured"
+    assert configured(demand(), events=(edit(),), fixed=(("e1", "g1"),)).kind == "configured"
+    templated = Dataset(
+        templates=(Template(code="t", kind="K", mode="joint", duration=1, start_pattern="all"),)
+    )
+    assert templated.kind == "hand_made"

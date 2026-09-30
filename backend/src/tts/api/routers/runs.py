@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from tts.api.deps import DbSession
 from tts.api.errors import ApiError
-from tts.api.expansion import expand_with_preset
+from tts.api.expansion import prepare_with_preset
 from tts.core.demands import realise
 from tts.core.model import Dataset
 from tts.core.run import RunParams
@@ -95,7 +95,7 @@ def start_run(dataset_id: int, session: DbSession, params: RunParams | None = No
     """Snapshot and hash the dataset, then queue a run. The worker picks it up."""
     # The snapshot holds the expanded dataset, so a run's events, grids and exports all name the
     # activities its templates made, even if the templates change later.
-    dataset = expand_with_preset(DatasetRepo(session).load(dataset_id)).dataset
+    dataset = prepare_with_preset(DatasetRepo(session).load(dataset_id))
     params = params or RunParams()
     runs = RunRepo(session)
     if params.lock_published:

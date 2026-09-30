@@ -408,8 +408,10 @@ class Dataset(_Frozen):
 
     @property
     def kind(self) -> Literal["configured", "hand_made"]:
-        """`configured` when the events come from demands, else `hand_made` (spec 02 section 2)."""
-        return "configured" if self.demands else "hand_made"
+        """`hand_made` when an event was typed or imported without a demand, or there are
+        templates; otherwise `configured` (spec 02 section 2). An empty dataset is configured."""
+        typed = any(e.demand is None for e in self.events)
+        return "hand_made" if typed or self.templates else "configured"
 
     def validate_invariants(self) -> list[ModelIssue]:
         """Every global invariant violation (spec 02 section 2). Empty means the dataset is sound.

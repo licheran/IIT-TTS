@@ -67,14 +67,22 @@ Version 1 is what hand-made datasets (typed or imported activities, such as the 
 
 | Sheet | Columns |
 |---|---|
-| `_meta` | As version 1, with `format_version` 2 |
-| `Days`, `Periods`, `StartPatterns` | As version 1 |
-| `Universities`, `Levels`, `Programmes`, `Campuses`, `Buildings`, `Rooms` | As version 1 |
-| `Groups` (changed) | `code*`, `name`, `parent*` (→Programmes **only**), `size` (int ≥ 0), `options` (new: list of →Modules; the group's optional modules), `tags` |
-| `Teachers` (changed) | `code*`, `name`, `modules` (new: list of →Modules, or `module:KIND` to teach only that session kind), `tags` |
-| `Modules` (changed) | `code*`, `name`, `level*` (→Levels; exactly one), `programmes` (new: list of →Programmes whose level is the module's level; blank = every programme at the level), `optional` (new: bool, default false = mandatory), `sessions` (new: list of →SessionTypes, each with optional settings, see below), `tags` |
-| `SessionTypes` (new) | `code*` (the kind, for example `LEC`), `name`, `start_pattern*` (→StartPatterns; it gives the length), `delivery` (`in_person`\|`online`, default `in_person`), `room_type` (required when in person, blank when online), `max_groups` (int ≥ 1; blank = all the module's groups in one session), `teachers` (int ≥ 0, default 1: teachers per session), `weekly` (int ≥ 1, default 1: sessions per week), `tags` |
-| `Availability`, `Constraints` | As version 1 |
+| `_meta` | `key*`, `value`. Required keys: `format_version` (2), `preset`. Optional: `institution`, `exported_at`, `assumptions` (free text) |
+| `Days` | `code*`, `label`, `order*` |
+| `Periods` | `code*`, `start*`, `end*`, `order*`, `is_break` (default false) |
+| `StartPatterns` | `code*`, `duration*`, `start_periods*` (list of →Periods), `days` (list of →Days, default all) |
+| `Universities` | `code*`, `name`, `tags` |
+| `Levels` | `code*`, `name`, `university` (→Universities), `tags` |
+| `Programmes` | `code*`, `name`, `level` (→Levels), `tags` |
+| `Groups` | `code*`, `name`, `parent*` (→Programmes **only**), `size` (int ≥ 0), `options` (new: list of →Modules; the group's optional modules), `tags` |
+| `Teachers` | `code*`, `name`, `modules` (new: list of →Modules, or `module:KIND` to teach only that session kind), `tags` |
+| `Campuses` | `code*`, `name`, `tags` |
+| `Buildings` | `code*`, `name`, `abbreviation`, `campus` (→Campuses), `tags` |
+| `Rooms` | `code*`, `name`, `building` (→Buildings), `capacity` (int ≥ 0), `room_type*`, `tags` |
+| `SessionTypes` | `code*` (the kind, for example `LEC`), `name`, `start_pattern*` (→StartPatterns; it gives the length), `delivery` (`in_person`\|`online`, default `in_person`), `room_type` (required when in person, blank when online), `max_groups` (int ≥ 1; blank = all the module's groups in one session), `teachers` (int ≥ 0, default 1: teachers per session), `weekly` (int ≥ 1, default 1: sessions per week), `tags` |
+| `Modules` | `code*`, `name`, `level*` (→Levels; exactly one), `programmes` (list of →Programmes whose level is the module's level; blank = every programme at the level), `optional` (bool, default false = mandatory), `sessions` (list of session types, each with optional settings, see below), `tags` |
+| `Availability` | `resource*` (any resource code), `day*` (→Days), `period*` (→Periods, or `*` for the whole day), `status*` (`unavailable`\|`avoid`) |
+| `Constraints` | `code*`, `type*` (catalogue type), `scope*` (selector), `params` (JSON object), `hard` (default true), `weight` (default 1), `active` (default true) |
 
 Not in version 2: `Templates`, `Activities`, `ActivityGroups`, `ActivityTeachers`, `Pins`, `Assignments`. A file with one of them is refused (`<Sheet>: unknown sheet`).
 
@@ -111,12 +119,12 @@ Version 2 adds:
 | Unreadable setting | `Modules!R4C6 [sessions]: cannot read "LAB(start_pattern)": expected name=value` |
 | Unknown setting | `Modules!R4C6 [sessions]: unknown setting "size" (known: start_pattern, delivery, room_type, max_groups, teachers, weekly)` |
 | Teacher for a kind the module lacks | `Teachers!R9C3 [modules]: "6SENG005C:LAB": module "6SENG005C" has no session type "LAB"` |
-| Group under a group | `Groups!R10C3 [parent]: must be a programme, got group "L6 CS / G1"` |
+| Group under a group | `Groups!R10C3 [parent]: unknown code "L6 CS / G1"` (a group's parent must be a programme, so a group's code is not one) |
 | Option that is not optional | `Groups!R10C5 [options]: module "6SENG005C" is not optional` |
 | Option at another level | `Groups!R10C5 [options]: module "5SENG001C" is at level "L5", the group is at level "L6"` |
 | Option not offered to the programme | `Groups!R10C5 [options]: module "6SENG012C" is not offered to programme "L6 CS"` |
 | Online session type with a room type | `SessionTypes!R3C5 [room_type]: an online session cannot have a room type` |
-| In-person session type without one | `SessionTypes!R3C5 [room_type]: required unless delivery is online` |
+| In-person session type without one | `SessionTypes!R3C5 [room_type]: required when delivery is "in_person"` |
 | Bad number | `SessionTypes!R3C6 [max_groups]: expected integer ≥ 1, got "0"` |
 | A file of one version with another's sheet | `Activities: unknown sheet` |
 

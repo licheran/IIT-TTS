@@ -122,7 +122,7 @@ def test_the_example_row_of_each_type_is_accepted_by_the_importer(name: str, l6:
     dataset = l6.model_copy(update={"constraints": (constraint,)})
 
     buffer = BytesIO()
-    export_xlsx(WorkbookData(dataset), buffer, get_preset("academic_weekly"))
+    export_xlsx(WorkbookData(dataset), buffer, get_preset("academic_weekly", 1))
     outcome = import_xlsx(buffer.getvalue())
     assert [e.format() for e in outcome.errors] == []
     assert outcome.data is not None and outcome.data.dataset.constraints == (constraint,)

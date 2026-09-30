@@ -9,7 +9,7 @@ containers (`workbook.py` for .xlsx, `csvzip.py` for a CSV zip) write tables to 
 import json
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import time
 
 from tts.core.model import (
@@ -64,6 +64,13 @@ class WorkbookData:
 
 
 # --- Formatting cells --------------------------------------------------------------------------
+
+
+def _cell(value: object) -> Cell:
+    """An attribute as a cell: numbers and booleans stay typed, everything else is text."""
+    if value is None:
+        return None
+    return value if isinstance(value, bool | int) else str(value)
 
 
 def format_list(items: Iterable[str], where: str = "") -> str | None:
@@ -251,7 +258,7 @@ class _Export:
         clash = {"format_version", "preset"} & set(self.data.meta)
         if clash:
             raise WorkbookExportError(f"_meta: {sorted(clash)} are written by the exporter")
-        pairs = [("format_version", "1"), ("preset", self.preset.name)]
+        pairs = [("format_version", str(self.preset.format_version)), ("preset", self.preset.name)]
         pairs += sorted(self.data.meta.items())
         return [{"key": k, "value": v} for k, v in pairs]
 
@@ -313,7 +320,7 @@ class _Export:
             }
             for name in attr_fields:
                 value = r.attribute(name)
-                fields[f"attr:{name}"] = None if value is None else str(value)
+                fields[f"attr:{name}"] = _cell(value)
             for key in tag_fields:
                 fields[f"tag:{key}"] = r.tag(key)
             if r.parent is not None:
@@ -350,7 +357,7 @@ class _Export:
             }
             for name in attr_fields:
                 value = dict(ref.attributes).get(name)
-                fields[f"attr:{name}"] = None if value is None else str(value)
+                fields[f"attr:{name}"] = _cell(value)
             rows.append(self.by_field(sheet, fields))
         for ref in self.ds.references:
             if not any(
@@ -542,8 +549,29 @@ class _Export:
         raise WorkbookExportError(f'unknown derived column "{column.derive}"')
 
 
+def without_edits(dataset: Dataset) -> Dataset:
+    """The dataset without its edits (declared events of a demand, their fixed resources, pins)."""
+    codes = {e.code for e in dataset.events if e.demand is not None}
+    if not codes:
+        return dataset
+    return dataset.model_copy(
+        update={
+            "events": tuple(e for e in dataset.events if e.code not in codes),
+            "fixed": tuple(f for f in dataset.fixed if f.event not in codes),
+            "pins": tuple(p for p in dataset.pins if p.event not in codes),
+        }
+    )
+
+
 def build_tables(data: WorkbookData, preset: Preset) -> list[Table]:
-    """Every sheet of the workbook, in the preset's order. `Assignments` only with a result."""
+    """Every sheet of the workbook, in the preset's order. `Assignments` only with a result.
+
+    A preset with no sheet for events (the workbook holds configuration only, spec 03 section 2a)
+    leaves out the edits of a configured dataset: declared events of a demand, with their fixed
+    resources and pins. They live in the application, not in the file.
+    """
+    if not any(s.target == "event" for s in preset.sheets):
+        data = replace(data, dataset=without_edits(data.dataset))
     export = _Export(data, preset)
     tables = []
     for sheet in preset.sheets:

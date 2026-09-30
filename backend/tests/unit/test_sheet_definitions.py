@@ -6,8 +6,13 @@ import pytest
 from tts.core.sheets import ColumnDef, Preset, SheetDef
 from tts.presets import PRESETS, UnknownPresetError, get_preset
 from tts.presets.academic_weekly import PRESET_NAME, types
-from tts.presets.academic_weekly.preset import PRESET
-from tts.presets.academic_weekly.sheets import FORMAT_VERSION, RESOURCE_SHEETS, SHEETS
+from tts.presets.academic_weekly.preset import PRESET, PRESET_V2
+from tts.presets.academic_weekly.sheets import (
+    FORMAT_VERSION,
+    HAND_MADE_FORMAT_VERSION,
+    RESOURCE_SHEETS,
+    SHEETS,
+)
 
 SPEC = Path(__file__).resolve().parents[3] / "docs" / "spec" / "03-workbook-format.md"
 
@@ -149,12 +154,14 @@ def test_the_defaults_named_by_the_spec() -> None:
     assert col("Availability", "period").allow_star
 
 
-def test_the_format_version_is_one() -> None:
-    assert FORMAT_VERSION == 1
+def test_the_format_versions_are_two_and_one() -> None:
+    assert FORMAT_VERSION == 2  # configured datasets (spec 03 section 2a)
+    assert HAND_MADE_FORMAT_VERSION == 1  # hand-made datasets (spec 03 section 2)
 
 
 def test_the_preset_is_registered_and_serialisable() -> None:
-    assert get_preset(PRESET_NAME) is PRESET
+    assert get_preset(PRESET_NAME, 1) is PRESET
+    assert get_preset(PRESET_NAME) is PRESET_V2  # the newest
     assert set(PRESETS) == {PRESET_NAME, "exams"}  # the second preset (Phase 11)
     assert Preset.model_validate_json(PRESET.model_dump_json()) == PRESET
 

@@ -20,7 +20,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from tts.core.sheets import ColumnDef, Preset, SheetDef
 from tts.io.importer import ImportIssue, ImportOutcome, RawRow, RawSheet, import_raw
 from tts.io.tables import Table, WorkbookData, build_tables
-from tts.presets import get_preset
+from tts.presets import preset_for
 
 MAX_BYTES = 20 * 1024 * 1024  # spec 06 section 9
 _EXTRA_ROWS = 1000  # rows of headroom that keep their dropdowns
@@ -30,7 +30,7 @@ def export_xlsx(
     data: WorkbookData, dest: str | Path | BinaryIO, preset: Preset | None = None
 ) -> None:
     """Write a workbook: sheets in the preset's order, frozen headers, dropdowns."""
-    preset = preset or get_preset(data.dataset.preset)
+    preset = preset or preset_for(data.dataset)
     write_xlsx(build_tables(data, preset), dest, preset)
 
 

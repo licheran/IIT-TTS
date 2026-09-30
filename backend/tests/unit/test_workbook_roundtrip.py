@@ -11,6 +11,7 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from tts.core.model import Dataset, Result
+from tts.core.sheets import Preset
 from tts.io.csvzip import export_csvzip, import_csvzip
 from tts.io.fet_html import parse_fet_groups_html, to_dataset
 from tts.io.importer import ImportOutcome
@@ -20,7 +21,7 @@ from tts.presets.academic_weekly.preset import PRESET
 
 L6_HTML = Path(__file__).resolve().parents[1] / "fixtures" / "l6" / "fet-groups-export.html"
 
-Writer = Callable[[WorkbookData, Any], None]
+Writer = Callable[[WorkbookData, Any, Preset], None]
 Reader = Callable[[bytes], ImportOutcome]
 CONTAINERS: dict[str, tuple[Writer, Reader]] = {
     "xlsx": (export_xlsx, import_xlsx),
@@ -31,7 +32,7 @@ CONTAINERS: dict[str, tuple[Writer, Reader]] = {
 def roundtrip(container: str, data: WorkbookData) -> ImportOutcome:
     write, read = CONTAINERS[container]
     buffer = io.BytesIO()
-    write(data, buffer)
+    write(data, buffer, PRESET)  # these datasets are hand-made: format version 1
     return read(buffer.getvalue())
 
 

@@ -13,6 +13,7 @@ of that row it fills. Fields understood by every target:
 - `attr:<name>` and `tag:<key>`: one attribute or tag held in its own column
 """
 
+from dataclasses import dataclass
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
@@ -39,6 +40,16 @@ Target = Literal[
 
 class _Frozen(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
+
+
+@dataclass(frozen=True, slots=True)
+class ConfigIssue:
+    """A mistake a preset finds in the configuration, placed on a row (by code) and a column."""
+
+    sheet: str
+    code: str
+    column: str
+    message: str
 
 
 class ColumnDef(_Frozen):
@@ -137,6 +148,7 @@ class Preset(_Frozen):
     resource_types: tuple[ResourceType, ...]
     reference_types: tuple[ReferenceType, ...]
     sheets: tuple[SheetDef, ...]
+    format_version: int = 1
 
     def sheet(self, name: str) -> SheetDef | None:
         return next((s for s in self.sheets if s.name == name), None)

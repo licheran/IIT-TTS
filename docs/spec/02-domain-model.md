@@ -35,7 +35,7 @@ Status: **Authoritative.** Code lives in `backend/src/tts/core/`. The words in t
 4. A pooled requirement's `resource_type` must be exclusive.
 5. `weight` is ignored when `hard = true`.
 6. A demand's participants exist and are exclusive, `max_participants ≥ 1` when set, and `repeat ≥ 1`. An event's `demand` exists. A declared event of a demand has only that demand's participants as fixed resources of the participants' type.
-7. A dataset is **configured** (it has demands, and every event has a demand) or **hand-made** (no demands). The two are not mixed.
+7. A dataset is **hand-made** when any event has no demand or it has templates, and **configured** otherwise (an empty dataset is configured). Demands and events without a demand are not mixed.
 
 ## 3. Occupancy rule (central to conflict detection)
 

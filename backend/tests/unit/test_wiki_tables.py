@@ -7,9 +7,15 @@ import pytest
 
 from tts.core.selectors import parse as parse_selector
 from tts.core.sheets import ColumnDef, SheetDef
-from tts.presets.academic_weekly.sheets import SHEETS
+from tts.presets.academic_weekly.sheets import SHEETS, SHEETS_V2
 
 WIKI = Path(__file__).resolve().parents[3] / "docs" / "wiki" / "tables"
+
+# A page shows the newest definition of its table. The tables only hand-made datasets (format
+# version 1) have keep their own pages, listed after the configured ones in the overview.
+CONFIGURED = list(SHEETS_V2)
+HAND_MADE_ONLY = [s for s in SHEETS if s.name not in {c.name for c in SHEETS_V2}]
+PAGES = [*CONFIGURED, *HAND_MADE_ONLY]
 
 TYPE_WORDS = {
     "str": "text",
@@ -54,7 +60,7 @@ def expected_cells(column: ColumnDef) -> tuple[str, str, str]:
     return kind, required, default
 
 
-@pytest.mark.parametrize("sheet", SHEETS, ids=lambda s: s.name)
+@pytest.mark.parametrize("sheet", PAGES, ids=lambda s: s.name)
 def test_every_table_has_a_page_whose_columns_match_the_sheet_definition(sheet: SheetDef) -> None:
     page = WIKI / f"{sheet.name}.md"
     assert page.is_file(), f"no wiki page for the {sheet.name} table"
@@ -78,7 +84,7 @@ def test_every_table_has_a_page_whose_columns_match_the_sheet_definition(sheet: 
             assert "filled in by the program" in cells[5]
 
 
-@pytest.mark.parametrize("sheet", SHEETS, ids=lambda s: s.name)
+@pytest.mark.parametrize("sheet", PAGES, ids=lambda s: s.name)
 def test_a_table_with_tags_links_to_the_tags_page(sheet: SheetDef) -> None:
     text = (WIKI / f"{sheet.name}.md").read_text("utf-8")
     has_tags = any(c.name == "tags" for c in sheet.columns)
@@ -88,12 +94,12 @@ def test_a_table_with_tags_links_to_the_tags_page(sheet: SheetDef) -> None:
 def test_the_tables_overview_lists_every_table_in_workbook_order() -> None:
     text = (WIKI / "README.md").read_text("utf-8")
     links = re.findall(r"\]\(([A-Za-z_]+)\.md\) \|$", text, re.M)
-    assert links == [s.name for s in SHEETS]
+    assert links == [s.name for s in PAGES]
 
 
 def test_the_tags_page_names_every_sheet_with_a_tags_column_and_its_selectors_parse() -> None:
     text = (WIKI / "tags.md").read_text("utf-8")
-    for sheet in SHEETS:
+    for sheet in PAGES:
         if any(c.name == "tags" for c in sheet.columns):
             assert f"]({sheet.name}.md)" in text, sheet.name
     selectors = re.findall(r"^\| `((?:type|tag):[^`]+)` \|", text, re.M)

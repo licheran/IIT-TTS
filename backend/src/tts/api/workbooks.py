@@ -11,17 +11,20 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from tts.api.errors import ApiError, not_found
+from tts.core.model import Dataset
 from tts.core.sheets import Preset, SheetDef
 from tts.io.importer import ImportIssue, ImportOutcome, RawRow, RawSheet, import_raw
 from tts.io.tables import KEY_SEP, Cell, Table, WorkbookData, build_tables, row_key
-from tts.presets import UnknownPresetError, get_preset
+from tts.presets import UnknownPresetError, get_preset, preset_for_kind
 from tts.store.repositories import DatasetRepo
 
 
 def preset_of(session: Session, dataset_id: int) -> Preset:
-    name = DatasetRepo(session).info(dataset_id).preset
+    repo = DatasetRepo(session)
+    name = repo.info(dataset_id).preset
     try:
-        return get_preset(name)
+        get_preset(name)  # an unknown preset is an error whatever the kind
+        return preset_for_kind(name, repo.kind(dataset_id))
     except UnknownPresetError as error:
         raise ApiError(422, "unknown_preset", str(error)) from None
 
@@ -49,8 +52,38 @@ def load_data(session: Session, dataset_id: int) -> WorkbookData:
     return WorkbookData(dataset=dataset, meta=meta, notes=notes)
 
 
-def save_data(session: Session, dataset_id: int, data: WorkbookData) -> None:
-    DatasetRepo(session).save(dataset_id, data.dataset, pack_extras(data))
+def save_data(
+    session: Session, dataset_id: int, data: WorkbookData, keep: Dataset | None = None
+) -> None:
+    """Replace the dataset with `data`. With `keep`, the edits of that (older) dataset stay."""
+    dataset = data.dataset if keep is None else keep_edits(keep, data.dataset)
+    DatasetRepo(session).save(dataset_id, dataset, pack_extras(data))
+
+
+def keep_edits(before: Dataset, after: Dataset) -> Dataset:
+    """`after` with the edits `before` had.
+
+    An edit is a declared event of a demand. The workbook of a configured dataset has no sheet
+    for them, so a change made through its tables would otherwise forget them. One that no longer
+    fits the configuration stays, and pre-flight names it (spec 05 section 2.2).
+    """
+    if after.kind != "configured":
+        return after
+    codes = {e.code for e in before.events if e.demand is not None}
+    if not codes:
+        return after
+    return after.model_copy(
+        update={
+            "events": tuple(
+                sorted(
+                    (*after.events, *(e for e in before.events if e.code in codes)),
+                    key=lambda e: e.code,
+                )
+            ),
+            "fixed": (*after.fixed, *(f for f in before.fixed if f.event in codes)),
+            "pins": (*after.pins, *(p for p in before.pins if p.event in codes)),
+        }
+    )
 
 
 def issue_dict(issue: ImportIssue) -> dict[str, Any]:
@@ -144,7 +177,8 @@ def create_row(
 ) -> str:
     preset = preset_of(session, dataset_id)
     sheet = sheet_def(preset, sheet_name)
-    tables = tables_by_name(load_data(session, dataset_id), preset)
+    data = load_data(session, dataset_id)
+    tables = tables_by_name(data, preset)
     table = _with_note_columns(tables[sheet_name], values)
     row = _row_from(table, values, None)
     key = key_of(table, sheet, row)
@@ -153,7 +187,7 @@ def create_row(
             409, "duplicate_key", f'a row with key "{show_key(key)}" already exists in {sheet_name}'
         )
     tables[sheet_name] = _replace_rows(table, [*table.rows, row])
-    save_data(session, dataset_id, reimport(tables, preset))
+    save_data(session, dataset_id, reimport(tables, preset), keep=data.dataset)
     return key
 
 
@@ -162,7 +196,8 @@ def update_row(
 ) -> str:
     preset = preset_of(session, dataset_id)
     sheet = sheet_def(preset, sheet_name)
-    tables = tables_by_name(load_data(session, dataset_id), preset)
+    data = load_data(session, dataset_id)
+    tables = tables_by_name(data, preset)
     table = _with_note_columns(tables[sheet_name], values)
     rows = list(table.rows)
     at = next((i for i, r in enumerate(rows) if key_of(table, sheet, r) == key), None)
@@ -175,17 +210,18 @@ def update_row(
     ):
         raise ApiError(409, "duplicate_key", f'a row with key "{show_key(new_key)}" already exists')
     tables[sheet_name] = _replace_rows(table, rows)
-    save_data(session, dataset_id, reimport(tables, preset))
+    save_data(session, dataset_id, reimport(tables, preset), keep=data.dataset)
     return new_key
 
 
 def delete_row(session: Session, dataset_id: int, sheet_name: str, key: str) -> None:
     preset = preset_of(session, dataset_id)
     sheet = sheet_def(preset, sheet_name)
-    tables = tables_by_name(load_data(session, dataset_id), preset)
+    data = load_data(session, dataset_id)
+    tables = tables_by_name(data, preset)
     table = tables[sheet_name]
     rows = [r for r in table.rows if key_of(table, sheet, r) != key]
     if len(rows) == len(table.rows):
         raise not_found(f'no row "{show_key(key)}" in {sheet_name}')
     tables[sheet_name] = _replace_rows(table, rows)
-    save_data(session, dataset_id, reimport(tables, preset))
+    save_data(session, dataset_id, reimport(tables, preset), keep=data.dataset)

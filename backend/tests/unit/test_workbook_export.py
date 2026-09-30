@@ -416,5 +416,5 @@ def test_the_preset_is_found_from_the_dataset() -> None:
     buffer = io.BytesIO()
     export_xlsx(WorkbookData(dataset_with()), buffer)
     assert load_workbook(io.BytesIO(buffer.getvalue())).sheetnames[0] == "_meta"
-    assert get_preset("academic_weekly") is PRESET
+    assert get_preset("academic_weekly", 1) is PRESET  # the dataset has activities
     assert isinstance(build_tables(WorkbookData(dataset_with()), PRESET)[0], Table)

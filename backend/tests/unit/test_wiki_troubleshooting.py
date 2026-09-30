@@ -171,9 +171,9 @@ CASES: list[tuple[str, Callable[[Workbook], None], Path, str]] = [
     ("no _meta", lambda wb: wb.remove(wb["_meta"]), L6, "_meta: sheet is missing"),
     (
         "format version",
-        setc("_meta", 2, "value", "2"),
+        setc("_meta", 2, "value", "3"),
         L6,
-        "_meta: format_version 2 not supported (max 1)",
+        "_meta: format_version 3 not supported (max 2)",
     ),
     (
         "format version text",

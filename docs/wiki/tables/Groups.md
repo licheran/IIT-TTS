@@ -12,27 +12,27 @@ The student groups: the cohorts that attend activities together. **A group is an
 |---|---|---|---|---|---|
 | `code` | The unique name of this row. Other tables refer to it. | text | yes | — | — |
 | `name` | A longer name for people. Free text. It is not used for matching. | text | no | — | — |
-| `parent` | The programme the group belongs to, or another group when it is a sub-group. | text | yes | — | a code from [Programmes](Programmes.md), [Groups](Groups.md) |
+| `parent` | The programme the group belongs to. | text | yes | — | a code from [Programmes](Programmes.md) |
 | `size` | How many students. Used to choose rooms that are big enough. | whole number ≥ 0 | no | — | — |
+| `options` | The optional modules this group takes, separated by `;`. | list | no | — | codes from [Modules](Modules.md); stored as an attribute |
 | `tags` | Labels of the form `key=value`, separated by `;`. See the Tags page. | key=value pairs | no | — | — |
 
 Tags are explained on the [Tags](tags.md) page.
 
 ## Rules
 
-- **`parent` is required.** It may name a programme or another group (a subgroup such as `L6 SE / G1a`).
-- An activity for a group occupies the group and all of its sub-groups. An activity for a sub-group does **not** occupy the parent group.
+- **`parent` is required and must be a programme.** A group cannot be the parent of another group (`unknown code`).
+- **A group is students who share the same optional modules.** The group takes every mandatory module of its programme, and the optional modules it lists in `options`. Each option must be an optional module at the group's level that is offered to its programme.
 - When an activity serves several groups, a room must seat the **sum of their sizes**.
 - Realistic sizes are 20 to 60, but any whole number is allowed.
+- In a hand-made dataset (format version 1) a group may be the child of another group (a sub-group), and there is no `options` column.
 
 ## Example
 
-From the L6 sample:
-
-| `code` | `name` | `parent` | `size` | `tags` |
-|---|---|---|---|---|
-| L6 CS / G1 | L6 CS / G1 | L6 CS | 30 |   |
-| L6 CS / G10 | L6 CS / G10 | L6 CS | 30 |   |
+| `code` | `name` | `parent` | `size` | `options` | `tags` |
+|---|---|---|---|---|---|
+| L6 SE / G1 | L6 SE / G1 | L6 SE | 30 | 6SENG012C |   |
+| L6 SE / G2 | L6 SE / G2 | L6 SE | 30 |   |   |
 
 ## Related
 

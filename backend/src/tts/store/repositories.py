@@ -102,6 +102,20 @@ class DatasetRepo:
     def info(self, dataset_id: int) -> DatasetInfo:
         return _info(self._row(dataset_id))
 
+    def kind(self, dataset_id: int) -> str:
+        """`hand_made` when the dataset has activities typed or imported without a demand, or
+        templates; otherwise `configured` (the same rule as `Dataset.kind`, without loading it)."""
+        self._row(dataset_id)
+        typed = self.session.scalar(
+            select(m.EventRow.id)
+            .where(m.EventRow.dataset_id == dataset_id, m.EventRow.demand.is_(None))
+            .limit(1)
+        )
+        templated = self.session.scalar(
+            select(m.TemplateRow.id).where(m.TemplateRow.dataset_id == dataset_id).limit(1)
+        )
+        return "hand_made" if typed is not None or templated is not None else "configured"
+
     def rename(self, dataset_id: int, name: str) -> DatasetInfo:
         row = self._row(dataset_id)
         row.name = name
@@ -212,6 +226,7 @@ class DatasetRepo:
                         "delivery": r.delivery,
                         "tags": r.tags,
                         "template": r.template,
+                        "demand": r.demand,
                     }
                     for r in rows(m.EventRow)
                 ],
@@ -368,6 +383,7 @@ class DatasetRepo:
                 delivery=e.delivery,
                 tags=[list(p) for p in e.tags],
                 template=e.template,
+                demand=e.demand,
             )
             for e in ds.events
         )

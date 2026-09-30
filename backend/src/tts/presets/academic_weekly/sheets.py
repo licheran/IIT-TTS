@@ -7,7 +7,10 @@ The sheet and column names, the required marks and the order follow
 from tts.core.sheets import ColumnDef, PooledMapping, SheetDef
 from tts.presets.academic_weekly import types
 
-FORMAT_VERSION = 1
+# Format version 2 holds configuration only (ADR-0007); version 1 is what hand-made datasets
+# (typed or imported activities, such as the L6 fixture) use.
+FORMAT_VERSION = 2
+HAND_MADE_FORMAT_VERSION = 1
 
 UNIVERSITIES = "Universities"
 LEVELS = "Levels"
@@ -22,6 +25,7 @@ TEMPLATES = "Templates"
 ACTIVITIES = "Activities"
 ACTIVITY_GROUPS = "ActivityGroups"
 ACTIVITY_TEACHERS = "ActivityTeachers"
+SESSION_TYPES = "SessionTypes"
 
 RESOURCE_SHEETS = (
     UNIVERSITIES,
@@ -282,3 +286,79 @@ SHEETS: tuple[SheetDef, ...] = (
         ),
     ),
 )
+
+
+def _v2_groups() -> SheetDef:
+    return _entity(
+        GROUPS,
+        types.STUDENT_GROUP,
+        _c("parent", required=True, refs=(PROGRAMMES,)),
+        _c("size", "capacity", kind="int", minimum=0),
+        _c("options", "attr:options", kind="list", refs=(MODULES,)),
+        label="Groups",
+    )
+
+
+def _v2_teachers() -> SheetDef:
+    # Items are a module code or `module:KIND`, so the preset checks them, not `refs`.
+    return _entity(
+        TEACHERS,
+        types.TEACHER,
+        _c("modules", "attr:modules", kind="list"),
+        label="Teachers",
+    )
+
+
+SESSION_DELIVERIES = (types.IN_PERSON, types.ONLINE)
+
+_V2_SESSION_TYPES = SheetDef(
+    name=SESSION_TYPES,
+    target="reference",
+    reference_type=types.SESSION_TYPE,
+    label="Session types",
+    columns=(
+        _c("code", required=True),
+        _c("name"),
+        _c("start_pattern", "attr:start_pattern", required=True, refs=("StartPatterns",)),
+        _c("delivery", "attr:delivery", choices=SESSION_DELIVERIES, default=types.IN_PERSON),
+        _c("room_type", "attr:room_type", required_when=("delivery", types.IN_PERSON)),
+        _c("max_groups", "attr:max_groups", kind="int", minimum=1),
+        _c("teachers", "attr:teachers", kind="int", minimum=0, default=1),
+        _c("weekly", "attr:weekly", kind="int", minimum=1, default=1),
+        _c("tags", kind="pairs"),
+    ),
+)
+
+_V2_MODULES = SheetDef(
+    name=MODULES,
+    target="reference",
+    reference_type=types.MODULE,
+    label="Modules",
+    columns=(
+        _c("code", required=True),
+        _c("name"),
+        _c("level", "attr:level", required=True, refs=(LEVELS,)),
+        _c("programmes", "attr:programmes", kind="list", refs=(PROGRAMMES,)),
+        _c("optional", "attr:optional", kind="bool", default=False),
+        # Items are a session type with optional settings, so the preset checks them.
+        _c("sessions", "attr:sessions", kind="list"),
+        _c("tags", kind="pairs"),
+    ),
+)
+
+
+def _v2_sheets() -> tuple[SheetDef, ...]:
+    """The sheets of format version 2, in the order of spec 03 section 2a."""
+    by_name = {s.name: s for s in SHEETS}
+    by_name[GROUPS] = _v2_groups()
+    by_name[TEACHERS] = _v2_teachers()
+    by_name[MODULES] = _V2_MODULES
+    by_name[SESSION_TYPES] = _V2_SESSION_TYPES
+    order = (
+        "_meta", "Days", "Periods", "StartPatterns", UNIVERSITIES, LEVELS, PROGRAMMES, GROUPS,
+        TEACHERS, CAMPUSES, BUILDINGS, ROOMS, SESSION_TYPES, MODULES, "Availability", "Constraints",
+    )  # fmt: skip
+    return tuple(by_name[name] for name in order)
+
+
+SHEETS_V2: tuple[SheetDef, ...] = _v2_sheets()

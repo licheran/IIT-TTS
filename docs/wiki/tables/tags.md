@@ -37,6 +37,7 @@ In the table editor, a tags cell opens an editor with one row for each `key` and
 | [Campuses](Campuses.md) | yes | |
 | [Buildings](Buildings.md) | yes | |
 | [Rooms](Rooms.md) | yes | Also has the `room_type` column, which is stored as the tag `room_type` |
+| [SessionTypes](SessionTypes.md) | yes | Tags on a session type are given to every session made from it |
 | [Modules](Modules.md) | yes | |
 | [Activities](Activities.md) | yes | Tags on an activity are matched by rules that select activities |
 | Every other table | no | Templates, join tables, Availability, Constraints, Pins and the rest have no tags |

@@ -8,11 +8,12 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from tts.api.expansion import preflight_with_preset, prepare_with_preset
 from tts.core.model import Dataset, Diagnostic, Ref, Result
 from tts.core.run import RunParams
 from tts.core.score import score as score_of
 from tts.core.verifier import hard_violations, verify
-from tts.preflight.checks import has_errors, run_preflight
+from tts.preflight.checks import has_errors
 from tts.presets import labeller
 from tts.solver.decompose import solve_dataset
 from tts.solver.explain import explain
@@ -44,10 +45,9 @@ def _progress_dict(progress: SolveProgress) -> dict[str, Any]:
 
 
 def expand_dataset(dataset: Dataset) -> Dataset:
-    """The expand stage: templates become events (a no-op on an already expanded dataset)."""
-    from tts.api.expansion import expand_with_preset
-
-    return expand_with_preset(dataset).dataset
+    """The prepare stage: templates become events, or a configuration becomes demands (a no-op on
+    a dataset that was already prepared)."""
+    return prepare_with_preset(dataset)
 
 
 def run_pipeline(
@@ -59,7 +59,7 @@ def run_pipeline(
     label = labeller(dataset.preset)
     dataset = expand_dataset(dataset)
 
-    issues = run_preflight(dataset, label)
+    issues = preflight_with_preset(dataset)
     diagnostics = [
         Diagnostic(
             kind=i.kind,

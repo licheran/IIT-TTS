@@ -10,7 +10,7 @@ from typing import BinaryIO
 from tts.core.sheets import Preset
 from tts.io.importer import ImportIssue, ImportOutcome, RawRow, RawSheet, import_raw
 from tts.io.tables import Cell, Table, WorkbookData, build_tables
-from tts.presets import get_preset
+from tts.presets import preset_for
 
 MAX_BYTES = 20 * 1024 * 1024
 MAX_UNPACKED_BYTES = 10 * MAX_BYTES  # guards against a zip bomb
@@ -20,7 +20,7 @@ _STAMP = (1980, 1, 1, 0, 0, 0)  # fixed, so the same data gives the same bytes
 def export_csvzip(
     data: WorkbookData, dest: str | Path | BinaryIO, preset: Preset | None = None
 ) -> None:
-    preset = preset or get_preset(data.dataset.preset)
+    preset = preset or preset_for(data.dataset)
     write_csvzip(build_tables(data, preset), dest)
 
 

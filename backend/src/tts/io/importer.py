@@ -50,9 +50,7 @@ from tts.core.selectors import (
 )
 from tts.core.sheets import ColumnDef, PooledMapping, Preset, SheetDef
 from tts.io.tables import KEY_SEP, LIST_SEP, STAR, WorkbookData, row_key
-from tts.presets import UnknownPresetError, get_preset
-
-FORMAT_VERSION = 1
+from tts.presets import FORMAT_VERSIONS, PRESET_VERSIONS, configuration_issues
 
 
 @dataclass(frozen=True, slots=True)
@@ -280,10 +278,6 @@ class _Import:
             self.issue("_meta", message='"format_version" is required')
         elif not _INT.match(version):
             self.issue("_meta", message=f'format_version must be an integer, got "{version}"')
-        elif int(version) > FORMAT_VERSION:
-            self.issue(
-                "_meta", message=f"format_version {version} not supported (max {FORMAT_VERSION})"
-            )
         if "preset" not in meta:
             self.issue("_meta", message='"preset" is required')
         return meta
@@ -726,7 +720,10 @@ class _Build:
             if column.field.startswith("tag:"):
                 tags[column.field.split(":", 1)[1]] = value
             elif column.field.startswith("attr:"):
-                attributes[column.field.split(":", 1)[1]] = value
+                # A list is kept as one attribute, its items joined by the list separator.
+                attributes[column.field.split(":", 1)[1]] = (
+                    LIST_SEP.join(value) if isinstance(value, tuple) else value
+                )
             else:
                 plain[column.field] = value
         return plain, tags, attributes
@@ -863,14 +860,28 @@ def import_raw(raw: dict[str, RawSheet], preset: Preset | None = None) -> Import
     imp = _Import(raw, preset)
     meta = imp.read_meta()
 
-    if imp.preset is None:
-        name = meta.get("preset")
-        if name is not None:
-            try:
-                imp.preset = get_preset(name)
-            except UnknownPresetError:
+    # The workbook's format version picks the sheets (a preset may have several, spec 03).
+    given = meta.get("format_version", "")
+    version = int(given) if _INT.match(given) else None
+    name = imp.preset.name if imp.preset is not None else meta.get("preset")
+    if name is not None:
+        versions = PRESET_VERSIONS.get(name)
+        if versions is None:
+            if imp.preset is None:
                 imp.issue("_meta", message=f'unknown preset "{name}"')
-    if imp.preset is None:
+        elif imp.preset is not None and version in (None, imp.preset.format_version):
+            pass  # the caller's preset already is the file's version
+        else:
+            wanted = version if version is not None else min(versions)
+            found = versions.get(wanted)
+            if found is None:
+                imp.issue(
+                    "_meta",
+                    message=f"format_version {wanted} not supported (max {FORMAT_VERSIONS[name]})",
+                )
+            else:
+                imp.preset = found
+    if imp.preset is None or any(i.sheet == "_meta" for i in imp.issues):
         return ImportOutcome(tuple(imp.issues))
     preset_in_use = imp.preset
 
@@ -894,6 +905,16 @@ def import_raw(raw: dict[str, RawSheet], preset: Preset | None = None) -> Import
         imp.issue(problem.table, message=f"{problem.key}: {problem.message}")
     if imp.issues:
         return ImportOutcome(tuple(imp.issues), summary=summary)
+    for mistake in configuration_issues(dataset):  # what only the preset can see
+        at = next(
+            (r for r in imp.rows.get(mistake.sheet, []) if imp.code_of(r) == mistake.code), None
+        )
+        if at is None:
+            imp.issue(mistake.sheet, message=f"{mistake.code}: {mistake.message}")
+        else:
+            imp.issue_at(at, mistake.column, mistake.message)
+    if imp.issues:
+        return ImportOutcome(tuple(_ordered(imp.issues, raw)), summary=summary)
 
     notes: dict[tuple[str, str], dict[str, str]] = {}
     for sheet_name, rows in imp.rows.items():
@@ -915,7 +936,6 @@ def _ordered(issues: list[ImportIssue], raw: dict[str, RawSheet]) -> list[Import
 
 
 __all__ = [
-    "FORMAT_VERSION",
     "KEY_SEP",
     "ImportIssue",
     "ImportOutcome",

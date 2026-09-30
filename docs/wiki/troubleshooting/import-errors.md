@@ -45,7 +45,7 @@ For a CSV zip, each file is named `<Sheet>.csv`, for example `Rooms.csv`.
 | `_meta!R6C1 [key]: duplicate "preset"` | The same key twice | Keep one |
 | `_meta: "format_version" is required` | No `format_version` row | Add `format_version` with `1` |
 | `_meta: format_version must be an integer, got "x"` | The value is not a whole number | Write `1` |
-| `_meta: format_version 2 not supported (max 1)` | The file is from a newer format than this app reads | Export again from this app |
+| `_meta: format_version 3 not supported (max 2)` | The file is from a newer format than this app reads | Export again from this app |
 | `_meta: "preset" is required` | No `preset` row | Add `preset` with `academic_weekly` (or `exams`) |
 | `_meta: unknown preset "nope"` | The preset name is not known | Use `academic_weekly` or `exams` |
 

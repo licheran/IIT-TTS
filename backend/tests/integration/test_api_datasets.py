@@ -41,9 +41,10 @@ def test_the_schema_holds_the_sheets_and_labels_of_the_preset(client: TestClient
     dataset_id = create_dataset(client)
     schema = client.get(f"/datasets/{dataset_id}/schema").json()
     names = [s["name"] for s in schema["sheets"]]
-    assert {"Rooms", "Teachers", "Activities"} <= set(names)
+    assert {"Rooms", "Teachers", "SessionTypes", "Modules"} <= set(names)
+    assert "Activities" not in names  # a new dataset is configured (format version 2)
     assert schema["labels"]["Room"] == "Room"
-    assert schema["format_version"] == 1
+    assert (schema["format_version"], schema["kind"]) == (2, "configured")
 
 
 def test_an_empty_dataset_can_be_exported_and_read_back(client: TestClient) -> None:

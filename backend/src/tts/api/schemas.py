@@ -22,6 +22,7 @@ class DatasetOut(BaseModel):
     id: int
     name: str
     preset: str
+    kind: str
     version: int
     created_at: datetime
     updated_at: datetime
@@ -96,6 +97,7 @@ class ExpandOut(BaseModel):
 
 class SchemaOut(BaseModel):
     preset: str
+    kind: str
     format_version: int
     sheets: list[SheetDef]
     labels: dict[str, str]

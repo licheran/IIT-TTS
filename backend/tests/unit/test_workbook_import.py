@@ -448,8 +448,8 @@ def test_a_tag_that_has_its_own_column_cannot_also_be_in_tags() -> None:
 
 
 def test_the_format_version_is_checked() -> None:
-    sheets = set_cell(base_sheets(), "_meta", 2, "value", 2)
-    assert messages(load(sheets)) == ["_meta: format_version 2 not supported (max 1)"]
+    sheets = set_cell(base_sheets(), "_meta", 2, "value", 3)
+    assert messages(load(sheets)) == ["_meta: format_version 3 not supported (max 2)"]
     sheets = set_cell(base_sheets(), "_meta", 2, "value", "one")
     assert messages(load(sheets)) == ['_meta: format_version must be an integer, got "one"']
 
@@ -569,4 +569,4 @@ def test_raw_sheets_can_be_imported_with_an_explicit_preset() -> None:
 
     sheets = base_sheets()
     sheets["_meta"] = [["key", "value"], ["format_version", 1], ["preset", "ignored"]]
-    assert import_raw(to_raw(sheets), get_preset("academic_weekly")).ok
+    assert import_raw(to_raw(sheets), get_preset("academic_weekly", 1)).ok
