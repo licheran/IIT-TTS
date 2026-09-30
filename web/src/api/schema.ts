@@ -359,6 +359,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/clashes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Clashes
+         * @description Clashes between the published timetables of different datasets (shared resource codes).
+         */
+        get: operations["clashes_clashes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/validate": {
         parameters: {
             query?: never;
@@ -426,6 +446,19 @@ export interface components {
         Body_validate_validate_post: {
             /** File */
             file: string;
+        };
+        /** ClashOut */
+        ClashOut: {
+            /** Resource */
+            resource: string;
+            /** Day */
+            day: string;
+            /** Period */
+            period: string;
+            /** Uses */
+            uses: {
+                [key: string]: string;
+            }[];
         };
         /**
          * ColumnDef
@@ -873,6 +906,11 @@ export interface components {
          *     `mode`: `optimise` searches for the best score within the time limit, `feasible` stops at the
          *     first solution, `two_phase` finds a feasible solution and then optimises from it. With no soft
          *     constraints they behave alike.
+         *
+         *     `stage_scope`: an event selector. Only the selected events are solved; events an earlier
+         *     stage placed are locked where they are, and the rest wait for a later stage (spec 05 section
+         *     7). `lock_published`: the timetables other datasets have published are respected on the
+         *     resources they share with this one.
          */
         RunParams: {
             /**
@@ -898,6 +936,8 @@ export interface components {
              * @default true
              */
             lock_published: boolean;
+            /** Stage Scope */
+            stage_scope?: string | null;
         };
         /** SchemaOut */
         SchemaOut: {
@@ -1818,6 +1858,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clashes_clashes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClashOut"][];
                 };
             };
         };

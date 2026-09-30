@@ -199,3 +199,17 @@ def test_the_same_seed_and_one_worker_always_give_the_same_result(
     first = solve(dataset, QUICK).result
     again = solve(dataset, QUICK).result
     assert first == again
+
+
+@PROPERTY
+@given(feasible_cases())
+def test_the_decomposed_solve_also_finds_a_valid_timetable(case: tuple[Dataset, Result]) -> None:
+    """Times first, then resources (P10.4), with its fallback: never a wrong answer."""
+    from tts.solver.decompose import decomposable, solve_decomposed
+
+    dataset, _ = case
+    if not decomposable(dataset):
+        reject()
+    outcome = solve_decomposed(dataset, RunParams(time_limit_s=20, num_workers=1, seed=0))
+    assert outcome.result is not None
+    assert hard_violations(verify(dataset, outcome.result)) == []

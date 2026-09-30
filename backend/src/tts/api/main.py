@@ -35,6 +35,7 @@ def create_app(url: str | None = None, migrate: bool = True) -> FastAPI:
     app.include_router(io.router)
     app.include_router(runs.router)
     app.include_router(results.router)
+    app.include_router(results.clashes_router)
     app.include_router(validate.router)
     return app
 

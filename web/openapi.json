@@ -1251,6 +1251,32 @@
         }
       }
     },
+    "/clashes": {
+      "get": {
+        "tags": [
+          "results"
+        ],
+        "summary": "Clashes",
+        "description": "Clashes between the published timetables of different datasets (shared resource codes).",
+        "operationId": "clashes_clashes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ClashOut"
+                  },
+                  "type": "array",
+                  "title": "Response Clashes Clashes Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/validate": {
       "post": {
         "tags": [
@@ -1410,6 +1436,40 @@
           "file"
         ],
         "title": "Body_validate_validate_post"
+      },
+      "ClashOut": {
+        "properties": {
+          "resource": {
+            "type": "string",
+            "title": "Resource"
+          },
+          "day": {
+            "type": "string",
+            "title": "Day"
+          },
+          "period": {
+            "type": "string",
+            "title": "Period"
+          },
+          "uses": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Uses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "resource",
+          "day",
+          "period",
+          "uses"
+        ],
+        "title": "ClashOut"
       },
       "ColumnDef": {
         "properties": {
@@ -2445,12 +2505,23 @@
             "type": "boolean",
             "title": "Lock Published",
             "default": true
+          },
+          "stage_scope": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage Scope"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "title": "RunParams",
-        "description": "How to solve. `num_workers=None` means one worker per CPU.\n\n`mode`: `optimise` searches for the best score within the time limit, `feasible` stops at the\nfirst solution, `two_phase` finds a feasible solution and then optimises from it. With no soft\nconstraints they behave alike."
+        "description": "How to solve. `num_workers=None` means one worker per CPU.\n\n`mode`: `optimise` searches for the best score within the time limit, `feasible` stops at the\nfirst solution, `two_phase` finds a feasible solution and then optimises from it. With no soft\nconstraints they behave alike.\n\n`stage_scope`: an event selector. Only the selected events are solved; events an earlier\nstage placed are locked where they are, and the rest wait for a later stage (spec 05 section\n7). `lock_published`: the timetables other datasets have published are respected on the\nresources they share with this one."
       },
       "SchemaOut": {
         "properties": {

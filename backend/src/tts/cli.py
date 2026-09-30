@@ -1,4 +1,4 @@
-"""`tts` command-line entry point: solve, validate, preflight, import-fet and export."""
+"""`tts` command-line entry point: solve, validate, preflight, clashes, import-fet and export."""
 
 import json
 from pathlib import Path
@@ -6,9 +6,12 @@ from typing import Annotated
 
 import typer
 
+from tts.core.clashes import cross_clashes
 from tts.core.model import Dataset, Result, Violation
 from tts.core.run import RunParams
 from tts.core.score import Score, score
+from tts.core.selectors import SelectorError
+from tts.core.staging import stage
 from tts.core.verifier import hard_violations, verify
 from tts.io.csvzip import export_csvzip, import_csvzip
 from tts.io.fet_html import (
@@ -23,10 +26,9 @@ from tts.io.tables import WorkbookData, WorkbookError
 from tts.io.workbook import export_xlsx, import_xlsx
 from tts.preflight.checks import Issue, run_preflight
 from tts.presets import labeller, with_defaults
-from tts.solver.compile import compile_model
+from tts.solver.decompose import solve_dataset
 from tts.solver.explain import explain
 from tts.solver.registry import UnsupportedConstraintError
-from tts.solver.solve import solve_model
 
 app = typer.Typer(name="tts", help="IIT-TTS scheduling engine.", no_args_is_help=True)
 
@@ -129,6 +131,14 @@ def solve(
     seed: Annotated[
         int, typer.Option(help="Random seed. Same seed and 1 worker: same result.")
     ] = 0,
+    stage_scope: Annotated[
+        str | None,
+        typer.Option(
+            "--stage",
+            help="Solve only the events this selector picks; the workbook's Assignments are "
+            "earlier stages and stay where they are.",
+        ),
+    ] = None,
 ) -> None:
     """Solve a workbook and write it back with an Assignments sheet.
 
@@ -139,12 +149,25 @@ def solve(
     When no timetable exists, the rules that conflict are named (the infeasibility explanation).
     """
     data = _report("solve", _read_workbook("solve", workbook))
-    if data.result is not None:
+    whole = data.dataset  # written back in full, even when only one stage is solved
+    if stage_scope is not None:
+        try:
+            staged = stage(data.dataset, stage_scope, data.result)
+        except SelectorError as error:
+            raise _fail("solve", f"--stage: {error}") from error
+        locked = sum(p.source == "lock" for p in staged.pins)
+        typer.echo(
+            f"Stage: {len(staged.events) - locked} event(s) to solve, {locked} locked from the "
+            f"workbook's Assignments, {len(data.dataset.events) - len(staged.events)} left for "
+            "later stages."
+        )
+        data = WorkbookData(staged, None, meta=data.meta, notes=data.notes)
+    elif data.result is not None:
         typer.echo("Note: the workbook's Assignments are ignored; they are solved again.")
     _preflight("solve", data.dataset)
     params = RunParams(time_limit_s=time_limit, num_workers=workers, seed=seed)
     try:
-        outcome = solve_model(compile_model(data.dataset), params)
+        outcome = solve_dataset(data.dataset, params)
     except UnsupportedConstraintError as error:
         raise _fail("solve", str(error)) from error
 
@@ -173,7 +196,7 @@ def solve(
             typer.echo(f"Violation: {violation.message}", err=True)
         raise _fail("solve", "the result breaks a hard rule and was not written (a bug)", code=3)
     result_data = WorkbookData(
-        data.dataset, outcome.result, meta=data.meta, notes=data.notes, run=f"seed-{seed}"
+        whole, outcome.result, meta=data.meta, notes=data.notes, run=f"seed-{seed}"
     )
     _write_workbook("solve", result_data, out)
     typer.echo(f"Wrote {out}.")
@@ -200,6 +223,39 @@ def validate(
     typer.echo(f"Verifier: {_summarise(violations)}.")
     _print_score(score(data.dataset, violations))
     if hard_violations(violations):
+        raise typer.Exit(code=3)
+
+
+@app.command()
+def clashes(
+    workbooks: Annotated[
+        list[Path],
+        typer.Argument(
+            exists=True, dir_okay=False, help="Two or more workbooks with Assignments sheets."
+        ),
+    ],
+) -> None:
+    """Find clashes between the timetables of several workbooks.
+
+    Each workbook is checked on its own by `tts validate`; this finds the periods in which a
+    resource with the same code in two or more workbooks (a shared teacher or room) is used by
+    more than one of them. Exit codes: 0 no clash, 1 a workbook could not be read or has no
+    assignments, 3 at least one clash.
+    """
+    if len(workbooks) < 2:
+        raise _fail("clashes", "give at least two workbooks", code=2)
+    timetables = []
+    for path in workbooks:
+        data = _report("clashes", _read_workbook("clashes", path))
+        if data.result is None:
+            raise _fail("clashes", f"{path} has no Assignments sheet")
+        timetables.append((path.name, data.dataset, data.result))
+    found = cross_clashes(timetables)
+    for clash in found:
+        uses = ", ".join(f"{event} ({label})" for label, event in clash.uses)
+        typer.echo(f"CLASH {clash.resource} on {clash.day} {clash.period}: {uses}")
+    typer.echo(f"Clashes: {len(found)} across {len(workbooks)} workbooks.")
+    if found:
         raise typer.Exit(code=3)
 
 

@@ -10,7 +10,10 @@ from pydantic import BaseModel
 from tts.api.deps import DbSession
 from tts.api.errors import ApiError
 from tts.api.expansion import expand_with_preset
+from tts.core.model import Dataset
 from tts.core.run import RunParams
+from tts.core.selectors import SelectorError
+from tts.core.staging import published_locks, stage, with_locks
 from tts.store.repositories import DatasetRepo, RunInfo, RunRepo
 
 router = APIRouter(tags=["runs"])
@@ -93,6 +96,22 @@ def start_run(dataset_id: int, session: DbSession, params: RunParams | None = No
     # activities its templates made, even if the templates change later.
     dataset = expand_with_preset(DatasetRepo(session).load(dataset_id)).dataset
     params = params or RunParams()
+    runs = RunRepo(session)
+    if params.lock_published:
+        others = []
+        for info in DatasetRepo(session).list():
+            published = runs.published(info.id) if info.id != dataset_id else None
+            if published is not None:
+                theirs = Dataset.model_validate(runs.snapshot(published.id)["dataset"])
+                others.append((theirs, runs.result(published.id)))
+        dataset = with_locks(dataset, published_locks(dataset, others))
+    if params.stage_scope:
+        mine = runs.published(dataset_id)
+        previous = runs.result(mine.id) if mine is not None else None
+        try:
+            dataset = stage(dataset, params.stage_scope, previous)
+        except SelectorError as error:
+            raise ApiError(422, "invalid_stage_scope", f"stage_scope: {error}") from None
     snapshot, digest = snapshot_of(dataset.model_dump(mode="json"))
     run_id = RunRepo(session).create(dataset_id, params.model_dump(mode="json"), snapshot, digest)
     return RunCreated(run_id=run_id)

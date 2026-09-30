@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from tts.api.deps import DbSession
 from tts.api.errors import ApiError, not_found
 from tts.api.routers.runs import RunOut, run_out
+from tts.core.clashes import cross_clashes
 from tts.core.grid import EventChange, Grid, build_grid, diff_results
 from tts.core.hierarchy import Hierarchy
 from tts.core.model import Dataset, Result
@@ -18,9 +19,45 @@ from tts.io.export_html import export_resources, render_csv, render_html
 from tts.io.tables import WorkbookData
 from tts.io.workbook import export_xlsx
 from tts.presets import labeller
-from tts.store.repositories import RunRepo
+from tts.store.repositories import DatasetRepo, RunRepo
 
 router = APIRouter(prefix="/runs", tags=["results"])
+clashes_router = APIRouter(tags=["results"])
+
+
+class ClashOut(BaseModel):
+    resource: str
+    day: str
+    period: str
+    uses: list[dict[str, str]]  # {dataset, run, event}
+
+
+@clashes_router.get("/clashes")
+def clashes(session: DbSession) -> list[ClashOut]:
+    """Clashes between the published timetables of different datasets (shared resource codes)."""
+    runs = RunRepo(session)
+    timetables = []
+    names: dict[str, tuple[str, int]] = {}
+    for info in DatasetRepo(session).list():
+        published = runs.published(info.id)
+        if published is None:
+            continue
+        label = str(info.id)
+        names[label] = (info.name, published.id)
+        dataset = Dataset.model_validate(runs.snapshot(published.id)["dataset"])
+        timetables.append((label, dataset, runs.result(published.id)))
+    return [
+        ClashOut(
+            resource=c.resource,
+            day=c.day,
+            period=c.period,
+            uses=[
+                {"dataset": names[label][0], "run": str(names[label][1]), "event": event}
+                for label, event in c.uses
+            ],
+        )
+        for c in cross_clashes(timetables)
+    ]
 
 
 class AssignmentOut(BaseModel):

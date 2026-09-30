@@ -44,6 +44,7 @@ class CompileContext:
     def __init__(self, dataset: Dataset, explain: bool = False) -> None:
         self.dataset = dataset
         self.explain = explain
+        self.times_only = False  # set by `compile_model` for the first half of the decomposition
         self.guards: dict[RuleSet, cp_model.IntVar] = {}  # only filled in explain mode
         self.model = cp_model.CpModel()
         self.grid = TimeGrid(dataset.time)

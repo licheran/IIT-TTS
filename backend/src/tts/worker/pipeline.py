@@ -14,10 +14,10 @@ from tts.core.score import score as score_of
 from tts.core.verifier import hard_violations, verify
 from tts.preflight.checks import has_errors, run_preflight
 from tts.presets import labeller
-from tts.solver.compile import compile_model
+from tts.solver.decompose import solve_dataset
 from tts.solver.explain import explain
 from tts.solver.registry import UnsupportedConstraintError
-from tts.solver.solve import SolveControl, SolveProgress, solve_model
+from tts.solver.solve import SolveControl, SolveProgress
 
 ProgressFn = Callable[[dict[str, Any]], None]
 
@@ -77,7 +77,7 @@ def run_pipeline(
             on_progress(_progress_dict(progress))
 
     try:
-        outcome = solve_model(compile_model(dataset), params, report, control)
+        outcome = solve_dataset(dataset, params, report, control)
     except UnsupportedConstraintError as error:
         diagnostics.append(Diagnostic(kind="unsupported_constraint", message=str(error)))
         return PipelineOutcome("failed", diagnostics=tuple(diagnostics))

@@ -29,13 +29,18 @@ from tts.solver.context import CompileContext
 from tts.solver.registry import compile_declared
 
 
-def compile_model(dataset: Dataset, explain: bool = False) -> CompileContext:
+def compile_model(
+    dataset: Dataset, explain: bool = False, times_only: bool = False
+) -> CompileContext:
     """The model of `dataset`. A dataset with no possible solution still compiles: the context
     records why in `problems`, and the model is infeasible.
 
-    `explain=True` builds the guarded model used to explain infeasibility.
+    `explain=True` builds the guarded model used to explain infeasibility. `times_only=True`
+    builds the first half of the decomposition (spec 05 section 7, `solver/decompose.py`): start
+    times only, with each pool's capacity as the only rule on pooled resources.
     """
     ctx = CompileContext(dataset, explain=explain)
+    ctx.times_only = times_only
     pins: dict[str, list[Pin]] = defaultdict(list)
     for pin in dataset.pins:
         pins[pin.event].append(pin)
@@ -44,6 +49,7 @@ def compile_model(dataset: Dataset, explain: bool = False) -> CompileContext:
     _start_variables(ctx, pins, unavailable)
     _pooled_variables(ctx, pins, unavailable)
     _no_overlap(ctx)
+    _pool_capacity(ctx)
     compile_declared(ctx)
     _objective(ctx)
     return ctx
@@ -197,6 +203,9 @@ def _pooled_variables(
                 ]
                 if not usable:
                     continue
+            if ctx.times_only:
+                candidates.append(code)
+                continue
             literal = model.new_bool_var(f"use_{label}_{code}")
             ctx.use[(q.event, q.ordinal, code)] = literal
             ctx.oiv[(q.event, q.ordinal, code)] = model.new_optional_fixed_size_interval_var(
@@ -221,12 +230,15 @@ def _pooled_variables(
                 f"requirement {label} needs {q.count} {q.resource_type} resource(s) but only "
                 f"{len(candidates)} can serve it (type, filter, capacity {needed}, availability)"
             )
+        if ctx.times_only:
+            continue
         chosen = sum(ctx.use[(q.event, q.ordinal, code)] for code in candidates)
         constraint = model.add(chosen == q.count)
         if requirement_guard is not None:
             constraint.only_enforce_if(requirement_guard)
 
-    _pinned_resources(ctx, pins)
+    if not ctx.times_only:
+        _pinned_resources(ctx, pins)
 
 
 def _pinned_resources(ctx: CompileContext, pins: dict[str, list[Pin]]) -> None:
@@ -288,6 +300,36 @@ def _no_overlap(ctx: CompileContext) -> None:
                 )
             )
         ctx.model.add_no_overlap(guarded)
+
+
+def _pool_capacity(ctx: CompileContext) -> None:
+    """In the times-only model: at any time, the events that must take their resources from a
+    set S cannot need more than |S| of them (spec 05 section 7, "aggregated capacity").
+
+    For each distinct candidate set S, the events whose candidates all lie in S share a cumulative
+    of capacity |S|, each needing `count`. This is the only rule on pooled resources in the first
+    half of the decomposition. In the full model it is implied and measured no faster (P10.4), so
+    it is not added there.
+    """
+    if not ctx.times_only:
+        return
+    counts = {(q.event, q.ordinal): q.count for q in ctx.dataset.pooled}
+    needs: dict[str, list[tuple[frozenset[str], int]]] = defaultdict(list)
+    for (event, ordinal), candidates in ctx.candidates.items():
+        needs[event].append((frozenset(candidates), counts[(event, ordinal)]))
+    pools = {pool for items in needs.values() for pool, _ in items if pool}
+    for pool in sorted(pools, key=lambda p: (len(p), sorted(p))):
+        members = [
+            (event, count)
+            for event, items in needs.items()
+            for candidates, count in items
+            if candidates and candidates <= pool
+        ]
+        if sum(count for _, count in members) <= len(pool):
+            continue  # can never be full
+        ctx.model.add_cumulative(
+            [ctx.iv[event] for event, _ in members], [count for _, count in members], len(pool)
+        )
 
 
 def _objective(ctx: CompileContext) -> None:

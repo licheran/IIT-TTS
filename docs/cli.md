@@ -9,6 +9,7 @@ The `tts` command runs the whole engine without a server: read a workbook, check
 | [`tts preflight`](#tts-preflight) | Find what makes a timetable impossible, without solving |
 | [`tts solve`](#tts-solve) | Pre-flight, solve, verify and write the timetable back |
 | [`tts validate`](#tts-validate) | Check a workbook's existing assignments with the verifier |
+| [`tts clashes`](#tts-clashes) | Find clashes between the timetables of several workbooks |
 
 A typical session runs them in this order: `import-fet` (once, to get a workbook), edit the workbook in Excel, `preflight` (quick check), `solve`, then `validate` if the assignments were edited by hand.
 
@@ -147,7 +148,7 @@ uv run tts preflight l6.local.xlsx
 Solve a workbook and write it back with an `Assignments` sheet.
 
 ```
-tts solve <workbook> --out <file> [--time-limit SECONDS] [--workers N] [--seed K]
+tts solve <workbook> --out <file> [--time-limit SECONDS] [--workers N] [--seed K] [--stage SELECTOR]
 ```
 
 | Argument or option | Default | Meaning |
@@ -157,10 +158,11 @@ tts solve <workbook> --out <file> [--time-limit SECONDS] [--workers N] [--seed K
 | `--time-limit` | `120` | Seconds the search may take. |
 | `--workers` | one per CPU | Search workers. |
 | `--seed` | `0` | Random seed. With `--workers 1` and the same seed, the same input always gives the same timetable. Other seeds give other valid timetables. |
+| `--stage` | none | Staged solving (spec 05 §7): solve only the events this selector picks, for example `'uses:(under:"UOW L4")'`. The workbook's `Assignments` are the earlier stages: those events are locked where they are, and events neither selected nor assigned wait for a later stage. It prints `Stage: N event(s) to solve, M locked from the workbook's Assignments, K left for later stages.`. Feed each stage's output to the next. |
 
 The steps, in order:
 
-1. **Read** the workbook (all or nothing). Any `Assignments` sheet in it is ignored, and a note says so.
+1. **Read** the workbook (all or nothing). Any `Assignments` sheet in it is ignored, and a note says so, unless `--stage` is given (then the assignments are the earlier stages).
 2. **Pre-flight.** Warnings are printed and the solve continues. An error stops here (exit 4).
 3. **Solve** with OR-Tools CP-SAT for the hard rules. It prints `Solver: <status> in <s> s (<n> worker(s), seed <k>, <c> conflicts).`. Declared constraints the solver cannot compile yet are refused if hard (exit 1) and skipped with a `Warning:` if soft.
 4. **Verify.** The independent verifier re-checks the result and prints `Verifier: N hard violation(s), M soft, K warning(s).`, then `Score: S (CODE s (p x w), …).`: the weighted sum of the soft penalties, largest part first (spec 04 §0). A result with a hard violation is a bug: it is printed as `Violation:` lines and **not written** (exit 3).
@@ -225,3 +227,25 @@ uv run tts validate l6-solved.local.xlsx
 ## Planned commands
 
 Later phases add commands and options as they land; this page is updated with each one. Not built yet: expanding templates into events (Phase 9), and running the API and the worker (Phase 6).
+
+## `tts clashes`
+
+Find clashes between the timetables of several workbooks (P10.3).
+
+```
+tts clashes <workbook> <workbook> [<workbook> ...]
+```
+
+| Argument | Meaning |
+|---|---|
+| `<workbook>` | Two or more workbooks (`.xlsx` or CSV `.zip`), each with an `Assignments` sheet. |
+
+A timetable is conflict-free only within its own dataset. When several datasets share resources (a resource with the same code, for example one teacher in two datasets), this prints one `CLASH <resource> on <day> <period>: <event> (<workbook>), …` line for each period in which an exclusive shared resource is used by events of more than one workbook, then `Clashes: N across M workbooks.`. Days and periods are matched by code. Clashes inside one workbook are `tts validate`'s job. The API offers the same report over published runs (`GET /clashes`).
+
+| Exit code | When |
+|---|---|
+| 0 | No clash |
+| 1 | A workbook could not be read, or has no `Assignments` sheet |
+| 2 | Fewer than two workbooks, or a missing file |
+| 3 | At least one clash |
+

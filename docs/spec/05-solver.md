@@ -59,7 +59,7 @@ For each event `e` with duration `δ`:
 
 - **H1:** for each exclusive resource `R`, `AddNoOverlap({iv[e] : e occupies R through fixed/descendant} ∪ {oiv[e,q,R]})`.
 - **H2 for pooled resources:** for each `use[e,q,r]` where `r` has unavailable slots, `use[e,q,r] ⇒ start[e] ∉ S_bad(r, δ)`. This is encoded as `AddAllowedAssignments` or linear constraints over the start values.
-- **Locks from published runs:** constant intervals added to the matching no-overlap sets.
+- **Locks from published runs:** constant intervals added to the matching no-overlap sets. They are built as `unavailable` availability rows on the shared resources (`core/staging.py`), which gives the solver the same model and lets the verifier check them.
 - **Pins:** fix the domain of `start[e]` and fix the `use` literals.
 
 ### 4.3 Soft constraints and objective
@@ -75,6 +75,7 @@ Each soft constraint instance `k` compiles to an IntVar `p_k ≥ 0` using the se
 | `seed` | 0 | `random_seed` |
 | `mode` | `optimise` | `feasible` stops at the first solution. `two_phase` finds a feasible solution, then optimises with `AddHint` |
 | `lock_published` | true | adds locks from other published runs that share resource codes |
+| `stage_scope` | none | an event selector: solve only these events, locking the ones an earlier stage placed (§7). The earlier stage is the dataset's published run (API) or the workbook's `Assignments` (CLI `--stage`) |
 
 ### 4.5 Progress and cancel
 

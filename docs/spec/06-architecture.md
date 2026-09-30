@@ -106,6 +106,7 @@ The core-purity test fails if the domain words listed in `CLAUDE.md` rule 1 appe
 | `GET /runs/{id}/grid?type=<ResourceType>&code=<code>` | Weekly grid JSON for one resource |
 | `GET /runs/{id}/export?format=html\|xlsx\|csv&type=&code=` | Result export |
 | `GET /runs/{a}/diff/{b}` | Events that moved between runs |
+| `GET /clashes` | Clashes between the published runs of different datasets that share resource codes (P10.3) |
 | `POST /validate` | Upload a workbook, with assignments or a FET HTML export. Returns violations |
 
 Errors use the shape `{"error": {"code": str, "message": str, "details": any}}`.

@@ -22,7 +22,7 @@ from tts.core.model import (
     TimeModel,
     Violation,
 )
-from tts.core.verifier import verify
+from tts.core.verifier import hard_violations, verify
 from tts.io.csvzip import import_csvzip
 from tts.io.tables import WorkbookData
 from tts.io.workbook import export_xlsx, import_xlsx
@@ -299,3 +299,32 @@ def test_validate_needs_assignments(tmp_path: Path) -> None:
     result = runner.invoke(app, ["validate", str(import_to(tmp_path, "l6.xlsx"))])
     assert result.exit_code == 1
     assert "no Assignments sheet" in result.output
+
+
+def test_solve_in_two_stages_keeps_the_first_stage_and_places_the_rest(tmp_path: Path) -> None:
+    source = import_to(tmp_path, "l6.xlsx")
+    first = tmp_path / "stage1.xlsx"
+    second = tmp_path / "stage2.xlsx"
+    one = runner.invoke(app, solve_args(source, first, "--stage", "kind:LEC"))
+    assert one.exit_code == 0, one.output
+    assert "Stage: 22 event(s) to solve, 0 locked" in one.output
+    two = runner.invoke(app, solve_args(first, second, "--stage", "kind:TUT"))
+    assert two.exit_code == 0, two.output
+    assert (
+        "Stage: 55 event(s) to solve, 22 locked from the workbook's Assignments, 0 left"
+        in two.output
+    )
+    stage1 = import_xlsx(first).data
+    stage2 = import_xlsx(second).data
+    assert stage1 is not None and stage2 is not None and stage2.result is not None
+    assert len(stage2.result.assignments) == 77
+    lectures = {a.event: a for a in stage1.result.assignments}  # type: ignore[union-attr]
+    assert all(a == lectures[a.event] for a in stage2.result.assignments if a.event in lectures)
+    assert hard_violations(verify(stage2.dataset, stage2.result)) == []
+
+
+def test_solve_refuses_a_stage_selector_that_does_not_parse(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app, solve_args(import_to(tmp_path, "l6.xlsx"), tmp_path / "o.xlsx", "--stage", "nonsense:")
+    )
+    assert result.exit_code == 1 and "--stage" in result.output
