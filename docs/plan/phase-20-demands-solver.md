@@ -33,7 +33,7 @@
   - the result carries their participants.
 
   The run store keeps created events (a migration: `assignment` rows may point to a created event with its demand, kind and participants). The solver still writes only `assignment` and `assigned_resource` rows (rule 3).
-- [ ] P20.6 Explanation: one rule set of kind `demand` per participant and demand. It covers the participant's block membership and the block sizes. Test: a demand whose groups can't all fit into the periods they have free is explained with the group and the module named.
+- [x] P20.6 Explanation: one rule set of kind `demand` per participant and demand. It covers the participant's block membership and the block sizes. Test: a demand whose groups can't all fit into the periods they have free is explained with the group and the module named.
 - [ ] P20.7 Decomposition (spec 05 §7) with demands. Either the times-first half fixes membership and times, and the second half chooses rooms and teachers; or decomposition is switched off for configured datasets, and the reason is recorded. Measure both on the P20.8 dataset and pick one, recording it in STATUS.
 - [ ] P20.8 Measure:
   - a configured dataset the size of L6 (the L6 modules, groups, teachers and rooms, with session types instead of hand-made activities; assumptions recorded in `_meta`), built in the core for now;

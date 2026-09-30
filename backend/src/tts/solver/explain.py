@@ -18,6 +18,7 @@ from dataclasses import dataclass
 
 from ortools.sat.python import cp_model
 
+from tts.core.demands import materialise
 from tts.core.model import Dataset, Diagnostic, Ref
 from tts.core.timegrid import TimeGrid
 from tts.solver.compile import compile_model
@@ -35,7 +36,8 @@ _KIND_ORDER = {
     "pin": 2,
     "starts": 3,
     "requirement": 4,
-    "no_overlap": 5,
+    "demand": 5,
+    "no_overlap": 6,
 }
 
 
@@ -153,10 +155,12 @@ def _resource(code: str) -> Ref:
 
 class _Describer:
     def __init__(self, dataset: Dataset, label: Labeller) -> None:
-        self.ds = dataset
+        materialised = materialise(dataset)  # the events the solver's model had (placeholders too)
+        self.ds = materialised.dataset
+        self.materialised = materialised
         self.label = label
         self.grid = TimeGrid(dataset.time)
-        self.ctx = CompileContext(dataset)  # indexes only: hierarchy, selectors, maps
+        self.ctx = CompileContext(self.ds)  # indexes only: hierarchy, selectors, maps
         self.days = [d.code for d in dataset.time.days]
         self.periods = [p.code for p in dataset.time.periods]
         self.usable = [p.code for p in dataset.time.periods if not p.is_break]
@@ -206,22 +210,46 @@ class _Describer:
             case "no_overlap":
                 (resource,) = rule_set.key
                 return self._no_overlap(resource)
+            case "demand":
+                return self._demand(rule_set)
         return f"{rule_set.kind} {' '.join(rule_set.key)}", []
 
-    def _no_overlap(self, resource: str) -> tuple[str, list[Ref]]:
-        fixed = [
-            code
+    def _demand(self, rule_set: RuleSet) -> tuple[str, list[Ref]]:
+        code, what = rule_set.key
+        if what == "sizes":
+            low, high = self.materialised.bounds.get(code, (0, 0))
+            sizes = f"{low}" if low == high else f"{low} to {high}"
+            return f"the blocks of {code} must each have {sizes} participants", []
+        return (
+            f"{self.named(what)} must be in exactly one block of {code}",
+            [_resource(what)],
+        )
+
+    def _sessions_of(self, resource: str) -> list[int]:
+        """The durations of every event that occupies `resource`: the events the model has
+        (declared and made up front) and, for a participant, the sessions of each demand it is in
+        (every participant attends `repeat` sessions of each demand, in whichever block)."""
+        found = [
+            self.ctx.events[code].duration
             for code in self.ctx.events
             if resource in self.ctx.hierarchy.occupied_exclusive(code)
         ]
+        for d in self.ds.demands:
+            if d.code in self.materialised.free and resource in self.materialised.free[d.code]:
+                found.extend([d.duration] * d.repeat)
+        return found
+
+    def _no_overlap(self, resource: str) -> tuple[str, list[Ref]]:
+        sessions = self._sessions_of(resource)
         parts = []
-        if fixed:
-            durations = {self.ctx.events[c].duration for c in fixed}
+        if sessions:
+            durations = set(sessions)
             if len(durations) == 1:
-                parts.append(f"{len(fixed)} events of {durations.pop()} periods for {resource}")
+                parts.append(f"{len(sessions)} events of {durations.pop()} periods for {resource}")
             else:
-                total = sum(self.ctx.events[c].duration for c in fixed)
-                parts.append(f"{len(fixed)} events, {total} periods in all, for {resource}")
+                parts.append(
+                    f"{len(sessions)} events, {sum(sessions)} periods in all, for {resource}"
+                )
         parts.append(f"no_overlap({resource})")
         return "; ".join(parts), [_resource(resource)]
 
