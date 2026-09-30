@@ -130,6 +130,33 @@ class SolveOutcome:
         return self.result is not None
 
 
+def _run(
+    ctx: CompileContext,
+    params: RunParams,
+    time_limit: float,
+    first_only: bool,
+    callback: "_Progress",
+    control: SolveControl | None,
+) -> tuple[cp_model.CpSolver, SolveStatus]:
+    solver = cp_model.CpSolver()
+    solver.parameters.max_time_in_seconds = max(time_limit, 0.01)
+    solver.parameters.num_workers = params.num_workers or _cpu_count()
+    solver.parameters.random_seed = params.seed
+    solver.parameters.stop_after_first_solution = first_only
+    if control is not None:
+        control.attach(solver)
+    return solver, _STATUS.get(solver.solve(ctx.model, callback), "unknown")
+
+
+def _hint_from(ctx: CompileContext, solver: cp_model.CpSolver) -> None:
+    """Start the next search from `solver`'s solution (spec 05 section 4.4, `two_phase`)."""
+    ctx.model.clear_hints()
+    for var in ctx.start.values():
+        ctx.model.add_hint(var, solver.value(var))
+    for literal in ctx.use.values():
+        ctx.model.add_hint(literal, solver.boolean_value(literal))
+
+
 def solve_model(
     ctx: CompileContext,
     params: RunParams,
@@ -140,28 +167,39 @@ def solve_model(
 
     `on_progress` is called at most once a second while solutions improve. `control.stop()` from
     another thread ends the search and keeps the best solution found so far.
-    """
-    solver = cp_model.CpSolver()
-    workers = params.num_workers if params.num_workers is not None else _cpu_count()
-    solver.parameters.max_time_in_seconds = params.time_limit_s
-    solver.parameters.num_workers = workers
-    solver.parameters.random_seed = params.seed
-    if params.mode == "feasible":
-        solver.parameters.stop_after_first_solution = True
 
+    Modes: `optimise` searches for the best score within the time limit; `feasible` stops at the
+    first solution; `two_phase` finds a first solution, then optimises from it (as a hint) for
+    the time that is left. Without soft constraints the three behave alike.
+    """
+    workers = params.num_workers if params.num_workers is not None else _cpu_count()
     has_objective = ctx.model.has_objective()
     callback = _Progress(on_progress, has_objective)
-    if control is not None:
-        control.attach(solver)
-    status = _STATUS.get(solver.solve(ctx.model, callback), "unknown")
+    first_only = params.mode == "feasible" or (params.mode == "two_phase" and has_objective)
+    solver, status = _run(ctx, params, params.time_limit_s, first_only, callback, control)
+    wall = solver.wall_time
+    conflicts, branches = solver.num_conflicts, solver.num_branches
+
+    if params.mode == "two_phase" and has_objective and status == "feasible":
+        left = params.time_limit_s - wall
+        if left > 0.05 and not (control is not None and control.stopped):
+            _hint_from(ctx, solver)
+            second, second_status = _run(ctx, params, left, False, callback, control)
+            ctx.model.clear_hints()
+            wall += second.wall_time
+            conflicts += second.num_conflicts
+            branches += second.num_branches
+            if second_status in ("optimal", "feasible"):
+                solver, status = second, second_status
+
     has_solution = status in ("optimal", "feasible")
     return SolveOutcome(
         status=status,
         result=decode(ctx, solver) if has_solution else None,
         stats=SolveStats(
-            wall_time_s=solver.wall_time,
-            conflicts=solver.num_conflicts,
-            branches=solver.num_branches,
+            wall_time_s=wall,
+            conflicts=conflicts,
+            branches=branches,
             workers=workers,
             seed=params.seed,
             objective=solver.objective_value if has_solution and has_objective else None,
