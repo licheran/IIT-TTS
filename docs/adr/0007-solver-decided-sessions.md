@@ -9,11 +9,11 @@ Today every event is declared before solving. The user either types each activit
 The user wants the timetable built from configuration instead (2026-09-30):
 1. A teacher teaches one or more modules, and a module is taught by one or more teachers. The **solver picks the teacher** of each session from the module's teachers.
 2. A module lists its session kinds (Lecture, Tutorial, …). A kind's settings (length, online or physical, room type, the maximum number of groups per session, sessions per week) are **configured by the user** once, in a Session types table, and may be overridden per module.
-3. A programme (course) at a level has mandatory and optional modules.
-4. Each group takes all of its programme's mandatory modules and the optional modules it chooses.
+3. A degree (programme) has levels, and a level has modules. Each module belongs to **exactly one level** and is **mandatory or optional**: a field on the module itself, not a list elsewhere. In the current hierarchy a Programmes row is already one degree at one level (`L6 CS` under `L6`).
+4. A group is a set of students who share the **same optional modules**, so a group never has to be split for its options. Each group takes every mandatory module of its level and degree, plus the optional modules listed in its own `options` field.
 5. **The solver decides which groups share a session**, within the configured maximum number of groups. The room chosen must seat every student of those groups.
 6. The solver's output is the Activities table: one row per session (module, kind, groups, teacher, room, day, time). The user may edit it. **Edited fields are kept by the next run; everything not edited is worked out again.**
-7. Templates and ActivityGroups go.
+7. Templates, ActivityGroups and ActivityTeachers go: who attends comes from points 3–5, and who teaches from point 1. Pins go as well, replaced by the locked fields of point 6.
 
 Points 1 and 2 need no core change: a pooled requirement already lets the solver choose resources (rooms today, invigilators in the exams preset). Point 5 does. The number of events and each event's fixed resources are no longer known before solving, and the core has no way to say so. Spec 01 §6 lists "individual student enrolment or sectioning" as a non-goal; this ADR keeps individual students out of scope and brings **group-level** splitting in.
 
@@ -68,17 +68,20 @@ Option 1, with these rules:
 
 **Academic workbook format version 2** (spec 03; exams stays at version 1):
 - New sheet **SessionTypes**.
-- New columns:
+- New and changed columns:
+  - `Modules.level`: exactly one level, now required (today it is information only);
+  - `Modules.programmes`: the degrees at that level that take the module, a list; blank means every programme at the level;
+  - `Modules.optional`: true or false (default false, meaning mandatory);
   - `Modules.sessions`: session kinds with optional per-module overrides;
   - `Teachers.modules`: a module, or `module:KIND`;
-  - `Programmes.mandatory` and `Programmes.optional`;
-  - `Groups.options`.
+  - `Groups.options`: the group's optional modules. Each must be an optional module of the group's level and programme.
+  - Programmes, Levels and Universities keep their columns: no module lists there.
 - **Activities becomes the timetable:** solver rows plus edited and hand-made rows, with a `locked` column naming the kept fields.
 - Removed: Templates, ActivityGroups, ActivityTeachers, Pins and the export-only Assignments.
 - Version 1 files still import: activities become locked hand-made rows, pins become locked fields, and a version 1 Templates sheet is expanded once on import.
 - The preset turns the configuration into demands:
   - one per module and session kind;
-  - participants are the groups taking the module;
+  - participants are the groups taking the module: for a mandatory module, every group of its programmes at its level; for an optional module, only those groups that list it in `options`;
   - pooled Room: `tag:room_type=<t>` and `sum_of_fixed:StudentGroup`;
   - pooled Teacher: filter `code:<the module's teachers for that kind>`.
 
@@ -91,11 +94,13 @@ Option 1, with these rules:
 - **Result storage:** `assignment` rows may belong to a created event (with its kind, demand and participants) and not to a declared event. This needs a migration.
 - **Decomposition** (Phase 10) and **explanation** (spec 05 §5) learn about demands. Explanations get a rule set of kind `demand` per participant.
 - **Event-scoped constraints** whose scope uses `code:` cannot name created events, because codes don't exist before solving. Pre-flight warns. Scopes should use `ref:`, `kind:` and `uses:`. `uses:` on a created event is a membership literal.
-- **Retired:** FR-5 (templates) is replaced by a new requirement for configured sessions. The Templates tab and expander leave the academic UI. `expand/` stays only as the version 1 converter.
+- **Retired:** FR-5 (templates) is replaced by a new requirement for configured sessions. The Templates tab and expander leave the academic UI, and so do the ActivityGroups, ActivityTeachers and Pins tables. `expand/` stays only as the version 1 converter.
+- **A limit of one flag per module:** because mandatory/optional is a field of the module, one module cannot be mandatory for one degree and optional for another at the same level. That needs two module rows (two codes), or a later change to per-programme flags.
 - **Phases:** 18 (spec updates), 19 (core and verifier), 20 (solver), 21 (academic configuration, format version 2), 22 (Activities as the editable timetable), 23 (retire Templates and ActivityGroups; wiki), 24 (teacher fairness, last).
 - **Decisions to review:**
   - the core name "demand";
   - whether a group must keep the same companions in every repetition (proposed: no);
-  - whether subgroups inherit their parent group's modules (proposed: yes; only groups whose parent is a programme are participants);
+  - whether subgroups inherit their parent group's modules and options (proposed: yes; only groups whose parent is a programme are participants, since a group already shares its options);
+  - whether the one-flag-per-module limit above is acceptable;
   - how Excel edits mark locked fields (the `locked` column);
   - the default weight of `fewest_events`.

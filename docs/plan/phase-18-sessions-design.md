@@ -9,7 +9,7 @@
 ## Tasks
 - [ ] P18.1 **Stop and ask:** the user reviews ADR-0007, including its "Decisions to review". Record the answers in `docs/STATUS.md` and set the ADR to Accepted (or revise it). No other task starts before this.
 - [ ] P18.2 Spec 01:
-  - replace FR-5 (templates) with FR-17: "Build sessions from configuration: modules with session kinds, programmes with mandatory and optional modules, groups with their options, and teachers with the modules they teach";
+  - replace FR-5 (templates) with FR-17: "Build sessions from configuration: modules at one level, each mandatory or optional, with session kinds; groups with their optional modules; and teachers with the modules they teach";
   - add FR-18: "The solver decides which groups share a session (within a configured maximum) and which of a module's teachers takes it";
   - add FR-19: "The result is an editable Activities table; edited fields are kept by the next run";
   - add FR-20: "Teacher workload fairness", Phase 24;
@@ -18,7 +18,7 @@
   - add Demand and `Event.demand` to §1, and say a created event is a run result;
   - add the invariants (participants exclusive, `max_participants ≥ 1`, `repeat ≥ 1`);
   - in the §3 occupancy rule, say a created event occupies its participants and their exclusive descendants;
-  - add the §6.1 academic mapping: Session types, `Modules.sessions`, `Teachers.modules`, `Programmes.mandatory`/`optional` and `Groups.options` → demands; edited rows → declared events and pins.
+  - add the §6.1 academic mapping: Session types, `Modules.level`/`programmes`/`optional`/`sessions`, `Teachers.modules` and `Groups.options` → demands; edited rows → declared events and pins.
 - [ ] P18.4 Spec 03, format version 2 (academic). A full sheet table for version 2:
   - SessionTypes; the new columns; Activities as the timetable with `locked`;
   - the removed sheets;

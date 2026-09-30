@@ -59,7 +59,8 @@ From ADR-0007 (P18.1), asked 2026-09-30:
 1. Accept ADR-0007 (the solver creates sessions from demands and decides which groups share each one)?
 2. The core name "demand" for "these participants each attend `repeat` sessions of this kind".
 3. With `weekly` ≥ 2, must a group sit with the same other groups in every session of the week? Proposed: no.
-4. Subgroups: do they inherit their parent group's modules, with only groups directly under a programme splitting sessions? Proposed: yes.
+4. Subgroups: do they inherit their parent group's modules and options, with only groups directly under a programme splitting sessions? Proposed: yes.
+4b. Mandatory/optional is one field on the module, so a module cannot be mandatory for one degree and optional for another at the same level (that needs two module codes). Acceptable?
 5. Excel edits: is a `locked` column naming the kept fields (`groups;rooms;day;start;teachers`) acceptable? The web UI fills it automatically.
 6. The default weight of `fewest_events` (a preference for fewer sessions). Proposed: soft, weight 1.
 
@@ -69,6 +70,8 @@ Already answered on 2026-09-30:
 - the limit is a number of groups per session, and the room must seat all their students;
 - edited fields are kept and the rest is recomputed;
 - teacher fairness is the last phase (24).
+- a degree has levels and a level has modules: each module belongs to exactly one level and has a mandatory/optional field; a group is students with the same optional modules and lists them in its own `options` field (no module lists on Programmes or Levels);
+- ActivityTeachers goes too (teachers come from `Teachers.modules`), along with Pins.
 
 ## Log
 | Date | Task | Notes |
@@ -155,3 +158,4 @@ Already answered on 2026-09-30:
 | 2026-09-30 | P17.1–P17.3 | Exams section in `docs/wiki/exams/`: the overview (what differs from the academic preset, how to start, what the program does for you, reading the result) and a page for each of the ten sheets that differ (Days, Sessions, Cohorts, Halls, Invigilators, Papers, Exams, ExamCohorts, Pins, Assignments). `_meta`, `StartPatterns`, `Availability` and `Constraints` link to the academic pages; `test_wiki_exams.py` checks that their columns are identical. **The wiki is complete (Phases 13–17).** |
 | 2026-09-30 | — | Final check of Phases 12–17 on the Docker stack: `docker compose up --build`, `scripts/smoke.sh` passes (import L6, pre-flight, run, grid, HTML export) with the commit-before-response change. Backend: 1,285 fast tests, ruff, mypy. Web: lint, typecheck, 47 unit tests, 4 e2e (three clean repeat runs). Still open: auth, CI on GitHub not checked (no `gh`), the manual look at the `l6.xlsx` dropdowns in Excel, ADR-0006 (Proposed), and the decisions marked "to review". |
 | 2026-09-30 | plan | Phases 18–24 and ADR-0007 (Proposed): build timetables from configuration. Teachers teach modules; modules list session kinds from a user-configured Session types table; programmes have mandatory and optional modules; groups take the mandatory ones and their chosen options. The solver decides which groups share a session (up to a number of groups, the room seating all their students) and which of a module's teachers takes it. Activities becomes the editable timetable: edited fields are kept by the next run, the rest is recomputed. Templates, ActivityGroups, ActivityTeachers and Pins leave the academic preset in format version 2; version 1 files (L6) still import. Teacher fairness is Phase 24. Found while planning: an empty Activities table solves as `optimal` with no warning (no pre-flight check for "nothing to schedule"); not changed yet. |
+| 2026-09-30 | plan | ADR-0007 and Phase 18/21 revised after the user's answers: mandatory/optional is a field of the module (`Modules.optional`), each module has exactly one `level` and a `programmes` list (blank: every programme at the level); `Groups.options` lists a group's optional modules (a group shares its options); no module lists on Programmes. Context point 7 now names ActivityTeachers and Pins as retired, as the Decision already did. New question 4b (one flag per module). |
