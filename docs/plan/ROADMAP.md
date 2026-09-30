@@ -16,5 +16,11 @@ Work through the phases in order. A phase is done when all its tasks are ticked 
 | 9 | [phase-09-templates.md](phase-09-templates.md) | Templates → activities with preview | FR-5 |
 | 10 | [phase-10-scale.md](phase-10-scale.md) | Multi-level/programme/university/building scale, staged solving | FR-15, NFR-2 |
 | 11 | [phase-11-second-preset.md](phase-11-second-preset.md) | Exams preset with zero core changes | FR-16 |
+| 12 | [phase-12-ui-quick-entry.md](phase-12-ui-quick-entry.md) | Always-visible entry row (Tab/Enter); every timetable in one HTML file | FR-1, FR-13 |
+| 13 | [phase-13-wiki-tabs.md](phase-13-wiki-tabs.md) | User wiki: skeleton and every tab | — |
+| 14 | [phase-14-wiki-tables.md](phase-14-wiki-tables.md) | Wiki: every table of the academic preset, and tags | — |
+| 15 | [phase-15-wiki-constraints.md](phase-15-wiki-constraints.md) | Wiki: constraint types and the selector language | — |
+| 16 | [phase-16-wiki-troubleshooting.md](phase-16-wiki-troubleshooting.md) | Wiki: every error, issue and run status, with fixes | — |
+| 17 | [phase-17-wiki-exams.md](phase-17-wiki-exams.md) | Wiki: the exams preset's tables | — |
 
-The biggest technical risk is retired at the end of Phase 4, when L6 solves unpinned. Phases 5–11 are product work.
+The biggest technical risk is retired at the end of Phase 4, when L6 solves unpinned. Phases 5–11 are product work. Phase 12 is a UI refinement. Phases 13–17 are documentation: the user wiki in `docs/wiki/`, kept in step with the code by `backend/tests/unit/test_wiki.py`.

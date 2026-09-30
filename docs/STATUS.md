@@ -1,6 +1,6 @@
 # Status
 
-**Current phase:** 6 — [Persistence, API, runs and worker](plan/phase-06-api-runs-worker.md). **Next task:** P0.5 (the web scaffold, now that Docker works; npm through the yarnpkg registry), then P6.1.
+**Current phase:** 12 — [UI: quick row entry and a full HTML export](plan/phase-12-ui-quick-entry.md). **Next task:** P12.1 (the always-visible entry row). Phases 0 to 11 are complete.
 
 **Phases 0 to 11 are complete** and **Phase 3 is complete apart from one manual check**. 
 
@@ -18,6 +18,12 @@
 | 9 Templates | Done. Acceptance: L6 written as templates expands to the fixture\'s per-module groups and LEC/TUT counts; expanding twice changes nothing; hand-made activities are untouched. |
 | 10 Scale | Done. Acceptance: 2,994 synthetic events solved in 57.7 s on 8 workers (NFR-2: 15 min) by decomposition (was 569 s); staged L4→L7 in 57.2 s with no cross-stage clash. |
 | 11 Exams preset | Done. Acceptance: the exams sample imports, solves, verifies and exports through the CLI and the API, the web UI shows the exams labels, and no file in core, solver, expand or preflight changed during the phase (ADR-0006 came first). |
+| 12 UI: quick entry, full HTML export | Open. |
+| 13 Wiki: tabs | Open. |
+| 14 Wiki: tables | Open. |
+| 15 Wiki: constraints and selectors | Open. |
+| 16 Wiki: troubleshooting | Open. |
+| 17 Wiki: exams preset | Open. |
 
 **Decisions waiting for you** are in the log below (search for "review"). One that matters soon: the core names for template modes (P9, decided in the 2026-09-29 plan: `joint`/`each`/`batched`, with the preset showing `per_group`).
 **Format version:** workbook `format_version` 1
@@ -117,3 +123,5 @@ _None at the moment._
 | 2026-09-29 | P11.1, P11.2 | `presets/exams/`: types Cohort (exclusive, capacity = size), Hall (exclusive, capacity), Invigilator (exclusive); reference type Paper (attribute `minutes`); kinds EXAM and PRACTICAL; labels; sheets (own format, version 1): `_meta`, `Days` (dated: code is the date, label e.g. "Mon 01 Jun"), `Sessions` (AM, PM), `StartPatterns`, `Cohorts`, `Halls`, `Invigilators`, `Papers`, `Exams` (one hall with room for every cohort, `sum_of_fixed:Cohort`; and an `invigilators` count: two pooled requirements, ADR-0006), `ExamCohorts`, `Availability`, `Constraints`, `Pins`, `Assignments` (`hall` and `invigilators` columns per requirement). Defaults: a soft `min_days_between` (min 2, weight 1) for each cohort's exams. Registered in `presets` (`PRESETS`, `FORMAT_VERSIONS`, labels, defaults); `GET /schema` takes the preset's own format version. Sample `tests/fixtures/exams/exams.xlsx` from the committed `make_exams.py`: 10 dated days, 8 cohorts (40–160), 4 halls (60–320), 12 invigilators, 24 papers, one invigilator per 60 candidates (**decision:** "count by size" is computed when the sample is written and stored in the `invigilators` column; the importer does not derive it). One `io` fix: an event sheet without a `delivery` column now gets the core default instead of failing. |
 | 2026-09-29 | P11.3, P11.4 | End to end (`tests/fixtures/exams/test_exams.py`, `web/e2e/exams.spec.ts`): the committed sample equals the script's output; CLI pre-flight, solve (0.4 s), validate and export to a CSV zip and back, with one big enough hall and ceil(size/60) invigilators per exam and 0 hard violations; API dataset from the `exams` preset, schema labels, import, pre-flight, run, a cohort's grid (5 exams, dated day labels) and the HTML export; Playwright: the tabs are the exams sheets (no Rooms), the timetable offers Cohort/Invigilator and shows "Exam" cells. **P11.4:** `git diff d220c55 -- core solver expand preflight` is empty: the second preset needed no core change. The one core change it needed (several pooled requirements per sheet) was made first, as ADR-0006. **Phase 11 acceptance passed. All phases of the plan are complete.** |
 | 2026-09-29 | — | README brought up to date (every phase done, what works today, Docker quick start, `tts clashes`). `scripts/smoke.sh` passes again against `docker compose up --build` on the final code. **Still open:** auth (spec 06 §9, deferred at your request); CI on GitHub not checked from here (`gh` is not installed); the manual check of the `l6.xlsx` dropdowns in Excel; ADR-0006 is Proposed; the decisions marked "to review" in this log. |
+| 2026-09-30 | — | Planned the user wiki (now Phases 13–17) in `docs/wiki/` (tabs; academic tables and tags; constraints and selectors; troubleshooting; exams preset). Written for timetable administrators, academic preset first. `backend/tests/unit/test_wiki.py` will keep the pages in step with the code, growing with each phase. No product code changes planned. |
+| 2026-09-30 | — | Added Phase 12 (UI) before the wiki: an always-visible entry row on every table (Tab across fields, Enter adds and refocuses the first field) and one HTML file with every timetable. The wiki phases are renumbered 13–17. |
