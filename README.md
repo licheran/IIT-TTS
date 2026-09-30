@@ -4,9 +4,9 @@
 
 IIT-TTS is an open, data-driven scheduling application. You describe your world as tables of **resources** (people, groups, rooms, buildings), **events** (sessions to schedule) and **rules**. You edit them in the app or round-trip them through Excel/CSV, press **Start**, and IIT-TTS finds a timetable in which nothing is double-booked and your preferences are optimised.
 
-The first built-in preset is **academic weekly timetabling**: lectures and tutorials for many levels, degree programmes and awarding universities, spread across several buildings and sharing teachers and rooms. The core engine is domain-neutral, so exams, staff rosters and room booking are future presets, not rewrites.
+The first built-in preset is **academic weekly timetabling**: lectures and tutorials for many levels, degree programmes and awarding universities, spread across several buildings and sharing teachers and rooms. The core engine is domain-neutral: a second preset, **exam timetabling**, runs on the same core with no changes to it. Staff rosters and room booking would be further presets, not rewrites.
 
-> Status: **pre-alpha. The backend engine works from the command line; there is no web app yet.** Phases 1–5 are done: the core model and verifier, the L6 regression fixture, Excel/CSV import and export, the CP-SAT solver for the hard rules, pre-flight checks and infeasibility explanations. Phase 6 (database, API and worker) is next. See [`docs/STATUS.md`](docs/STATUS.md).
+> Status: **alpha. Every phase of the plan (0–11) is done:** the engine, the database and REST API with a background worker, the web app, the full soft-constraint catalogue, templates, institute-scale solving (about 3,000 events in under a minute) and the exams preset. See [`docs/STATUS.md`](docs/STATUS.md), including the decisions that are waiting for your review.
 
 ## How it works
 
@@ -24,16 +24,17 @@ Excel/CSV or table editor ──► Validate ──► Expand templates ──�
 
 | Step | State |
 |---|---|
-| Excel (`.xlsx`) and CSV (`.zip`) import and export | Works. Import reads the whole workbook and reports every problem as `Sheet!R<row>C<col> [column]: message`. |
-| FET HTML import | Works (`tts import-fet`). |
-| Validate | Works. Checks the data and the hard rules. |
-| Solve | Works for the hard rules: no double-booking, availability, room capacity and type, pins. The real L6 timetable (77 events) solves in about 0.1 s. |
-| Verify | Works. Runs after every solve. |
-| Declared constraints (the catalogue in [spec 04](docs/spec/04-constraints.md)) | Phase 8. `tts solve` refuses a workbook that declares a hard one, and warns about a soft one. |
-| Expand templates | Phase 9. |
-| Pre-flight checks | Works (`tts preflight`, and before every `tts solve`). Errors such as a resource needing more periods than it has stop the solve with exit code 4. |
-| Infeasibility explanations | Works. When no timetable exists, `tts solve` names a minimal set of conflicting rules, for example `Conflicting rules: pin of A to Tue P06 Auditorium; pin of B to Tue P06 Auditorium; no_overlap(Auditorium)`. |
-| Saved runs, API, web app, grids, HTML export | Phases 6–7. |
+| Excel (`.xlsx`) and CSV (`.zip`) import and export | Works, in the app and on the command line. An import reads the whole workbook and reports every problem as `Sheet!R<row>C<col> [column]: message`. |
+| Table editors | Works. One tab per sheet, inline editing with keyboard navigation, reference pickers, filter and sort; 5,000 rows scroll at 60 fps. |
+| FET HTML import | Works (`tts import-fet`, `POST /validate`). |
+| Templates | Works. Templates expand into activities, with a preview before committing. |
+| Pre-flight checks | Works. Errors (for example a teacher needing more periods than they have) block a run. |
+| Solve | Works: hard rules, and the 14 soft or hard constraint types of [spec 04](docs/spec/04-constraints.md) with a weighted score. L6 (77 events) solves in about 0.1 s, or scores 0 on the academic defaults in about 5 s; a synthetic institute of about 3,000 events solves in under a minute. |
+| Staged solving and locks | Works (`tts solve --stage`, `stage_scope`). Published timetables of other datasets are respected on shared resources, and `tts clashes` / `GET /clashes` report conflicts between datasets. |
+| Verify | Works. Every result is re-checked by an independent verifier. |
+| Infeasibility explanations | Works. When no timetable exists, a minimal set of conflicting rules is named. |
+| Runs | Works. Start, watch progress, cancel, publish, compare and re-run, in the app or through the API. |
+| Grids and exports | Works. A weekly grid for any resource; HTML, Excel and CSV exports. |
 
 ## Documentation
 
@@ -75,14 +76,22 @@ uv run tts validate l6-solved.local.xlsx   # check a workbook's Assignments
 | `tts preflight` | Finds what makes a timetable impossible, without solving |
 | `tts solve` | Pre-flight, solve, verify, and write the timetable back |
 | `tts validate` | Checks a workbook's assignments with the independent verifier |
+| `tts clashes` | Finds clashes between the timetables of several workbooks |
 
 The full reference, with every option and exit code, is in [`docs/cli.md`](docs/cli.md).
 
-Git ignores files named `*.local.xlsx`. The L6 workbooks contain real teacher codes, so keep them out of commits.
+Git ignores files named `*.local.xlsx`, which keeps experiments out of commits.
 
 See [`backend/README.md`](backend/README.md) for setup and how to run the tests.
 
-The full stack (API, worker, database and web app) is meant to run with `docker compose up --build`, serving the API on :8000, the web app on :5173 and the database on :5432. That command is not ready yet: the web app has not been scaffolded ([Phase 0](docs/plan/phase-00-setup.md), task P0.5).
+The full stack runs with Docker:
+
+```bash
+docker compose up --build        # API on :8000, web app on :5173, PostgreSQL on :5432
+bash scripts/smoke.sh            # import L6, solve it, fetch a grid and export it
+```
+
+Open http://localhost:5173, create a dataset, import a workbook (for example `backend/tests/fixtures/l6/l6.xlsx` or `backend/tests/fixtures/exams/exams.xlsx`), run pre-flight, press **Start** and open the timetable. The web app's own checks are `pnpm lint && pnpm typecheck && pnpm test && pnpm e2e` in `web/`.
 
 ## Developing with Claude Code
 
