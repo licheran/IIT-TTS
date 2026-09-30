@@ -11,7 +11,7 @@ Code: `backend/src/tts/io/workbook.py`. The sheet definitions come from the pres
 3. **Extra columns.** Headers starting with `x_` are user notes. They are kept through a round trip and ignored by the engine. Any other unknown header is an error.
 4. **Codes.** Every entity row has a `code` that is unique within its sheet. Relationships refer to codes. Codes are trimmed, and matching is case-sensitive.
 5. **Lists.** `;` separates list items. `key=value` pairs separate with `;` (for example `university=UOW;room_type=Lab`).
-6. **Join sheets are canonical (version 1).** Convenience list columns (for example `groups` on Activities) are expanded into join rows on import. Export writes join sheets only. Version 2 has no join sheets.
+6. **Join sheets are canonical (version 1).** Convenience list columns (for example `groups` on Activities) are expanded into join rows on import. Export writes join sheets only. Version 2 has no join sheets. (The application's table editor shows a hand-made dataset's ActivityGroups and ActivityTeachers as the `groups` and `teachers` columns of Activities, and turns an edit back into join rows; the file is unchanged.)
 7. **Blank values.** Empty cells mean null, or the default where one is stated.
 8. **Booleans.** `true`/`false` (case-insensitive) and `1`/`0`.
 9. **Times.** `HH:MM`, 24-hour.
@@ -57,6 +57,7 @@ Version 1 is what hand-made datasets (typed or imported activities, such as the 
 - `Groups.size` and `Rooms.capacity` become `resource.capacity`.
 - `Rooms.room_type` becomes the tag `room_type=<value>`.
 - Modules become `reference` rows.
+- Templates are read once on import (version 1 only): their rows are expanded by `expand/` into events, and the dataset keeps no templates (ADR-0007, Phase 23). The exporter never writes a `Templates` sheet. A template that cannot be expanded is an import error on the `Templates` sheet.
 - Activities become `event` rows.
   - ActivityGroups and ActivityTeachers become fixed requirements.
   - `room_type`/`room_count` become a pooled Room requirement with filter `tag:room_type=<room_type>` and capacity rule `sum_of_fixed:StudentGroup`.

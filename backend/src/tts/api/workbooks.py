@@ -102,7 +102,8 @@ def problems(outcome: ImportOutcome) -> list[dict[str, Any]]:
 
 
 def tables_by_name(data: WorkbookData, preset: Preset) -> dict[str, Table]:
-    return {t.name: t for t in build_tables(data, preset)}
+    """The tables the application shows and edits (hidden join sheets folded into columns)."""
+    return {t.name: t for t in build_tables(data, preset, shortcuts=True)}
 
 
 def _raw(tables: Mapping[str, Table]) -> dict[str, RawSheet]:
@@ -125,7 +126,7 @@ def reimport(tables: Mapping[str, Table], preset: Preset) -> WorkbookData:
 
 def sheet_def(preset: Preset, sheet: str) -> SheetDef:
     found = preset.sheet(sheet)
-    if found is None or found.export_only:
+    if found is None or found.export_only or found.hidden or found.import_only:
         raise not_found(f'no table "{sheet}" in preset {preset.name}')
     return found
 

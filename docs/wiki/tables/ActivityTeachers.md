@@ -2,6 +2,8 @@
 
 Sheet name in Excel and CSV files: `ActivityTeachers`.
 
+> **Hand-made datasets only.** This sheet is part of format version 1 files. The application shows no table for it: a hand-made dataset's teachers appear as the `teachers` column of [Activities](Activities.md), where you edit them. In a dataset built from configuration, teachers list the modules they teach (see [Teachers](Teachers.md)) and the solver chooses who takes each session.
+
 ## What it is
 
 Says **which teachers teach which activity**: one row per pair.

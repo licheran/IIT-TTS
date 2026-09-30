@@ -24,6 +24,8 @@ const rooms = {
   resource_type: 'Room',
   label: 'Rooms',
   export_only: false,
+  hidden: false,
+  import_only: false,
   columns: [
     col({ name: 'code', required: true }),
     col({ name: 'building', refs: ['Buildings'] }),

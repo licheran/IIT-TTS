@@ -83,16 +83,17 @@ class PreflightOut(BaseModel):
     has_errors: bool
 
 
-class ExpandOut(BaseModel):
-    """What expanding the templates changes: activity codes, and ordering constraints."""
+class PlannedOut(BaseModel):
+    """What the solver will schedule for one module and kind of session."""
 
-    committed: bool
-    added: list[str] = []
-    changed: list[str] = []
-    removed: list[str] = []
-    orders_added: int = 0
-    orders_removed: int = 0
-    problems: list[str] = []
+    demand: str
+    module: str | None
+    kind: str
+    groups: list[str]
+    groups_per_session: int | None
+    blocks: int
+    per_week: int
+    sessions: int
 
 
 class SchemaOut(BaseModel):

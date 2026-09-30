@@ -21,7 +21,6 @@ from tts.core.model import (
     Reference,
     Resource,
     StartPattern,
-    Template,
     TimeModel,
 )
 from tts.core.selectors import Selector, TagClause, UnderClause, format_selector
@@ -178,31 +177,6 @@ def academic_datasets(draw: Any) -> Dataset:
             capacity_rule=CapacityRule.parse("sum_of_fixed:StudentGroup"),
         )
 
-    templates = []
-    if module_codes:
-        for c in _unique(draw, "TP", draw(st.integers(0, 2))):
-            mode = draw(st.sampled_from(["joint", "each", "batched"]))  # core names
-            spec = room_spec(draw(st.sampled_from(room_types))) if draw(st.booleans()) else None
-            templates.append(
-                Template(
-                    code=c,
-                    kind=draw(st.sampled_from(["LEC", "TUT", "LAB"])),
-                    mode=mode,
-                    reference=draw(st.sampled_from(module_codes)),
-                    targets=format_selector(
-                        Selector((UnderClause(draw(st.sampled_from(programmes))),))
-                    ),
-                    batch_size=draw(st.integers(1, 5)) if mode == "batched" else None,
-                    fixed=tuple(_some(draw, teachers)),
-                    pooled=(spec,) if spec else (),
-                    duration=draw(st.integers(1, 2)),
-                    start_pattern=draw(st.sampled_from([p.code for p in patterns])),
-                    sessions_per_week=draw(st.integers(1, 3)),
-                    active=draw(st.booleans()),
-                )
-            )
-    template_codes = [t.code for t in templates]
-
     events, fixed, pooled = [], [], []
     for c in _unique(draw, "A", draw(st.integers(0, 4))):
         online = draw(st.booleans())
@@ -215,7 +189,6 @@ def academic_datasets(draw: Any) -> Dataset:
                 reference=draw(st.one_of(st.none(), *map(st.just, module_codes))),
                 delivery="online" if online else "in_person",
                 tags=_tags(draw),
-                template=draw(st.one_of(st.none(), *map(st.just, template_codes))),
             )
         )
         for target in _some(draw, [*groups, *programmes, *levels]) + _some(draw, teachers):
@@ -302,7 +275,6 @@ def academic_datasets(draw: Any) -> Dataset:
         pooled=tuple(pooled),
         availability=tuple(availability),
         constraints=tuple(constraints),
-        templates=tuple(templates),
         pins=tuple(pins),
     )
     assert dataset.validate_invariants() == []

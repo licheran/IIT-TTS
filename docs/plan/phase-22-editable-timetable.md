@@ -8,32 +8,32 @@
 - `web/src/features/tables/`, `web/src/features/grids/`, `web/src/features/runs/`, `backend/src/tts/api/routers/`
 
 ## Tasks
-- [ ] P22.1 The Activities table of a configured dataset:
+- [x] P22.1 The Activities table of a configured dataset:
   - one row per session of the dataset's current run (the published run, or the latest successful one): `code`, `module`, `kind`, `groups`, `teachers`, `rooms`, `day`, `start`, `end`;
   - an edit mark on each edited field;
   - no entry row: sessions come from the configuration. Before the first run the table says "Nothing solved yet: press Start".
 
   The API returns it as one list.
-- [ ] P22.2 Editing a session:
+- [x] P22.2 Editing a session:
   - an edit saves a declared event of the row's demand. The row's groups become its block's fixed participants (any edit keeps them together), and the edited fields become fixed teachers or pins. An edited day or start is a pin on the time, an edited room is a pin on the room. Unedited fields stay free;
   - the row keeps showing the run's values with the edits applied, and a banner says "N edits waiting: press Rebuild";
   - **Undo edit** on a row removes its edit; **Clear all edits** removes them all.
 
   Tests: the API and the store for each field; vitest for the edit marks, undo and clear.
-- [ ] P22.3 Edits are checked straight away:
+- [x] P22.3 Edits are checked straight away:
   - after each edit, the verifier checks the current run's timetable with the edits applied, in a draft copy, so the stored run is never changed;
   - clashes show on the row and on the Timetable tab, in red, before any rebuild;
   - pre-flight also checks edits (P19.5).
 
   Test: an edit that double-books a room gives a violation naming the room and both sessions.
-- [ ] P22.4 Rebuild honours every edit:
+- [x] P22.4 Rebuild honours every edit:
   - pressing **Start** (labelled **Rebuild** while edits are waiting) runs a complete solve;
   - declared events of a demand fix their blocks (H6), pins hold (H5), and everything else is solved again from scratch;
   - nothing is patched in place.
 
   Test: edit one tutorial's day and room, then rebuild. The edited values are unchanged, other sessions may change, and the verifier finds 0 hard violations.
-- [ ] P22.5 Exports: the Timetable tab's HTML, Excel and CSV exports show the edited timetable with no edit marks (they are outputs). The configuration workbook holds no sessions and no edits (spec 03, version 2). Test: an exported workbook of a configured dataset with edits imports to a dataset with the same configuration and no edits.
-- [ ] P22.6 Wiki:
+- [x] P22.5 Exports: the Timetable tab's HTML, Excel and CSV exports show the edited timetable with no edit marks (they are outputs). The configuration workbook holds no sessions and no edits (spec 03, version 2). Test: an exported workbook of a configured dataset with edits imports to a dataset with the same configuration and no edits.
+- [x] P22.6 Wiki:
   - the Activities page (the timetable, edits, undo, rebuild);
   - the Tables, Run and Import / export tab pages;
   - troubleshooting for edits that clash or no longer match;

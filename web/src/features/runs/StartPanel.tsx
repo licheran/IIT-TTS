@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ApiError } from '@/api/client'
-import { usePreflight, useRun, useRunActions, useStartRun } from '@/api/hooks'
+import {
+  useDataset,
+  usePreflight,
+  useRun,
+  useRunActions,
+  useStartRun,
+  useTimetable,
+} from '@/api/hooks'
 import type { RunOut, RunParams } from '@/api/types'
 import { isActive } from '@/api/types'
 import { ErrorList } from '@/components/ErrorList'
@@ -30,6 +37,8 @@ export function StartPanel({ datasetId }: { datasetId: number }) {
   const [search, setSearch] = useSearchParams()
   const runId = search.get('run') ? Number(search.get('run')) : null
   const preflight = usePreflight(datasetId)
+  const configured = useDataset(datasetId).data?.kind === 'configured'
+  const edits = useTimetable(datasetId, configured).data?.edits ?? 0
   const start = useStartRun(datasetId)
   const run = useRun(runId)
   const { cancel } = useRunActions(datasetId)
@@ -72,6 +81,18 @@ export function StartPanel({ datasetId }: { datasetId: number }) {
             Pre-flight found errors, so a run cannot start.{' '}
             <Link className="underline" to={`/datasets/${datasetId}/preflight`}>
               See the problems
+            </Link>
+          </p>
+        )}
+        {edits > 0 && (
+          <p
+            role="status"
+            className="mb-3 rounded-md border border-blue-300 bg-blue-50 p-3 text-sm"
+          >
+            {edits} {edits === 1 ? 'edit is' : 'edits are'} waiting. A rebuild solves everything
+            again and keeps {edits === 1 ? 'it' : 'them'}.{' '}
+            <Link className="underline" to={`/datasets/${datasetId}/tables/Activities`}>
+              See the edits
             </Link>
           </p>
         )}
@@ -133,7 +154,7 @@ export function StartPanel({ datasetId }: { datasetId: number }) {
           </label>
           <div className="flex items-end">
             <Button type="submit" variant="primary" disabled={blocked || start.isPending || active}>
-              Start
+              {edits > 0 ? 'Rebuild' : 'Start'}
             </Button>
           </div>
         </form>

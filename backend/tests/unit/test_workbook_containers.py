@@ -137,7 +137,7 @@ def test_row_numbers_in_errors_count_skipped_blank_rows() -> None:
 
 def test_the_zip_holds_one_utf8_csv_per_sheet_named_after_it(data: WorkbookData) -> None:
     with zipfile.ZipFile(io.BytesIO(zip_bytes(data))) as archive:
-        assert archive.namelist() == [f"{s.name}.csv" for s in SHEETS]
+        assert archive.namelist() == [f"{s.name}.csv" for s in SHEETS if not s.import_only]
         teachers = archive.read("Teachers.csv").decode("utf-8")
         assert teachers.splitlines()[0] == "code,name,tags"
         assert not teachers.startswith("﻿")

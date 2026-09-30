@@ -59,7 +59,7 @@ class EditBody(BaseModel):
     groups: list[str] | None = None
 
 
-class ViolationOut(BaseModel):
+class DraftViolationOut(BaseModel):
     code: str
     constraint_code: str
     severity: str
@@ -69,7 +69,7 @@ class ViolationOut(BaseModel):
 
 class CheckOut(BaseModel):
     run_id: int | None
-    violations: list[ViolationOut]
+    violations: list[DraftViolationOut]
 
 
 def _configured(session: DbSession, dataset_id: int) -> Dataset:
@@ -285,7 +285,7 @@ def check(dataset_id: int, session: DbSession) -> CheckOut:
     return CheckOut(
         run_id=run_id,
         violations=[
-            ViolationOut(
+            DraftViolationOut(
                 code=v.code,
                 constraint_code=v.constraint_code,
                 severity=v.severity,

@@ -285,14 +285,14 @@
         }
       }
     },
-    "/datasets/{dataset_id}/expand": {
-      "post": {
+    "/datasets/{dataset_id}/sessions": {
+      "get": {
         "tags": [
           "datasets"
         ],
-        "summary": "Expand Templates",
-        "description": "Preview (default) or commit the expansion of the dataset's templates into activities.",
-        "operationId": "expand_templates_datasets__dataset_id__expand_post",
+        "summary": "Planned Sessions",
+        "description": "The sessions the solver will make: each module and kind, its groups and how many sessions.",
+        "operationId": "planned_sessions_datasets__dataset_id__sessions_get",
         "parameters": [
           {
             "name": "dataset_id",
@@ -302,16 +302,6 @@
               "type": "integer",
               "title": "Dataset Id"
             }
-          },
-          {
-            "name": "commit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false,
-              "title": "Commit"
-            }
           }
         ],
         "responses": {
@@ -320,7 +310,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ExpandOut"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlannedOut"
+                  },
+                  "title": "Response Planned Sessions Datasets  Dataset Id  Sessions Get"
                 }
               }
             }
@@ -1169,7 +1163,7 @@
           "results"
         ],
         "summary": "Export",
-        "description": "Export a run: HTML grids, a workbook with the assignments, or a CSV list.\n\n`code` limits it to one resource, `type` to the resources of one type.",
+        "description": "Export a run: HTML grids, a workbook with the assignments, or a CSV list.\n\n`code` limits it to one resource, `type` to the resources of one type. With neither, the HTML\nholds every timetable (groups, teachers and rooms) in one file, with a contents list.",
         "operationId": "export_runs__run_id__export_get",
         "parameters": [
           {
@@ -1235,6 +1229,245 @@
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasets/{dataset_id}/timetable": {
+      "get": {
+        "tags": [
+          "timetable"
+        ],
+        "summary": "Timetable",
+        "description": "The sessions of the current run, with the edits applied.",
+        "operationId": "timetable_datasets__dataset_id__timetable_get",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Dataset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "timetable"
+        ],
+        "summary": "Clear",
+        "description": "Forget every edit.",
+        "operationId": "clear_datasets__dataset_id__timetable_delete",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Dataset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasets/{dataset_id}/timetable/{code}": {
+      "put": {
+        "tags": [
+          "timetable"
+        ],
+        "summary": "Edit",
+        "description": "Keep the given values for one session in the next run (and in the table at once).",
+        "operationId": "edit_datasets__dataset_id__timetable__code__put",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Dataset Id"
+            }
+          },
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Code"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "timetable"
+        ],
+        "summary": "Undo",
+        "description": "Forget the edit of one session: the next run is free to place it again.",
+        "operationId": "undo_datasets__dataset_id__timetable__code__delete",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Dataset Id"
+            }
+          },
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Code"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasets/{dataset_id}/timetable/check": {
+      "get": {
+        "tags": [
+          "timetable"
+        ],
+        "summary": "Check",
+        "description": "The current run's timetable with the edits applied, judged by the verifier.\n\nNothing is stored: the stored run is never changed. A clash an edit causes shows here at once.",
+        "operationId": "check_datasets__dataset_id__timetable_check_get",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Dataset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckOut"
+                }
               }
             }
           },
@@ -1436,6 +1669,34 @@
           "file"
         ],
         "title": "Body_validate_validate_post"
+      },
+      "CheckOut": {
+        "properties": {
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "violations": {
+            "items": {
+              "$ref": "#/components/schemas/DraftViolationOut"
+            },
+            "type": "array",
+            "title": "Violations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "violations"
+        ],
+        "title": "CheckOut"
       },
       "ClashOut": {
         "properties": {
@@ -1660,6 +1921,10 @@
             "type": "string",
             "title": "Preset"
           },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
           "version": {
             "type": "integer",
             "title": "Version"
@@ -1680,6 +1945,7 @@
           "id",
           "name",
           "preset",
+          "kind",
           "version",
           "created_at",
           "updated_at"
@@ -1772,6 +2038,116 @@
         ],
         "title": "DiffOut"
       },
+      "DraftViolationOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "constraint_code": {
+            "type": "string",
+            "title": "Constraint Code"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "refs": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Refs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "constraint_code",
+          "severity",
+          "message",
+          "refs"
+        ],
+        "title": "DraftViolationOut"
+      },
+      "EditBody": {
+        "properties": {
+          "day": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "rooms": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rooms"
+          },
+          "teachers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Teachers"
+          },
+          "groups": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groups"
+          }
+        },
+        "type": "object",
+        "title": "EditBody",
+        "description": "The values to keep for one session. A field left out is not changed."
+      },
       "EventChange": {
         "properties": {
           "event": {
@@ -1813,62 +2189,6 @@
         ],
         "title": "EventChange",
         "description": "How one event differs between two results.\n\n`kind` is `moved`, `resources`, `added` or `removed`."
-      },
-      "ExpandOut": {
-        "properties": {
-          "committed": {
-            "type": "boolean",
-            "title": "Committed"
-          },
-          "added": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Added",
-            "default": []
-          },
-          "changed": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Changed",
-            "default": []
-          },
-          "removed": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Removed",
-            "default": []
-          },
-          "orders_added": {
-            "type": "integer",
-            "title": "Orders Added",
-            "default": 0
-          },
-          "orders_removed": {
-            "type": "integer",
-            "title": "Orders Removed",
-            "default": 0
-          },
-          "problems": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Problems",
-            "default": []
-          }
-        },
-        "type": "object",
-        "required": [
-          "committed"
-        ],
-        "title": "ExpandOut",
-        "description": "What expanding the templates changes: activity codes, and ordering constraints."
       },
       "Grid": {
         "properties": {
@@ -2213,22 +2533,102 @@
         ],
         "title": "Placement"
       },
+      "PlannedOut": {
+        "properties": {
+          "demand": {
+            "type": "string",
+            "title": "Demand"
+          },
+          "module": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Module"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "groups": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Groups"
+          },
+          "groups_per_session": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groups Per Session"
+          },
+          "blocks": {
+            "type": "integer",
+            "title": "Blocks"
+          },
+          "per_week": {
+            "type": "integer",
+            "title": "Per Week"
+          },
+          "sessions": {
+            "type": "integer",
+            "title": "Sessions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "demand",
+          "module",
+          "kind",
+          "groups",
+          "groups_per_session",
+          "blocks",
+          "per_week",
+          "sessions"
+        ],
+        "title": "PlannedOut",
+        "description": "What the solver will schedule for one module and kind of session."
+      },
       "PooledMapping": {
         "properties": {
           "resource_type": {
             "type": "string",
             "title": "Resource Type"
           },
-          "tag": {
-            "type": "string",
-            "title": "Tag"
-          },
           "capacity_rule": {
             "type": "string",
             "title": "Capacity Rule"
           },
+          "tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag"
+          },
           "type_column": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Type Column"
           },
           "count_column": {
@@ -2247,12 +2647,10 @@
         "type": "object",
         "required": [
           "resource_type",
-          "tag",
-          "capacity_rule",
-          "type_column"
+          "capacity_rule"
         ],
         "title": "PooledMapping",
-        "description": "Columns that stand for a pooled requirement (for example a room type and a count)."
+        "description": "Columns that stand for a pooled requirement (for example a room type and a count).\n\nWith a `type_column`, the requirement's filter is the tag test `tag=<value>` and a blank value\nmeans no requirement. Without one, any resource of `resource_type` will do (filter `all`) and\nthe requirement exists whenever its count is at least 1. Without a `count_column` the count\nis 1. The n-th mapping of a sheet (ADR-0006) is the requirement with ordinal n, and its\ncolumns use the fields `pooled_type:<n>` and `pooled_count:<n>` (plain `pooled_type` and\n`pooled_count` for the first)."
       },
       "PreflightOut": {
         "properties": {
@@ -2529,6 +2927,10 @@
             "type": "string",
             "title": "Preset"
           },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
           "format_version": {
             "type": "integer",
             "title": "Format Version"
@@ -2558,12 +2960,95 @@
         "type": "object",
         "required": [
           "preset",
+          "kind",
           "format_version",
           "sheets",
           "labels",
           "resource_types"
         ],
         "title": "SchemaOut"
+      },
+      "SessionOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "module": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Module"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "demand": {
+            "type": "string",
+            "title": "Demand"
+          },
+          "groups": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Groups"
+          },
+          "teachers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Teachers"
+          },
+          "rooms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rooms"
+          },
+          "day": {
+            "type": "string",
+            "title": "Day"
+          },
+          "start": {
+            "type": "string",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "title": "End"
+          },
+          "edited": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Edited"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "module",
+          "kind",
+          "demand",
+          "groups",
+          "teachers",
+          "rooms",
+          "day",
+          "start",
+          "end",
+          "edited"
+        ],
+        "title": "SessionOut"
       },
       "SheetDef": {
         "properties": {
@@ -2629,9 +3114,27 @@
               }
             ]
           },
+          "more_pooled": {
+            "items": {
+              "$ref": "#/components/schemas/PooledMapping"
+            },
+            "type": "array",
+            "title": "More Pooled",
+            "default": []
+          },
           "export_only": {
             "type": "boolean",
             "title": "Export Only",
+            "default": false
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
+          },
+          "import_only": {
+            "type": "boolean",
+            "title": "Import Only",
             "default": false
           },
           "label": {
@@ -2693,6 +3196,39 @@
           "size"
         ],
         "title": "TablePage"
+      },
+      "TimetableOut": {
+        "properties": {
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "edits": {
+            "type": "integer",
+            "title": "Edits"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/SessionOut"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "edits",
+          "rows"
+        ],
+        "title": "TimetableOut"
       },
       "ValidateOut": {
         "properties": {

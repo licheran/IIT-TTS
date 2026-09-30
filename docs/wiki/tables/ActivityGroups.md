@@ -2,6 +2,8 @@
 
 Sheet name in Excel and CSV files: `ActivityGroups`.
 
+> **Hand-made datasets only.** This sheet is part of format version 1 files. The application shows no table for it: a hand-made dataset's groups appear as the `groups` column of [Activities](Activities.md), where you edit them. A dataset built from configuration has no such sheet, because the solver decides who attends each session.
+
 ## What it is
 
 Says **which groups attend which activity**: one row per pair. An activity with several rows is a joint activity.

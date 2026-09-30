@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { API_BASE, api, unwrap } from './client'
-import { isActive, type Cell, type RunParams, type TablePage } from './types'
+import { isActive, type Cell, type EditBody, type RunParams, type TablePage } from './types'
 
 export const keys = {
   datasets: ['datasets'] as const,
@@ -9,6 +9,8 @@ export const keys = {
   tables: (id: number) => ['table', id] as const,
   table: (id: number, sheet: string) => ['table', id, sheet] as const,
   preflight: (id: number) => ['preflight', id] as const,
+  planned: (id: number) => ['planned', id] as const,
+  timetable: (id: number) => ['timetable', id] as const,
   runs: (id: number) => ['runs', id] as const,
   run: (id: number) => ['run', id] as const,
   grid: (run: number, code: string) => ['grid', run, code] as const,
@@ -172,25 +174,6 @@ export function exportUrl(id: number, format: 'xlsx' | 'csvzip') {
   return `${API_BASE}/datasets/${id}/export?format=${format}`
 }
 
-/** Preview (commit=false) or commit the expansion of the dataset's templates. */
-export function useExpand(id: number) {
-  const client = useQueryClient()
-  return useMutation({
-    mutationFn: (commit: boolean) =>
-      unwrap(
-        api.POST('/datasets/{dataset_id}/expand', {
-          params: { path: { dataset_id: id }, query: { commit } },
-        }),
-      ),
-    onSuccess: (result) => {
-      if (result.committed) {
-        void client.invalidateQueries({ queryKey: keys.tables(id) })
-        void client.invalidateQueries({ queryKey: keys.preflight(id) })
-      }
-    },
-  })
-}
-
 export function usePreflight(id: number) {
   return useQuery({
     queryKey: keys.preflight(id),
@@ -283,4 +266,73 @@ export function runExportUrl(
   if (type) query.set('type', type)
   if (code) query.set('code', code)
   return `${API_BASE}/runs/${runId}/export?${query.toString()}`
+}
+
+/** What the solver will schedule (a configured dataset only). */
+export function usePlanned(id: number, enabled = true) {
+  return useQuery({
+    queryKey: keys.planned(id),
+    enabled,
+    queryFn: () =>
+      unwrap(api.GET('/datasets/{dataset_id}/sessions', { params: { path: { dataset_id: id } } })),
+  })
+}
+
+/** The Activities table of a configured dataset: the current run's sessions, edits applied. */
+export function useTimetable(id: number, enabled = true) {
+  return useQuery({
+    queryKey: keys.timetable(id),
+    enabled,
+    queryFn: () =>
+      unwrap(api.GET('/datasets/{dataset_id}/timetable', { params: { path: { dataset_id: id } } })),
+  })
+}
+
+/** The clashes the edits cause in the current timetable, judged by the verifier. */
+export function useTimetableCheck(id: number, enabled = true) {
+  return useQuery({
+    queryKey: [...keys.timetable(id), 'check'] as const,
+    enabled,
+    queryFn: () =>
+      unwrap(
+        api.GET('/datasets/{dataset_id}/timetable/check', {
+          params: { path: { dataset_id: id } },
+        }),
+      ),
+  })
+}
+
+export function useTimetableEdits(id: number) {
+  const client = useQueryClient()
+  const path = { dataset_id: id }
+  const refresh = () => {
+    void client.invalidateQueries({ queryKey: keys.timetable(id) })
+    void client.invalidateQueries({ queryKey: keys.preflight(id) })
+  }
+  return {
+    edit: useMutation({
+      mutationFn: ({ code, body }: { code: string; body: EditBody }) =>
+        unwrap(
+          api.PUT('/datasets/{dataset_id}/timetable/{code}', {
+            params: { path: { ...path, code } },
+            body,
+          }),
+        ),
+      onSettled: refresh,
+    }),
+    undo: useMutation({
+      mutationFn: (code: string) =>
+        unwrap(
+          api.DELETE('/datasets/{dataset_id}/timetable/{code}', {
+            params: { path: { ...path, code } },
+          }),
+        ),
+      onSettled: refresh,
+    }),
+    clear: useMutation({
+      mutationFn: () =>
+        unwrap(api.DELETE('/datasets/{dataset_id}/timetable', { params: { path } })),
+      onSettled: refresh,
+    }),
+  }
 }

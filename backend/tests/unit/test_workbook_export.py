@@ -53,12 +53,13 @@ def rows_of(workbook: Any, name: str) -> list[dict[str, Any]]:
 def test_sheets_come_in_the_specs_order_and_assignments_only_with_a_result(
     l6: tuple[Dataset, Result], l6_bytes: bytes
 ) -> None:
+    written = [s.name for s in SHEETS if not s.import_only]  # Templates is only ever read
     full = load_workbook(io.BytesIO(l6_bytes)).sheetnames
-    assert full == [s.name for s in SHEETS]
+    assert full == written
     buffer = io.BytesIO()
     export_xlsx(WorkbookData(l6[0]), buffer)
     assert load_workbook(io.BytesIO(buffer.getvalue())).sheetnames == [
-        s.name for s in SHEETS if s.name != "Assignments"
+        name for name in written if name != "Assignments"
     ]
 
 
@@ -69,7 +70,7 @@ def test_every_sheet_has_a_frozen_header_row(l6_bytes: bytes) -> None:
 
 def test_headers_are_the_defined_columns_without_convenience_columns(l6_bytes: bytes) -> None:
     workbook = load_workbook(io.BytesIO(l6_bytes))
-    for sheet in SHEETS:
+    for sheet in (s for s in SHEETS if not s.import_only):
         expected = [c.name for c in sheet.columns if not c.convenience]
         assert [c.value for c in workbook[sheet.name][1]] == expected, sheet.name
     activities = [c.value for c in workbook["Activities"][1]]
@@ -206,9 +207,9 @@ def test_dropdowns_are_on_reference_and_choice_columns(l6_bytes: bytes) -> None:
 
 
 def test_choice_columns_get_a_literal_list(l6_bytes: bytes) -> None:
-    ws = load_workbook(io.BytesIO(l6_bytes))["Templates"]
+    ws = load_workbook(io.BytesIO(l6_bytes))["Pins"]
     formulas = [v.formula1 for v in ws.data_validations.dataValidation]
-    assert '"joint,per_group,batched"' in formulas
+    assert '"user,lock"' in formulas
 
 
 def test_text_starting_with_an_equals_sign_is_never_a_formula() -> None:

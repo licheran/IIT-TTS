@@ -367,7 +367,7 @@ def test_a_template_needs_a_batch_size_only_when_batched() -> None:
     )
 
 
-def test_a_template_becomes_a_core_template_with_a_pooled_spec() -> None:
+def test_template_rows_are_expanded_once_into_activities_and_dropped() -> None:
     header = [
         "code", "module", "kind", "mode", "groups", "teachers", "duration", "start_pattern",
         "room_type", "sessions_per_week",
@@ -378,15 +378,16 @@ def test_a_template_becomes_a_core_template_with_a_pooled_spec() -> None:
         ["TP2", "M1", "LEC", "per_group", "type:StudentGroup", None, 1, "1H", None, None],
     ]
     ds = load(edited(Templates=rows)).data.dataset  # type: ignore[union-attr]
-    first, second = ds.templates
-    assert (first.reference, first.targets, first.fixed, first.sessions_per_week, first.mode) == (
-        "M1", "under:PR1", ("T1",), 2, "joint",
-    )  # fmt: skip
-    (spec,) = first.pooled
+    assert ds.templates == ()  # the application keeps no templates (ADR-0007)
+    made = [e for e in ds.events if e.code.startswith("M1-LEC-")]
+    assert [(e.duration, e.template) for e in made] == [(2, None), (2, None), (1, None), (1, None)]
+    # TP1 is joint for the groups under PR1 and taught by T1, twice a week, in a lab.
+    first = {f.resource for f in ds.fixed if f.event == "M1-LEC-01"}
+    assert first == {"G1", "G2", "T1"}
+    (spec,) = [q for q in ds.pooled if q.event == "M1-LEC-01"]
     assert (spec.resource_type, spec.count, spec.filter) == ("Room", 1, "tag:room_type=lab")
-    assert second.pooled == ()
-    assert (second.sessions_per_week, second.active) == (1, True)
-    assert second.mode == "each"  # the workbook's "per_group" is the core mode "each"
+    assert not [q for q in ds.pooled if q.event == "M1-LEC-03"]  # TP2 names no room type
+    assert {f.resource for f in ds.fixed if f.event == "M1-LEC-03"} == {"G1"}  # one group each
 
 
 def test_a_template_selector_must_select_resources() -> None:

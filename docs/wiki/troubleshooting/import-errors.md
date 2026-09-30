@@ -119,7 +119,30 @@ Dropdowns in exported Excel files help avoid unknown codes.
 | `Templates!R2C6 [batch_size]: required when mode is "batched"` | Mode `batched` without a batch size | Fill in `batch_size` |
 | `Templates!R2C5 [groups]: under: needs a value` | The `groups` selector is not valid | See [Selectors](../constraints/selectors.md) |
 
-Problems met while expanding templates appear in the preview, not here. See [Templates and Expand](../tabs/templates-expand.md).
+A template that cannot be expanded (for example a selector that matches no group) is reported here too, as an error on the `Templates` sheet, because template rows are expanded once when a version 1 file is imported.
+
+## Configuration (format version 2)
+
+These come from a version 2 file, or from editing the Session types, Modules, Teachers and Groups tables of a dataset built from configuration. The row and column point at the cell to fix.
+
+| Message | Cause | Fix |
+|---|---|---|
+| `Modules!R2C6 [sessions]: unknown code "XYZ"` | A module lists a session type that is not in the Session types table | Add the session type, or correct the code |
+| `Modules!R2C6 [sessions]: cannot read "LEC(max_groups)": expected name=value` | A setting in brackets has no value | Write `name=value`, for example `LEC(max_groups=2)` |
+| `Modules!R2C6 [sessions]: unknown setting "size" (known: start_pattern, delivery, room_type, max_groups, teachers, weekly)` | A setting that does not exist | Use one of the six settings named in the message |
+| `Modules!R2C6 [sessions]: cannot read "LEC(max_groups=0)": max_groups must be an integer ≥ 1` | A setting with a value that is not allowed. `weekly` must also be 1 or more, and `teachers` 0 or more | Use a whole number in range |
+| `Modules!R2C6 [sessions]: cannot read "LEC(delivery=hybrid)": delivery must be in_person or online` | A delivery that is not one of the two | Use `in_person` or `online` |
+| `Modules!R2C6 [sessions]: cannot read "LEC(start_pattern=9H)": unknown start pattern "9H"` | The start pattern is not in the Start patterns table | Use a code from [StartPatterns](../tables/StartPatterns.md) |
+| `Modules!R2C3 [level]: required` | A module has no level. A module belongs to exactly one | Fill in `level` |
+| `Teachers!R2C3 [modules]: unknown code "NOPE"` | A teacher lists a module that does not exist | Correct the code |
+| `Teachers!R2C3 [modules]: "6BUIS019C:LAB": module "6BUIS019C" has no session type "LAB"` | A teacher is limited to a kind of session the module does not have | Add the kind to the module's `sessions`, or correct the kind |
+| `Groups!R2C5 [options]: module "6COSC020C" is not optional` | A group lists a mandatory module as an option. Every group of the programme takes a mandatory module anyway | Remove it from `options`, or tick `optional` on the module |
+| `Groups!R2C5 [options]: unknown code "NOPE"` | A group lists a module that does not exist | Correct the code |
+| `Groups!R2C3 [parent]: unknown code "L6 CS / G10"` | A group's parent is another group. In version 2 a group belongs to a programme | Give the programme's code |
+| `SessionTypes!R2C5 [room_type]: an online session cannot have a room type` | An online session type asks for a room type | Clear `room_type`, or make it `in_person` |
+| `SessionTypes!R2C5 [room_type]: required when delivery is "in_person"` | An in-person session type has no room type | Fill in `room_type`, or make it `online` |
+| `SessionTypes!R2C6 [max_groups]: expected integer ≥ 1, got "0"` | Zero groups per session | Use 1 or more, or leave it blank for all the groups in one session |
+| `Activities: unknown sheet` | A version 2 file has an Activities sheet. So do `Templates`, `ActivityGroups`, `ActivityTeachers` and `Pins` | Remove the sheet: the solver makes the sessions. To keep typed activities use a version 1 file |
 
 ## Assignments (a result workbook)
 

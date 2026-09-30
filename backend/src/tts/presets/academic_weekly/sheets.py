@@ -159,6 +159,7 @@ SHEETS: tuple[SheetDef, ...] = (
         name=TEMPLATES,
         target="template",
         label="Templates",
+        import_only=True,
         pooled=PooledMapping(
             resource_type=types.ROOM,
             tag=types.ROOM_TYPE_TAG,
@@ -215,6 +216,7 @@ SHEETS: tuple[SheetDef, ...] = (
         name=ACTIVITY_GROUPS,
         target="fixed",
         label="Activity groups",
+        hidden=True,
         columns=(
             _c("activity", "event", required=True, refs=(ACTIVITIES,)),
             _c("group", "resource", required=True, refs=(GROUPS, PROGRAMMES, LEVELS)),
@@ -224,6 +226,7 @@ SHEETS: tuple[SheetDef, ...] = (
         name=ACTIVITY_TEACHERS,
         target="fixed",
         label="Activity teachers",
+        hidden=True,
         columns=(
             _c("activity", "event", required=True, refs=(ACTIVITIES,)),
             _c("teacher", "resource", required=True, refs=(TEACHERS,)),

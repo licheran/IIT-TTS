@@ -1,26 +1,18 @@
 """Preparing a dataset for a run with the options of its preset (API and worker).
 
-A hand-made dataset expands its templates into events. A configured dataset gets the demands its
-configuration makes (ADR-0007). Both are a no-op on a dataset that was already prepared.
+A hand-made dataset already holds its activities (template rows of an old file were expanded once
+when it was imported). A configured dataset gets the demands its configuration makes (ADR-0007).
 """
 
-from typing import Any
-
 from tts.core.model import Dataset, Ref
-from tts.expand.templates import Expansion, expand
 from tts.preflight.checks import Issue, run_preflight
-from tts.presets import configuration_issues, derive_demands, expansion_options, labeller
-
-
-def expand_with_preset(dataset: Dataset) -> Expansion:
-    options: dict[str, Any] = expansion_options(dataset.preset)
-    return expand(dataset, **options)
+from tts.presets import configuration_issues, derive_demands, labeller
 
 
 def prepare_with_preset(dataset: Dataset) -> Dataset:
-    """The dataset as the solver takes it: templates expanded, or demands derived."""
+    """The dataset as the solver takes it: the demands of a configured dataset derived."""
     if dataset.kind == "hand_made":
-        return expand_with_preset(dataset).dataset
+        return dataset
     demands = derive_demands(dataset)
     return dataset.model_copy(update={"demands": demands}) if demands else dataset
 

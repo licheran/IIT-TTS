@@ -23,7 +23,7 @@ ALLOWED_INTERNAL: dict[str, set[str]] = {
     "expand": {"core", "expand"},
     "preflight": {"core", "preflight"},
     "solver": {"core", "solver"},
-    "io": {"core", "presets", "io"},
+    "io": {"core", "expand", "presets", "io"},
     "presets": {"core", "presets"},
     "store": {"core", "store"},
 }
@@ -79,6 +79,8 @@ def dependency_violations(root: Path) -> list[str]:
         for name in _imported_modules(root, path):
             top = name.split(".")[0]
             if top == "tts":
+                if rel.parts[:3] == ("store", "migrations", "versions"):
+                    continue  # a data migration may call the application code it moves data for
                 target = name.split(".")[1] if "." in name else ""
                 if target and target not in ALLOWED_INTERNAL[owner]:
                     problems.append(f"{rel}: '{owner}' may not import tts.{target} ({name})")
@@ -250,3 +252,25 @@ def test_purity_scanner_reports_the_offending_file(tmp_path: Path) -> None:
     _write(tmp_path, "core/clean.py", "x = 1\n")
     _write(tmp_path, "solver/dirty.py", "teacher = 1\n")
     assert purity_violations(tmp_path) == ["solver/dirty.py: domain word 'teacher'"]
+
+
+# --- Templates are read once, on import (ADR-0007) ---------------------------------------------
+
+
+def test_only_the_importer_uses_the_template_expander() -> None:
+    """`expand/` is the version 1 converter: nothing but `io` imports it."""
+    users = []
+    for path in SRC.rglob("*.py"):
+        parts = path.relative_to(SRC).parts
+        if parts[0] in ("expand", "io", "store"):  # store: the data migration that expands once
+            continue
+        tree = ast.parse(path.read_text("utf-8"))
+        for node in ast.walk(tree):
+            names = []
+            if isinstance(node, ast.ImportFrom) and node.module:
+                names = [node.module]
+            elif isinstance(node, ast.Import):
+                names = [a.name for a in node.names]
+            if any(n == "tts.expand" or n.startswith("tts.expand.") for n in names):
+                users.append("/".join(parts))
+    assert users == []

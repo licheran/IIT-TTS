@@ -4,13 +4,13 @@ from fastapi import APIRouter
 
 from tts.api.deps import DbSession
 from tts.api.errors import ApiError
-from tts.api.expansion import expand_with_preset, preflight_with_preset
+from tts.api.expansion import preflight_with_preset, prepare_with_preset
 from tts.api.schemas import (
     DatasetCreate,
     DatasetOut,
     DatasetPatch,
-    ExpandOut,
     IssueOut,
+    PlannedOut,
     PreflightOut,
     RefOut,
     SchemaOut,
@@ -104,23 +104,25 @@ def get_schema(dataset_id: int, session: DbSession) -> SchemaOut:
     )
 
 
-@router.post("/{dataset_id}/expand")
-def expand_templates(dataset_id: int, session: DbSession, commit: bool = False) -> ExpandOut:
-    """Preview (default) or commit the expansion of the dataset's templates into activities."""
-    repo = DatasetRepo(session)
-    expansion = expand_with_preset(repo.load(dataset_id))
-    diff = expansion.diff
-    if commit and not diff.empty:
-        repo.save(dataset_id, expansion.dataset)
-    return ExpandOut(
-        committed=commit and not diff.empty,
-        added=list(diff.added),
-        changed=list(diff.changed),
-        removed=list(diff.removed),
-        orders_added=diff.orders_added,
-        orders_removed=diff.orders_removed,
-        problems=list(expansion.problems),
-    )
+@router.get("/{dataset_id}/sessions")
+def planned_sessions(dataset_id: int, session: DbSession) -> list[PlannedOut]:
+    """The sessions the solver will make: each module and kind, its groups and how many sessions."""
+    dataset = DatasetRepo(session).load(dataset_id)
+    if dataset.kind == "hand_made":
+        raise ApiError(409, "not_configured", "this dataset's activities were typed or imported")
+    return [
+        PlannedOut(
+            demand=d.code,
+            module=d.reference,
+            kind=d.kind,
+            groups=list(d.participants),
+            groups_per_session=d.max_participants,
+            blocks=d.blocks,
+            per_week=d.repeat,
+            sessions=d.blocks * d.repeat,
+        )
+        for d in prepare_with_preset(dataset).demands
+    ]
 
 
 @router.post("/{dataset_id}/preflight")

@@ -2,7 +2,7 @@
 
 ## What it's for
 
-The Run tab starts the solver and shows how it is getting on. The solver places every activity in a day and period and chooses the rooms, so that nothing is double-booked and every hard rule holds. If you have soft rules, it then tries to lower the score.
+The Run tab starts the solver and shows how it is getting on. The solver works out the sessions from your configuration, decides which groups share each one and which teacher takes it, places it in a day and period and chooses the room, so that nothing is double-booked and every hard rule holds. If you have soft rules, it then tries to lower the score.
 
 Every run saves a frozen copy of the data it used. Changing your tables afterwards does not change the run.
 
@@ -12,7 +12,7 @@ Every run saves a frozen copy of the data it used. Changing your tables afterwar
 
 1. Open the **Run** tab. If pre-flight found errors, a red message says so and **Start** is disabled. Follow **See the problems**, fix them, and come back.
 2. Set the options (see below), or leave the defaults.
-3. Press **Start**. A **Run** section appears with the progress.
+3. Press **Start**. A **Run** section appears with the progress. If you have corrected sessions on the [Activities](activities.md) tab, the button says **Rebuild** and a blue message says how many edits are waiting: a rebuild solves everything again from scratch and keeps every edited value.
 4. Wait for the status to reach a final state. You can close the page and come back: the run goes on in the background, and the [Runs](runs.md) tab lists it.
 5. When it is done, follow **Open the timetable**, or **All runs**.
 6. To stop early, press **Cancel**. The button then says `Cancelling…`.

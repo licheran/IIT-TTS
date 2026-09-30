@@ -25,6 +25,7 @@ Things to know:
 
 - **An import replaces the dataset's tables.** Whatever was in the tables before is gone, **including the default constraints** a new academic dataset starts with. If your workbook has no rows in its Constraints sheet, the dataset has no constraints after the import. Runs you already made are kept, because each run holds its own copy of its data.
 - The import is **all or nothing**. If any row has a problem, nothing changes, and the list shows every problem at once, not just the first.
+- A workbook's `format_version` decides which sheets it may have: a version 2 file with an Activities or Templates sheet is refused as `unknown sheet`.
 - A workbook must belong to the dataset's preset. A workbook from the other preset is refused with messages such as `Periods: unknown sheet`.
 - A `format_version` in the `_meta` sheet that this app does not support is refused.
 - A file that is not a real workbook is refused with `workbook: not a valid .xlsx file`.
@@ -39,13 +40,19 @@ The exported Excel file has:
 - a frozen header row;
 - drop-down lists on the columns that refer to another table or have a fixed set of values.
 
+### What the workbook holds
+
+The workbook of a dataset built from configuration (format version 2) holds **the configuration only**: days, periods and start patterns, levels, programmes, groups (with their optional modules), teachers (with the modules they teach), rooms, session types, modules, availability and constraints. It holds **no sessions and no edits**: the sessions are the solver's output and live in the app. Import a workbook into a new dataset and you get the same configuration with no edits.
+
+A **format version 1** file (for example `l6.xlsx`) has the activities typed in. It imports as a **hand-made** dataset, and exports as version 1 again. A version 1 file whose Templates sheet has rows is accepted too: the template rows are expanded once into activities when the file is imported, and the dataset keeps no templates.
+
 ### Edit in Excel and bring it back
 
 1. Export to Excel.
 2. Edit the cells. Keep the header row and the sheet names exactly as they are. You may add columns whose header starts with `x_` for your own notes: they are kept and ignored.
 3. Save, then import the file again.
 
-An exported file imported again gives the same data. The exported Activities sheet does not have the `groups` and `teachers` columns: the two sheets **ActivityGroups** and **ActivityTeachers** hold that information, one row per pairing. When you type a *new* file, you may add `groups` and `teachers` columns to Activities, listing codes separated by `;`, and they are turned into those rows on import.
+An exported file imported again gives the same data. (In a hand-made dataset the exported Activities sheet does not have the `groups` and `teachers` columns: the two sheets **ActivityGroups** and **ActivityTeachers** hold that information, one row per pairing. When you type a *new* version 1 file, you may add `groups` and `teachers` columns to Activities, listing codes separated by `;`, and they are turned into those rows on import.)
 
 ## Example
 

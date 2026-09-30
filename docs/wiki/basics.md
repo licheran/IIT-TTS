@@ -11,7 +11,7 @@ Knowing them once saves you from most import errors.
 ### Codes
 
 - Every row that stands for a thing (a teacher, a room, a group, an activity) has a **code**. The code is its name inside the data, and it must be **unique within its table**.
-- Other tables refer to a thing by its code. A row in `ActivityTeachers` that says `HAWE` means the teacher whose code is `HAWE`.
+- Other tables refer to a thing by its code. A teacher's `modules` that says `6SENG005C` means the module whose code is `6SENG005C`.
 - Codes are trimmed (spaces at both ends are removed). Matching is **case-sensitive**: `Lab-1` and `lab-1` are different.
 - A code may contain spaces and `/`, for example `L6 SE / G1`.
 
@@ -47,7 +47,7 @@ A column header the program does not know, and does not start with `x_`, is refu
 ## How an import behaves
 
 - The program reads the **whole** file first and collects **every** problem. If there is even one, **nothing is imported** and the data stays as it was.
-- Each problem is written as `Sheet!R<row>C<column> [column name]: message`, for example `ActivityGroups!R12C2 [group]: unknown code "L6 SE / G12"`. This means: sheet `ActivityGroups`, row 12, column 2.
+- Each problem is written as `Sheet!R<row>C<column> [column name]: message`, for example `Teachers!R12C3 [modules]: unknown code "6SENG05C"`. This means: sheet `Teachers`, row 12, column 3.
 - Exporting and importing again gives you the same data back.
 
 ## Related

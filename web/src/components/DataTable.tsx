@@ -40,6 +40,10 @@ export interface DataColumn {
 export interface DataRow {
   key: string
   values: Record<string, CellValue>
+  /** The columns whose value the user set (shown with an edit mark). */
+  marks?: string[]
+  /** Why the row is in trouble (shown in red, with this text as its tooltip). */
+  problem?: string
 }
 
 export const ROW_HEIGHT = 34
@@ -106,6 +110,8 @@ interface Props {
   rows: DataRow[]
   onEdit: (key: string, column: string, value: CellValue) => Promise<unknown> | void
   onDelete?: (key: string) => Promise<unknown> | void
+  /** What to show in the last cell of a row instead of the delete button. */
+  renderRowAction?: (row: DataRow) => ReactNode
   actions?: ReactNode
   /** A row pinned under the headers, given the grid template so its cells line up. */
   renderEntry?: (layout: { template: string }) => ReactNode
@@ -119,6 +125,7 @@ export function DataTable({
   rows,
   onEdit,
   onDelete,
+  renderRowAction,
   actions,
   renderEntry,
   highlightKey,
@@ -171,7 +178,7 @@ export function DataTable({
 
   const template = `${columns
     .map((c) => `minmax(${c.width ?? 140}px, 1fr)`)
-    .join(' ')}${onDelete ? ' 72px' : ''}`
+    .join(' ')}${onDelete ? ' 72px' : renderRowAction ? ' 110px' : ''}`
   const lastColumn = columns.length - 1
 
   useEffect(() => {
@@ -319,7 +326,7 @@ export function DataTable({
                   aria-sort={
                     sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : 'none'
                   }
-                  className="min-w-0 border-r border-neutral-200 last:border-r-0"
+                  className="min-w-0 border-r border-neutral-200 [contain:inline-size] last:border-r-0"
                 >
                   <button
                     className="flex h-full w-full items-center gap-1 px-2 py-1.5 text-left"
@@ -334,7 +341,7 @@ export function DataTable({
                 </div>
               )
             })}
-            {onDelete && <div role="columnheader" className="px-2 py-1.5" />}
+            {(onDelete || renderRowAction) && <div role="columnheader" className="px-2 py-1.5" />}
           </div>
           {renderEntry?.({ template })}
         </div>
@@ -350,9 +357,11 @@ export function DataTable({
                 role="row"
                 aria-rowindex={item.index + 2}
                 data-key={row.key}
+                title={row.problem}
                 className={cn(
                   'absolute left-0 grid w-full border-b border-neutral-200 text-sm',
                   row.key === highlightKey && 'bg-yellow-100',
+                  row.problem && 'bg-red-50 text-red-900',
                 )}
                 style={{
                   height: ROW_HEIGHT,
@@ -372,10 +381,13 @@ export function DataTable({
                       aria-selected={selected}
                       aria-colindex={c + 1}
                       data-column={column.id}
+                      data-edited={row.marks?.includes(column.id) ? 'true' : undefined}
                       className={cn(
-                        'relative flex min-w-0 items-center border-r border-neutral-100 px-2',
+                        // contain: the text never widens the column, so every row lines up
+                        'relative flex min-w-0 items-center border-r border-neutral-100 px-2 [contain:inline-size]',
                         selected && 'outline-2 -outline-offset-2 outline-blue-600',
                         column.readOnly && 'bg-neutral-50 text-neutral-600',
+                        row.marks?.includes(column.id) && 'bg-blue-50 font-medium',
                       )}
                       onClick={() => setActive({ r: item.index, c })}
                       onDoubleClick={() => startEdit(item.index, c)}
@@ -401,11 +413,21 @@ export function DataTable({
                           title={display(row.values[column.id], column.kind)}
                         >
                           {display(row.values[column.id], column.kind)}
+                          {row.marks?.includes(column.id) && (
+                            <span aria-label="edited" className="ml-1 text-blue-700">
+                              ✎
+                            </span>
+                          )}
                         </span>
                       )}
                     </div>
                   )
                 })}
+                {!onDelete && renderRowAction && (
+                  <div role="gridcell" className="flex items-center px-1">
+                    {renderRowAction(row)}
+                  </div>
+                )}
                 {onDelete && (
                   <div role="gridcell" className="flex items-center px-1">
                     <Button

@@ -30,6 +30,8 @@ const sheet = {
   target: 'event',
   label: '',
   export_only: false,
+  hidden: false,
+  import_only: false,
   columns: [
     col({ name: 'code', required: true }),
     col({ name: 'module', refs: ['Modules'] }),

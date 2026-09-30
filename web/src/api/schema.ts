@@ -98,20 +98,20 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/datasets/{dataset_id}/expand": {
+    "/datasets/{dataset_id}/sessions": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /**
-         * Expand Templates
-         * @description Preview (default) or commit the expansion of the dataset's templates into activities.
+         * Planned Sessions
+         * @description The sessions the solver will make: each module and kind, its groups and how many sessions.
          */
-        post: operations["expand_templates_datasets__dataset_id__expand_post"];
+        get: operations["planned_sessions_datasets__dataset_id__sessions_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -348,9 +348,80 @@ export interface paths {
          * Export
          * @description Export a run: HTML grids, a workbook with the assignments, or a CSV list.
          *
-         *     `code` limits it to one resource, `type` to the resources of one type.
+         *     `code` limits it to one resource, `type` to the resources of one type. With neither, the HTML
+         *     holds every timetable (groups, teachers and rooms) in one file, with a contents list.
          */
         get: operations["export_runs__run_id__export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/datasets/{dataset_id}/timetable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Timetable
+         * @description The sessions of the current run, with the edits applied.
+         */
+        get: operations["timetable_datasets__dataset_id__timetable_get"];
+        put?: never;
+        post?: never;
+        /**
+         * Clear
+         * @description Forget every edit.
+         */
+        delete: operations["clear_datasets__dataset_id__timetable_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/datasets/{dataset_id}/timetable/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Edit
+         * @description Keep the given values for one session in the next run (and in the table at once).
+         */
+        put: operations["edit_datasets__dataset_id__timetable__code__put"];
+        post?: never;
+        /**
+         * Undo
+         * @description Forget the edit of one session: the next run is free to place it again.
+         */
+        delete: operations["undo_datasets__dataset_id__timetable__code__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/datasets/{dataset_id}/timetable/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check
+         * @description The current run's timetable with the edits applied, judged by the verifier.
+         *
+         *     Nothing is stored: the stored run is never changed. A clash an edit causes shows here at once.
+         */
+        get: operations["check_datasets__dataset_id__timetable_check_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -446,6 +517,13 @@ export interface components {
         Body_validate_validate_post: {
             /** File */
             file: string;
+        };
+        /** CheckOut */
+        CheckOut: {
+            /** Run Id */
+            run_id: number | null;
+            /** Violations */
+            violations: components["schemas"]["DraftViolationOut"][];
         };
         /** ClashOut */
         ClashOut: {
@@ -546,6 +624,8 @@ export interface components {
             name: string;
             /** Preset */
             preset: string;
+            /** Kind */
+            kind: string;
             /** Version */
             version: number;
             /**
@@ -599,6 +679,37 @@ export interface components {
             /** Changes */
             changes: components["schemas"]["EventChange"][];
         };
+        /** DraftViolationOut */
+        DraftViolationOut: {
+            /** Code */
+            code: string;
+            /** Constraint Code */
+            constraint_code: string;
+            /** Severity */
+            severity: string;
+            /** Message */
+            message: string;
+            /** Refs */
+            refs: {
+                [key: string]: string;
+            }[];
+        };
+        /**
+         * EditBody
+         * @description The values to keep for one session. A field left out is not changed.
+         */
+        EditBody: {
+            /** Day */
+            day?: string | null;
+            /** Start */
+            start?: string | null;
+            /** Rooms */
+            rooms?: string[] | null;
+            /** Teachers */
+            teachers?: string[] | null;
+            /** Groups */
+            groups?: string[] | null;
+        };
         /**
          * EventChange
          * @description How one event differs between two results.
@@ -612,44 +723,6 @@ export interface components {
             kind: string;
             before: components["schemas"]["Placement"] | null;
             after: components["schemas"]["Placement"] | null;
-        };
-        /**
-         * ExpandOut
-         * @description What expanding the templates changes: activity codes, and ordering constraints.
-         */
-        ExpandOut: {
-            /** Committed */
-            committed: boolean;
-            /**
-             * Added
-             * @default []
-             */
-            added: string[];
-            /**
-             * Changed
-             * @default []
-             */
-            changed: string[];
-            /**
-             * Removed
-             * @default []
-             */
-            removed: string[];
-            /**
-             * Orders Added
-             * @default 0
-             */
-            orders_added: number;
-            /**
-             * Orders Removed
-             * @default 0
-             */
-            orders_removed: number;
-            /**
-             * Problems
-             * @default []
-             */
-            problems: string[];
         };
         /** Grid */
         Grid: {
@@ -788,18 +861,47 @@ export interface components {
             resources: string[];
         };
         /**
+         * PlannedOut
+         * @description What the solver will schedule for one module and kind of session.
+         */
+        PlannedOut: {
+            /** Demand */
+            demand: string;
+            /** Module */
+            module: string | null;
+            /** Kind */
+            kind: string;
+            /** Groups */
+            groups: string[];
+            /** Groups Per Session */
+            groups_per_session: number | null;
+            /** Blocks */
+            blocks: number;
+            /** Per Week */
+            per_week: number;
+            /** Sessions */
+            sessions: number;
+        };
+        /**
          * PooledMapping
          * @description Columns that stand for a pooled requirement (for example a room type and a count).
+         *
+         *     With a `type_column`, the requirement's filter is the tag test `tag=<value>` and a blank value
+         *     means no requirement. Without one, any resource of `resource_type` will do (filter `all`) and
+         *     the requirement exists whenever its count is at least 1. Without a `count_column` the count
+         *     is 1. The n-th mapping of a sheet (ADR-0006) is the requirement with ordinal n, and its
+         *     columns use the fields `pooled_type:<n>` and `pooled_count:<n>` (plain `pooled_type` and
+         *     `pooled_count` for the first).
          */
         PooledMapping: {
             /** Resource Type */
             resource_type: string;
-            /** Tag */
-            tag: string;
             /** Capacity Rule */
             capacity_rule: string;
+            /** Tag */
+            tag?: string | null;
             /** Type Column */
-            type_column: string;
+            type_column?: string | null;
             /** Count Column */
             count_column?: string | null;
         };
@@ -943,6 +1045,8 @@ export interface components {
         SchemaOut: {
             /** Preset */
             preset: string;
+            /** Kind */
+            kind: string;
             /** Format Version */
             format_version: number;
             /** Sheets */
@@ -953,6 +1057,31 @@ export interface components {
             };
             /** Resource Types */
             resource_types: components["schemas"]["ResourceType"][];
+        };
+        /** SessionOut */
+        SessionOut: {
+            /** Code */
+            code: string;
+            /** Module */
+            module: string | null;
+            /** Kind */
+            kind: string;
+            /** Demand */
+            demand: string;
+            /** Groups */
+            groups: string[];
+            /** Teachers */
+            teachers: string[];
+            /** Rooms */
+            rooms: string[];
+            /** Day */
+            day: string;
+            /** Start */
+            start: string;
+            /** End */
+            end: string;
+            /** Edited */
+            edited: string[];
         };
         /**
          * SheetDef
@@ -974,10 +1103,25 @@ export interface components {
             reference_type?: string | null;
             pooled?: components["schemas"]["PooledMapping"] | null;
             /**
+             * More Pooled
+             * @default []
+             */
+            more_pooled: components["schemas"]["PooledMapping"][];
+            /**
              * Export Only
              * @default false
              */
             export_only: boolean;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden: boolean;
+            /**
+             * Import Only
+             * @default false
+             */
+            import_only: boolean;
             /**
              * Label
              * @default
@@ -998,6 +1142,15 @@ export interface components {
             page: number;
             /** Size */
             size: number;
+        };
+        /** TimetableOut */
+        TimetableOut: {
+            /** Run Id */
+            run_id: number | null;
+            /** Edits */
+            edits: number;
+            /** Rows */
+            rows: components["schemas"]["SessionOut"][];
         };
         /** ValidateOut */
         ValidateOut: {
@@ -1298,11 +1451,9 @@ export interface operations {
             };
         };
     };
-    expand_templates_datasets__dataset_id__expand_post: {
+    planned_sessions_datasets__dataset_id__sessions_get: {
         parameters: {
-            query?: {
-                commit?: boolean;
-            };
+            query?: never;
             header?: never;
             path: {
                 dataset_id: number;
@@ -1317,7 +1468,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ExpandOut"];
+                    "application/json": components["schemas"]["PlannedOut"][];
                 };
             };
             /** @description Validation Error */
@@ -1849,6 +2000,167 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    timetable_datasets__dataset_id__timetable_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_datasets__dataset_id__timetable_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_datasets__dataset_id__timetable__code__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    undo_datasets__dataset_id__timetable__code__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_datasets__dataset_id__timetable_check_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckOut"];
                 };
             };
             /** @description Validation Error */

@@ -2,9 +2,11 @@
 
 Sheet name in Excel and CSV files: `Templates`.
 
+> **Retired.** The application has no Templates table and no Expand button any more. A format version 1 file that still has rows here is accepted: they are **expanded once, when the file is imported**, into rows of [Activities](Activities.md), and the dataset keeps no templates. A problem with a template row is reported as an import error on this sheet. For new data, describe your modules and session types instead (see [SessionTypes](SessionTypes.md) and [Modules](Modules.md)): the solver decides the sessions.
+
 ## What it is
 
-Rules that **generate activities**. One template row stands for a whole set of activities (every group's tutorial, say). Use the Expand panel on this tab to turn them into rows of Activities. Skip this table if you type activities by hand.
+Rules that **generate activities**. One template row stands for a whole set of activities (every group's tutorial, say). They are turned into rows of Activities when a version 1 file is imported.
 
 ## Columns
 
@@ -29,7 +31,7 @@ Rules that **generate activities**. One template row stands for a whole set of a
 - **`groups`** is a selector, for example `under:L6 SE` for every group below the SE programme, or `code:"L6 CS / G13"` for one group. See [Selectors](../constraints/selectors.md).
 - **`batch_size`** is required when `mode` is `batched`, and ignored otherwise.
 - Generated activities are named `<module>-<kind>-<nn>` and carry the template's code in their `template` column.
-- See [Templates and Expand](../tabs/templates-expand.md) for the preview and commit.
+- See [Import / export](../tabs/import-export.md) for what an import does with them.
 
 ## Example
 

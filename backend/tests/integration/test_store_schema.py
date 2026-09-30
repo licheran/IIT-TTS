@@ -46,3 +46,56 @@ def test_a_dataset_can_have_only_one_published_run(engine) -> None:
         session.add(RunRow(dataset_id=dataset_id, published=False))
     with pytest.raises(IntegrityError), session_scope(factory) as session:
         session.add(RunRow(dataset_id=dataset_id, published=True))
+
+
+def test_the_templates_migration_expands_stored_templates_and_drops_them(tmp_path: Path) -> None:
+    from datetime import time
+
+    from sqlalchemy import text
+
+    from tts.core.model import (
+        Dataset,
+        Day,
+        Period,
+        Reference,
+        Resource,
+        StartPattern,
+        Template,
+        TimeModel,
+    )
+    from tts.presets.academic_weekly import types
+    from tts.store.repositories import DatasetRepo
+
+    old = Dataset(
+        preset="academic_weekly",
+        resource_types=types.RESOURCE_TYPES,
+        reference_types=types.REFERENCE_TYPES,
+        resources=(
+            Resource(code="PR1", type="Programme"),
+            Resource(code="G1", type="StudentGroup", parent="PR1", capacity=30),
+        ),
+        references=(Reference(code="M1", type="Module"),),
+        time=TimeModel(
+            days=(Day(code="Mon", order=1),),
+            periods=(Period(code="P1", start=time(8), end=time(9), order=1),),
+            start_patterns=(StartPattern(code="1H", duration=1, start_periods=("P1",)),),
+        ),
+        templates=(
+            Template(
+                code="TP1", kind="LEC", mode="joint", reference="M1", targets="type:StudentGroup",
+                duration=1, start_pattern="1H", sessions_per_week=2,
+            ),
+        ),
+    )  # fmt: skip
+    url = f"sqlite:///{tmp_path / 'old.db'}"
+    upgrade(url, "0003")
+    factory = make_session_factory(make_engine(url))
+    with session_scope(factory) as session:
+        dataset_id = DatasetRepo(session).create("old", "academic_weekly", old)
+    upgrade(url)
+    with session_scope(factory) as session:
+        stored = DatasetRepo(session).load(dataset_id)
+        assert stored.templates == ()
+        assert [e.code for e in stored.events] == ["M1-LEC-01", "M1-LEC-02"]
+        assert all(e.template is None for e in stored.events)
+        assert session.execute(text("SELECT count(*) FROM template")).scalar_one() == 0

@@ -2,7 +2,7 @@
 
 ## What it's for
 
-The Tables tab is where you enter and correct your data. It has **one tab per table** (Days, Periods, Groups, Teachers, Rooms, Activities and so on). The names come from the preset. Each table is described on its own page in the [table reference](../tables/README.md).
+The Tables tab is where you enter and correct your data. It has **one tab per table** (Days, Periods, Groups, Teachers, Rooms, Session types, Modules and so on). The names come from the preset. Each table is described on its own page in the [table reference](../tables/README.md).
 
 Everything you change here is checked straight away by the same rules as an import, and saved. There is no Save button.
 
@@ -12,7 +12,7 @@ Everything you change here is checked straight away by the same rules as an impo
 
 ### Move between tables
 
-Click a table's name in the row of tabs above the grid. Tables that are built by the program (the Assignments of a run) are not listed. To generate activities from templates, see [Templates and Expand](templates-expand.md).
+Click a table's name in the row of tabs above the grid. Tables that are built by the program (the Assignments of a run) are not listed. A dataset built from configuration has one extra tab at the end, **Activities**, which shows the sessions the solver made and lets you correct them: see [Activities](activities.md). A hand-made dataset (a format version 1 file, such as the L6 sample) has an Activities table of its own, with the groups and teachers of each activity as columns.
 
 ### Add rows with the entry row
 
@@ -78,7 +78,7 @@ To add three teachers to the Teachers table: click the `code` field of the entry
 ## Related
 
 - [The tables](../tables/README.md), one page for each, and [Tags](../tables/tags.md)
-- [Templates and Expand](templates-expand.md)
+- [Activities](activities.md)
 - [Import / export](import-export.md)
 - [Import and editing errors](../troubleshooting/import-errors.md)
 - [Basics](../basics.md)

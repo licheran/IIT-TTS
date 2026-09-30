@@ -2,6 +2,8 @@
 
 Sheet name in Excel and CSV files: `Pins`.
 
+> **Hand-made datasets only.** A dataset built from configuration has no Pins table: to keep a session where you want it, edit it on the [Activities](../tabs/activities.md) tab. The next run keeps the edited values.
+
 ## What it is
 
 Fixes an activity's time and/or rooms. The solver keeps every pin. You normally create pins from the [Timetable](../tabs/timetable.md) tab with **Pin here**, but they can be typed here.

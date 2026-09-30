@@ -67,7 +67,7 @@ cli.py           `tts` entry point (solve, validate, import-fet, export)
 | `core` | stdlib, pydantic |
 | `expand`, `preflight` | `core` |
 | `solver` | `core`, ortools |
-| `io` | `core`, `presets` (sheet definitions only), openpyxl, bs4, jinja2 |
+| `io` | `core`, `presets` (sheet definitions only), `expand` (the version 1 template converter), openpyxl, bs4, jinja2 |
 | `presets` | `core` |
 | `store` | `core`, sqlalchemy |
 | `api`, `worker`, `cli` | all backend packages |
@@ -96,11 +96,10 @@ The core-purity test fails if the domain words listed in `CLAUDE.md` rule 1 appe
 | `GET/POST /datasets` · `GET/PATCH/DELETE /datasets/{id}` | Manage datasets (`POST` takes `{name, preset}`) |
 | `GET /presets` | Names of the available presets |
 | `GET /datasets/{id}/schema` | The preset's sheet definitions and labels for the dataset's kind (drive the UI). Also returns `kind`: `configured` or `hand_made` |
-| `GET/POST /datasets/{id}/tables/{sheet}` | List rows (`?page,size,sort,filter`) / create a row |
+| `GET/POST /datasets/{id}/tables/{sheet}` | List rows (`?page,size,sort,filter`) / create a row. A sheet with `hidden` or `import_only` (version 1: ActivityGroups, ActivityTeachers, Templates) has no table: a hand-made dataset's groups and teachers are columns of Activities |
 | `PATCH/DELETE /datasets/{id}/tables/{sheet}/{code}` | Update / delete a row |
 | `POST /datasets/{id}/import` | Multipart `.xlsx` or `.zip`. Returns `{ok, errors[], summary}` |
 | `GET /datasets/{id}/export?format=xlsx\|csvzip` | Export the configuration |
-| `POST /datasets/{id}/expand?commit=false\|true` | Template preview / commit (hand-made datasets only). Returns `{committed, added[], changed[], removed[], orders_added, orders_removed, problems[]}` |
 | `GET /datasets/{id}/sessions` | The configured dataset's sessions to schedule: each module and kind, its groups, blocks and sessions per week (Phase 21) |
 | `GET /datasets/{id}/timetable` | The Activities table of a configured dataset: the current run's sessions with the edits applied (Phase 22) |
 | `PUT/DELETE /datasets/{id}/timetable/{session}` · `DELETE /datasets/{id}/timetable` | Edit a session (day, start, rooms, teachers, groups) / undo its edit / clear all edits |

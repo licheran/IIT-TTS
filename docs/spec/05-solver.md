@@ -8,7 +8,7 @@ Status: **Authoritative.** Code: `expand/`, `preflight/`, `solver/`, `core/verif
 snapshot(dataset) → prepare → preflight → compile_model → solve → decode → verify → store
 ```
 
-`prepare` depends on the dataset's kind (`02-domain-model.md` §2, invariant 7). A **hand-made** dataset expands its templates into events (§2.1). A **configured** dataset has its preset turn the configuration into demands (§2.2), which the solver splits into sessions; it has no expand step.
+`prepare` depends on the dataset's kind (`02-domain-model.md` §2, invariant 7). A **hand-made** dataset already holds its events (a version 1 file's template rows were expanded once, on import, §2.1). A **configured** dataset has its preset turn the configuration into demands (§2.2), which the solver splits into sessions.
 
 - Each stage is a pure function with typed input and output, except `store`.
 - `snapshot` freezes the dataset into a core model and computes `input_hash` (SHA-256 of the canonical JSON).
@@ -17,7 +17,9 @@ snapshot(dataset) → prepare → preflight → compile_model → solve → deco
 
 ## 2. Preparing events
 
-### 2.1 Templates → events (hand-made datasets)
+### 2.1 Templates → events (version 1 import, run once)
+
+The application keeps no templates (ADR-0007). `expand/` is the version 1 converter: `io` calls it when a file has template rows, and a data migration called it once for stored datasets. Nothing else imports it, and a run never expands.
 
 | `mode` | Events created per session_per_week |
 |---|---|
@@ -27,8 +29,8 @@ snapshot(dataset) → prepare → preflight → compile_model → solve → deco
 
 - **Event codes:** `<module>-<kind>-<nn>` where `nn` is 01, 02, … in creation order. They are stable when the inputs don't change.
 - **Ordering:** for each module with both a LEC template and a TUT template, add a soft `order` constraint (weight 1) from each LEC event to every TUT event that shares at least one group.
-- **Idempotence:** re-expanding replaces only events with `template = <this template>`. Hand-made events (with no template) are never touched.
-- **Preview:** `expand(ds, commit=False)` returns a diff of added, changed and removed events.
+- **Idempotence:** re-expanding replaces only events with `template = <this template>`. Hand-made events (with no template) are never touched. After the import the events have no `template`.
+- **Diff:** `expand(ds)` returns a diff of added, changed and removed events (used by the converter's tests).
 
 ### 2.2 Demands → sessions (configured datasets)
 

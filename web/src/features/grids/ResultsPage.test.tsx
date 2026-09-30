@@ -17,6 +17,8 @@ const schema = {
       resource_type: 'StudentGroup',
       label: 'Groups',
       export_only: false,
+      hidden: false,
+      import_only: false,
       columns: [],
     },
     {
@@ -25,6 +27,8 @@ const schema = {
       resource_type: 'Teacher',
       label: 'Teachers',
       export_only: false,
+      hidden: false,
+      import_only: false,
       columns: [],
     },
   ],

@@ -11,7 +11,7 @@ The first built-in preset is **academic weekly timetabling**: lectures and tutor
 ## How it works
 
 ```
-Excel/CSV or table editor ──► Validate ──► Expand templates ──► Pre-flight checks
+Excel/CSV or table editor ──► Validate ──► Sessions from configuration ──► Pre-flight checks
       ──► Solve (OR-Tools CP-SAT) ──► Verify ──► Grids + HTML/Excel/CSV exports
 ```
 
@@ -27,7 +27,7 @@ Excel/CSV or table editor ──► Validate ──► Expand templates ──�
 | Excel (`.xlsx`) and CSV (`.zip`) import and export | Works, in the app and on the command line. An import reads the whole workbook and reports every problem as `Sheet!R<row>C<col> [column]: message`. |
 | Table editors | Works. One tab per sheet, inline editing with keyboard navigation, reference pickers, filter and sort; 5,000 rows scroll at 60 fps. |
 | FET HTML import | Works (`tts import-fet`, `POST /validate`). |
-| Templates | Works. Templates expand into activities, with a preview before committing. |
+| Configuration | Works. You configure session types, modules, groups and teachers; the solver decides the sessions, which groups share them and who teaches. A correction you make to a session is kept by the next run, which rebuilds everything else. Older files with typed activities (format version 1, such as L6) import as hand-made datasets. |
 | Pre-flight checks | Works. Errors (for example a teacher needing more periods than they have) block a run. |
 | Solve | Works: hard rules, and the 14 soft or hard constraint types of [spec 04](docs/spec/04-constraints.md) with a weighted score. L6 (77 events) solves in about 0.1 s, or scores 0 on the academic defaults in about 5 s; a synthetic institute of about 3,000 events solves in under a minute. |
 | Staged solving and locks | Works (`tts solve --stage`, `stage_scope`). Published timetables of other datasets are respected on shared resources, and `tts clashes` / `GET /clashes` report conflicts between datasets. |

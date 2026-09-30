@@ -126,6 +126,11 @@ class SheetDef(_Frozen):
     pooled: PooledMapping | None = None
     more_pooled: tuple[PooledMapping, ...] = ()
     export_only: bool = False
+    # A sheet the application no longer shows as a table. `hidden`: the file still has it, and its
+    # rows are edited through the columns of another sheet. `import_only`: old files may have it
+    # (it is read once on import) but the application never writes it.
+    hidden: bool = False
+    import_only: bool = False
     label: str = ""
 
     def column(self, name: str) -> ColumnDef | None:

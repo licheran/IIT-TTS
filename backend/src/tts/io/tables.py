@@ -124,7 +124,8 @@ Values = dict[str, Cell]
 
 
 class _Export:
-    def __init__(self, data: WorkbookData, preset: Preset) -> None:
+    def __init__(self, data: WorkbookData, preset: Preset, folded: frozenset[str] = frozenset()):
+        self.folded = folded  # join sheets shown as columns of the event sheet instead
         self.data = data
         self.ds = data.dataset
         self.preset = preset
@@ -391,6 +392,19 @@ class _Export:
             )
         return rows
 
+    def shortcut_fields(self, sheet: SheetDef, code: str) -> dict[str, Cell]:
+        """The convenience columns whose join sheet is folded in, filled from the fixed rows."""
+        found: dict[str, Cell] = {}
+        for column in sheet.columns:
+            if column.expands_to in self.folded:
+                items = [
+                    f.resource
+                    for f in self.ds.fixed
+                    if f.event == code and self.sheet_of.get(f.resource) in column.refs
+                ]
+                found[column.field] = format_list(items, code)
+        return found
+
     def event_rows(self, sheet: SheetDef) -> list[Values]:
         rows = []
         for e in self.ds.events:
@@ -408,6 +422,7 @@ class _Export:
                         "template": e.template,
                         "tags": format_pairs(e.tags, e.code),
                         **pool,
+                        **self.shortcut_fields(sheet, e.code),
                     },
                 )
             )
@@ -563,8 +578,12 @@ def without_edits(dataset: Dataset) -> Dataset:
     )
 
 
-def build_tables(data: WorkbookData, preset: Preset) -> list[Table]:
+def build_tables(data: WorkbookData, preset: Preset, shortcuts: bool = False) -> list[Table]:
     """Every sheet of the workbook, in the preset's order. `Assignments` only with a result.
+
+    With `shortcuts` (the tables the application shows) a hidden join sheet is left empty and its
+    rows appear in the convenience column of the event sheet (an activity's groups and teachers),
+    which an edit turns back into rows on import. A sheet that is `import_only` is never written.
 
     A preset with no sheet for events (the workbook holds configuration only, spec 03 section 2a)
     leaves out the edits of a configured dataset: declared events of a demand, with their fixed
@@ -572,13 +591,14 @@ def build_tables(data: WorkbookData, preset: Preset) -> list[Table]:
     """
     if not any(s.target == "event" for s in preset.sheets):
         data = replace(data, dataset=without_edits(data.dataset))
-    export = _Export(data, preset)
+    folded = frozenset(s.name for s in preset.sheets if s.hidden) if shortcuts else frozenset()
+    export = _Export(data, preset, folded)
     tables = []
     for sheet in preset.sheets:
-        if sheet.export_only and data.result is None:
+        if sheet.import_only or (sheet.export_only and data.result is None):
             continue
-        rows = export.rows(sheet)
-        defined = [c for c in sheet.columns if not c.convenience]
+        rows = [] if sheet.name in folded else export.rows(sheet)
+        defined = [c for c in sheet.columns if not c.convenience or c.expands_to in folded]
         keys = [row_key(sheet, r) for r in rows]
 
         extras: set[str] = set()

@@ -49,8 +49,9 @@ from tts.core.selectors import (
     parse,
 )
 from tts.core.sheets import ColumnDef, PooledMapping, Preset, SheetDef
+from tts.expand.templates import expand
 from tts.io.tables import KEY_SEP, LIST_SEP, STAR, WorkbookData, row_key
-from tts.presets import FORMAT_VERSIONS, PRESET_VERSIONS, configuration_issues
+from tts.presets import FORMAT_VERSIONS, PRESET_VERSIONS, configuration_issues, expansion_options
 
 
 @dataclass(frozen=True, slots=True)
@@ -901,6 +902,8 @@ def import_raw(raw: dict[str, RawSheet], preset: Preset | None = None) -> Import
         return ImportOutcome(tuple(imp.issues), summary=summary)
     if imp.issues:  # found while building the result
         return ImportOutcome(tuple(_ordered(imp.issues, raw)), summary=summary)
+    if dataset.templates:
+        dataset = _expanded(dataset, imp)
     for problem in dataset.validate_invariants():
         imp.issue(problem.table, message=f"{problem.key}: {problem.message}")
     if imp.issues:
@@ -924,6 +927,20 @@ def import_raw(raw: dict[str, RawSheet], preset: Preset | None = None) -> Import
     extra_meta = {k: v for k, v in meta.items() if k not in ("format_version", "preset")}
     data = WorkbookData(dataset=dataset, result=result, meta=extra_meta, notes=notes, run=run)
     return ImportOutcome((), data, summary)
+
+
+def _expanded(dataset: Dataset, imp: "_Import") -> Dataset:
+    """A version 1 file's template rows become activities once, and the templates are dropped.
+
+    The application no longer keeps templates (ADR-0007): the rows were only a way to type
+    activities. A template that cannot be expanded is an import error on the Templates sheet.
+    """
+    options: dict[str, Any] = expansion_options(dataset.preset)
+    done = expand(dataset, **options)
+    for problem in done.problems:
+        imp.issue("Templates", message=problem)
+    events = tuple(e.model_copy(update={"template": None}) for e in done.dataset.events)
+    return done.dataset.model_copy(update={"templates": (), "events": events})
 
 
 def _ordered(issues: list[ImportIssue], raw: dict[str, RawSheet]) -> list[ImportIssue]:

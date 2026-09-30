@@ -18,6 +18,10 @@ Pre-flight checks your data **before** solving, in a fraction of a second. It fi
      - links such as `6COSC023C-LEC-01 → Activities`.
 3. Click a link to jump to the **Tables** tab, with the right table open and the row highlighted in yellow. Fix it there, then come back and press **Check again**.
 
+## Sessions to schedule
+
+For a dataset built from configuration, the tab first shows **Sessions to schedule**: a table with a row for each module and kind of session, the number of groups that take it, how many groups meet in one session, the number of blocks (the sessions the groups are split into), the sessions per week and the total. For example a tutorial of one group per session for 10 groups is 10 blocks. It is what the solver will make, worked out from your modules, session types and groups. If a row surprises you, the configuration is not what you meant: check the module's `sessions`, the groups that take it (mandatory or optional modules) and the session type's `max_groups` and `weekly`.
+
 ## Errors and warnings
 
 - An **error** means the data cannot produce a valid timetable. While there is any error, the **Run** tab refuses to start: it shows `Pre-flight found errors, so a run cannot start` and disables **Start**.
@@ -35,6 +39,9 @@ Pre-flight checks your data **before** solving, in a fraction of a second. It fi
 | Two activities pinned to the same room and time | `conflicting_pins` | error | `Pins: 2 activities pinned to [2LA] -GP on Wed P01` |
 | A selector that cannot be read | `invalid_selector` | error | `C-GAPS: scope "teacher:": …` |
 | A constraint whose parameters are not valid | `invalid_constraint` | error | the reason, naming the constraint code |
+| A module's session kind that no group takes | `empty_demand` | warning | the module and kind named in the message |
+| Nothing at all to schedule | `nothing_to_schedule` | warning | `nothing to schedule: …` |
+| A mistake in the configuration (an unknown session type, a teacher's module with no such kind) | `configuration` | error | `Modules "6SENG005C": …` |
 | A kind of room that is nearly used up | `pooled_pressure` | warning | `Room tag:room_type=lab: 64 periods needed, 60 available` |
 | A resource nothing can use | `unused_resource` | warning | `Room [1LA] -GP is never a candidate` |
 | A constraint whose scope matches nothing | `empty_scope` | warning | `C-GAPS: scope matches nothing` |

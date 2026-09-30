@@ -169,3 +169,22 @@ def test_a_run_of_a_configured_dataset_creates_and_stores_its_sessions(
     assert sorted(r["event"] for r in rows) == codes
     grid = client.get(f"/runs/{run_id}/grid", params={"code": "P1/G1"})
     assert grid.status_code == 200
+
+
+def test_the_planned_sessions_list_each_module_and_kind_with_its_blocks(client) -> None:
+    dataset_id = create_dataset(client)
+    assert upload(client, dataset_id, workbook(with_rooms(configured_dataset()))).json()["ok"]
+    planned = {p["demand"]: p for p in client.get(f"/datasets/{dataset_id}/sessions").json()}
+    assert sorted(planned) == ["M1-LEC", "M1-TUT", "M2-TUT", "M3-LEC"]
+    lecture, tutorial = planned["M1-LEC"], planned["M1-TUT"]
+    assert lecture["groups"] == ["P1/G1", "P1/G2", "P2/G1"]
+    assert (lecture["blocks"], lecture["sessions"], lecture["groups_per_session"]) == (1, 1, 3)
+    assert (tutorial["blocks"], tutorial["per_week"], tutorial["sessions"]) == (3, 1, 3)
+    assert planned["M2-TUT"]["groups"] == ["P1/G1"]
+
+
+def test_a_hand_made_dataset_has_no_planned_sessions(client, l6_dataset) -> None:
+    from api_helpers import import_dataset
+
+    dataset_id = import_dataset(client, l6_dataset)
+    assert client.get(f"/datasets/{dataset_id}/sessions").status_code == 409

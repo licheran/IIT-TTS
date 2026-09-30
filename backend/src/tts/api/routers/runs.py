@@ -93,8 +93,8 @@ def run_out(info: RunInfo, session: DbSession | None = None) -> RunOut:
 @router.post("/datasets/{dataset_id}/runs", status_code=201)
 def start_run(dataset_id: int, session: DbSession, params: RunParams | None = None) -> RunCreated:
     """Snapshot and hash the dataset, then queue a run. The worker picks it up."""
-    # The snapshot holds the expanded dataset, so a run's events, grids and exports all name the
-    # activities its templates made, even if the templates change later.
+    # The snapshot holds the prepared dataset (a configuration's demands derived), so the run's
+    # input and its hash cover exactly what the solver was given, even if the tables change later.
     dataset = prepare_with_preset(DatasetRepo(session).load(dataset_id))
     params = params or RunParams()
     runs = RunRepo(session)

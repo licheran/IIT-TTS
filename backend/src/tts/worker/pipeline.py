@@ -1,4 +1,4 @@
-"""The run pipeline (spec 05 section 1): expand, pre-flight, compile, solve, decode, verify.
+"""The run pipeline (spec 05 section 1): prepare, pre-flight, compile, solve, decode, verify.
 
 `run_pipeline` is a plain function of a dataset and parameters. The worker calls it and stores what
 it returns, so the same code serves the queue, tests and any future caller.
@@ -44,9 +44,9 @@ def _progress_dict(progress: SolveProgress) -> dict[str, Any]:
     }
 
 
-def expand_dataset(dataset: Dataset) -> Dataset:
-    """The prepare stage: templates become events, or a configuration becomes demands (a no-op on
-    a dataset that was already prepared)."""
+def prepare_dataset(dataset: Dataset) -> Dataset:
+    """The prepare stage: a configuration becomes demands (a no-op on a dataset already prepared
+    and on a hand-made one)."""
     return prepare_with_preset(dataset)
 
 
@@ -57,7 +57,7 @@ def run_pipeline(
     on_progress: ProgressFn | None = None,
 ) -> PipelineOutcome:
     label = labeller(dataset.preset)
-    dataset = expand_dataset(dataset)
+    dataset = prepare_dataset(dataset)
 
     issues = preflight_with_preset(dataset)
     diagnostics = [

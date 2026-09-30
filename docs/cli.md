@@ -226,7 +226,7 @@ uv run tts validate l6-solved.local.xlsx
 
 ## Planned commands
 
-Later phases add commands and options as they land; this page is updated with each one. Not built yet: expanding templates into events (Phase 9), and running the API and the worker (Phase 6).
+Later phases add commands and options as they land; this page is updated with each one. `tts solve`, `tts validate` and `tts preflight` read both workbook formats: a configured dataset (format version 2, configuration only) and a hand-made one (version 1). Template rows of a version 1 file are expanded once when it is read.
 
 ## `tts clashes`
 

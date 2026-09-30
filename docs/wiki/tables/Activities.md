@@ -4,7 +4,9 @@ Sheet name in Excel and CSV files: `Activities`.
 
 ## What it is
 
-The sessions to schedule: each row is one lecture, tutorial or lab that needs a time and (usually) a room. **This is the table the solver works on.** Activities can be typed here or generated from Templates.
+The sessions to schedule: each row is one lecture, tutorial or lab that needs a time and (usually) a room.
+
+**In a dataset built from configuration there is nothing to type here.** The solver makes the sessions from the modules and session types, and the Activities tab shows the result: see [Activities](../tabs/activities.md). The rest of this page describes the **hand-made** datasets (format version 1, such as the L6 sample), where the activities are typed or imported and the solver places them.
 
 ## Columns
 
@@ -27,11 +29,11 @@ Tags are explained on the [Tags](tags.md) page.
 
 ## Rules
 
-- **Who attends and who teaches** is kept in two other tables, ActivityGroups and ActivityTeachers, one row per pair. The `groups` and `teachers` columns are shortcuts when you write a file by hand: on import they turn into those rows, and on export they are **not written** (the two tables hold the information).
+- **Who attends and who teaches** is kept in two sheets of the file, ActivityGroups and ActivityTeachers, one row per pair. The application shows them as the `groups` and `teachers` columns of this table, which you edit with a checklist. In a file, the two sheets hold the information; the `groups` and `teachers` columns are a shortcut for typing a file by hand (they turn into those rows on import) and are **not written** on export.
 - **Rooms.** For an `in_person` activity, `room_type` is required unless `room_count` is `0`. `room_count` is 1 when left blank. For an `online` activity, leave `room_type` and `room_count` blank.
 - The room must seat the **sum of the sizes** of the groups that attend (the capacity rule), and its `room_type` must match exactly.
 - An activity with several groups is a **joint** activity: all of them attend at once, and all of them are occupied.
-- Hand-made activities (empty `template`) are never changed by Expand.
+- The `template` column is kept for old files. Template rows are expanded once when a file is imported, and the activities they make have no `template`.
 - Import errors for this table: `required unless room_count is 0 (or the activity is online)`, `an online activity cannot have a room type`, `an online activity cannot have rooms` and `expected integer ≥ 1 when room_type is set`.
 
 ## Example

@@ -17,6 +17,7 @@ PAGES = ROOT / "docs" / "wiki" / "troubleshooting"
 SRC = ROOT / "backend" / "src" / "tts"
 L6 = ROOT / "backend" / "tests" / "fixtures" / "l6" / "l6.xlsx"
 TEMPLATES = ROOT / "backend" / "tests" / "fixtures" / "l6" / "templates.xlsx"
+CONFIG = ROOT / "backend" / "tests" / "fixtures" / "l6-config" / "l6-config.xlsx"
 
 
 def page(name: str) -> str:
@@ -378,6 +379,105 @@ CASES: list[tuple[str, Callable[[Workbook], None], Path, str]] = [
         setc("Templates", 2, "groups", "under:"),
         TEMPLATES,
         "Templates!R2C5 [groups]: under: needs a value",
+    ),
+    (
+        "v2 unknown session type",
+        setc("Modules", 2, "sessions", "LEC;XYZ"),
+        CONFIG,
+        'Modules!R2C6 [sessions]: unknown code "XYZ"',
+    ),
+    (
+        "v2 setting without a value",
+        setc("Modules", 2, "sessions", "LEC(max_groups)"),
+        CONFIG,
+        'Modules!R2C6 [sessions]: cannot read "LEC(max_groups)": expected name=value',
+    ),
+    (
+        "v2 unknown setting",
+        setc("Modules", 2, "sessions", "LEC(size=2)"),
+        CONFIG,
+        'Modules!R2C6 [sessions]: unknown setting "size" '
+        "(known: start_pattern, delivery, room_type, max_groups, teachers, weekly)",
+    ),
+    (
+        "v2 bad max_groups setting",
+        setc("Modules", 2, "sessions", "LEC(max_groups=0)"),
+        CONFIG,
+        'Modules!R2C6 [sessions]: cannot read "LEC(max_groups=0)": '
+        "max_groups must be an integer ≥ 1",
+    ),
+    (
+        "v2 bad delivery setting",
+        setc("Modules", 2, "sessions", "LEC(delivery=hybrid)"),
+        CONFIG,
+        'Modules!R2C6 [sessions]: cannot read "LEC(delivery=hybrid)": '
+        "delivery must be in_person or online",
+    ),
+    (
+        "v2 bad start pattern setting",
+        setc("Modules", 2, "sessions", "LEC(start_pattern=9H)"),
+        CONFIG,
+        'Modules!R2C6 [sessions]: cannot read "LEC(start_pattern=9H)": unknown start pattern "9H"',
+    ),
+    (
+        "v2 module without a level",
+        setc("Modules", 2, "level", None),
+        CONFIG,
+        "Modules!R2C3 [level]: required",
+    ),
+    (
+        "v2 teacher unknown module",
+        setc("Teachers", 2, "modules", "NOPE"),
+        CONFIG,
+        'Teachers!R2C3 [modules]: unknown code "NOPE"',
+    ),
+    (
+        "v2 teacher unknown kind",
+        setc("Teachers", 2, "modules", "6BUIS019C:LAB"),
+        CONFIG,
+        'Teachers!R2C3 [modules]: "6BUIS019C:LAB": module "6BUIS019C" has no session type "LAB"',
+    ),
+    (
+        "v2 option not optional",
+        setc("Groups", 2, "options", "6COSC020C"),
+        CONFIG,
+        'Groups!R2C5 [options]: module "6COSC020C" is not optional',
+    ),
+    (
+        "v2 option unknown",
+        setc("Groups", 2, "options", "NOPE"),
+        CONFIG,
+        'Groups!R2C5 [options]: unknown code "NOPE"',
+    ),
+    (
+        "v2 group under a group",
+        setc("Groups", 2, "parent", "L6 CS / G10"),
+        CONFIG,
+        'Groups!R2C3 [parent]: unknown code "L6 CS / G10"',
+    ),
+    (
+        "v2 online with a room type",
+        setc("SessionTypes", 2, "delivery", "online"),
+        CONFIG,
+        "SessionTypes!R2C5 [room_type]: an online session cannot have a room type",
+    ),
+    (
+        "v2 in person without a room type",
+        setc("SessionTypes", 2, "room_type", None),
+        CONFIG,
+        'SessionTypes!R2C5 [room_type]: required when delivery is "in_person"',
+    ),
+    (
+        "v2 no groups per session",
+        setc("SessionTypes", 2, "max_groups", 0),
+        CONFIG,
+        'SessionTypes!R2C6 [max_groups]: expected integer ≥ 1, got "0"',
+    ),
+    (
+        "v2 activities sheet",
+        lambda wb: wb.create_sheet("Activities"),
+        CONFIG,
+        "Activities: unknown sheet",
     ),
 ]
 

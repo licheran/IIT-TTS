@@ -92,7 +92,8 @@ def test_every_tab_of_the_web_app_has_a_wiki_page() -> None:
         assert page.is_file(), f"no wiki page for the {label} tab"
         assert f"{label}" in page.read_text("utf-8")
     assert (WIKI / "tabs" / "datasets.md").is_file()
-    assert (WIKI / "tabs" / "templates-expand.md").is_file()
+    assert (WIKI / "tabs" / "activities.md").is_file()
+    assert not (WIKI / "tabs" / "templates-expand.md").exists()  # retired (Phase 23)
 
 
 def test_every_tab_page_has_the_standard_sections_and_a_picture() -> None:

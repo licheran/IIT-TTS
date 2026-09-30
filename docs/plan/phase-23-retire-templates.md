@@ -8,9 +8,9 @@
 - `backend/src/tts/presets/academic_weekly/`, `backend/src/tts/expand/`, `web/src/features/tables/ExpandPanel.tsx`, `web/src/features/tables/TablesPage.tsx`
 
 ## Tasks
-- [ ] P23.1 Remove the Templates and Expand tab and its API endpoints from the academic UI. `expand/` stays only as the version 1 converter (P21.3), and a test proves nothing else imports it.
-- [ ] P23.2 Remove the ActivityGroups, ActivityTeachers and Pins tables from the Tables tab. A hand-made dataset shows groups and teachers as columns of Activities, and its pins as columns (`day`, `start`, `rooms`) on the same row. Migrate stored datasets: every existing dataset becomes a hand-made dataset with its events, fixed resources and pins unchanged; template rows are expanded once, then dropped. Migration tests on a copy of each fixture.
-- [ ] P23.3 Wiki and docs:
+- [x] P23.1 Remove the Templates and Expand tab and its API endpoints from the academic UI. `expand/` stays only as the version 1 converter (P21.3), and a test proves nothing else imports it.
+- [x] P23.2 Remove the ActivityGroups, ActivityTeachers and Pins tables from the Tables tab. A hand-made dataset shows groups and teachers as columns of Activities, and its pins as columns (`day`, `start`, `rooms`) on the same row. Migrate stored datasets: every existing dataset becomes a hand-made dataset with its events, fixed resources and pins unchanged; template rows are expanded once, then dropped. Migration tests on a copy of each fixture.
+- [x] P23.3 Wiki and docs:
   - remove the pages for the retired tables and tab, or turn them into a short "Retired in format version 2" note that links to the replacement;
   - update `basics.md`, `glossary.md`, `tables/README.md`, the main `README.md` and `docs/cli.md`;
   - the drift tests pass.

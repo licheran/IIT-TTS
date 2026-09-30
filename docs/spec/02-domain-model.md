@@ -21,7 +21,7 @@ Status: **Authoritative.** Code lives in `backend/src/tts/core/`. The words in t
 | **Pooled requirement** | `event`, `resource_type`, `count ≥ 1`, `filter` (selector), `capacity_rule`. The solver chooses `count` resources that match. |
 | **Availability** | `resource`, `day`, `period`, `status ∈ {unavailable, avoid}`. |
 | **Constraint** | `code`, `type` (from the catalogue in `04-constraints.md`), `scope` (selector), `params`, `hard: bool`, `weight ≥ 0`, `active: bool`. |
-| **Template** | A rule that expands into events (`05-solver.md` §2). Used by hand-made datasets and version 1 workbooks only. |
+| **Template** | A rule that expands into events (`05-solver.md` §2.1). Read once from a version 1 workbook on import and then dropped: a dataset keeps none. |
 | **Pin** | `event`, `day?`, `start_period?`, `resources?` (pooled choices), `source ∈ {user, lock}`. |
 | **Run** | One solve of one dataset snapshot. |
 | **Assignment** | A run's result for one event: `day`, `start_period` and the chosen pooled resources. |

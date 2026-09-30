@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 
 // Not part of `pnpm e2e`. Run `pnpm wiki:shots` to redraw the pictures in docs/wiki/img/.
 const FIXTURES = resolve(import.meta.dirname, '../../backend/tests/fixtures/l6')
+const CONFIG = resolve(import.meta.dirname, '../../backend/tests/fixtures/l6-config')
 const IMG = resolve(import.meta.dirname, '../../docs/wiki/img')
 
 test.use({ viewport: { width: 1280, height: 800 } })
@@ -17,26 +18,17 @@ test('draw the wiki pictures', async ({ page }) => {
     await page.getByRole('button', { name: 'Create' }).click()
     await expect(page.getByRole('link', { name })).toBeVisible()
   }
-  const importFile = async (file: string) => {
+  const importFile = async (file: string, dir = FIXTURES) => {
     await page.getByRole('link', { name: 'Import / export' }).click()
-    await page.getByLabel('Workbook file').setInputFiles(`${FIXTURES}/${file}`)
+    await page.getByLabel('Workbook file').setInputFiles(`${dir}/${file}`)
     await page.getByRole('button', { name: 'Import', exact: true }).click()
     await expect(page.getByText('Imported.')).toBeVisible()
   }
 
   // Datasets
-  await createDataset('L6 templates')
+  await createDataset('L6 configured')
   await createDataset('L6 SE + CS')
   await shot('datasets')
-
-  // Templates and Expand
-  await page.getByRole('link', { name: 'L6 templates' }).click()
-  await importFile('templates.xlsx')
-  await page.getByRole('link', { name: 'Tables' }).click()
-  await page.getByRole('tab', { name: 'Templates', exact: true }).click()
-  await page.getByRole('button', { name: 'Preview expansion' }).click()
-  await expect(page.getByRole('dialog', { name: 'Expansion preview' })).toBeVisible()
-  await shot('templates-expand')
 
   // The main dataset
   await page.goto('/')
@@ -82,4 +74,29 @@ test('draw the wiki pictures', async ({ page }) => {
   await page.getByRole('button', { name: 'Publish' }).click()
   await expect(page.getByText('published')).toBeVisible()
   await shot('runs')
+
+  // Activities of a configured dataset: solve it and move one session
+  await page.goto('/')
+  await page.getByRole('link', { name: 'L6 configured' }).click()
+  await importFile('l6-config.xlsx', CONFIG)
+  await page.getByRole('link', { name: 'Run', exact: true }).click()
+  await page.getByLabel('Time limit (seconds)').fill('30')
+  await page.getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByRole('status').filter({ hasText: /^succeeded$/ })).toBeVisible({
+    timeout: 90_000,
+  })
+  await page.getByRole('link', { name: 'Tables' }).click()
+  await page.getByRole('tab', { name: 'Activities' }).click()
+  const row = page.locator('[role=row][data-key$="-TUT-01"]').first()
+  await expect(row).toBeVisible()
+  const code = (await row.getAttribute('data-key'))!
+  const before = (await row.locator('[data-column=day]').innerText()).trim()
+  await row.locator('[data-column=day]').dblclick()
+  const editor = page.getByLabel(`Day of ${code}`)
+  const days = await editor.locator('option').evaluateAll((o) => o.map((x) => x.textContent ?? ''))
+  await editor.selectOption(days.filter((d) => d !== '' && d !== before).at(-1)!)
+  await editor.press('Enter')
+  await expect(page.getByText('1 edit waiting: press Rebuild.')).toBeVisible()
+  await page.getByRole('grid', { name: 'Activities' }).evaluate((g) => (g.scrollLeft = 0))
+  await shot('activities')
 })
