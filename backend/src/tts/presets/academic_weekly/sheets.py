@@ -165,7 +165,7 @@ SHEETS: tuple[SheetDef, ...] = (
             _c("code", required=True),
             _c("module", "reference", required=True, refs=(MODULES,)),
             _c("kind", required=True),
-            _c("mode", required=True, choices=MODES),
+            _c("mode", required=True, choices=MODES, stored_as=(("per_group", "each"),)),
             _c("groups", "targets", kind="selector", required=True),
             _c("batch_size", kind="int", minimum=1, required_when=("mode", "batched")),
             _c("teachers", "fixed", kind="list", refs=(TEACHERS,)),

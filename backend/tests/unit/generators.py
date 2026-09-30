@@ -181,7 +181,7 @@ def academic_datasets(draw: Any) -> Dataset:
     templates = []
     if module_codes:
         for c in _unique(draw, "TP", draw(st.integers(0, 2))):
-            mode = draw(st.sampled_from(["joint", "per_group", "batched"]))
+            mode = draw(st.sampled_from(["joint", "each", "batched"]))  # core names
             spec = room_spec(draw(st.sampled_from(room_types))) if draw(st.booleans()) else None
             templates.append(
                 Template(

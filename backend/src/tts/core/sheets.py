@@ -67,6 +67,15 @@ class ColumnDef(_Frozen):
     expands_to: str | None = None
     derive: str | None = None
     label: str = ""
+    stored_as: tuple[tuple[str, str], ...] = ()
+
+    def to_stored(self, value: str) -> str:
+        """The value the core model keeps for a workbook value."""
+        return dict(self.stored_as).get(value, value)
+
+    def to_shown(self, value: str) -> str:
+        """The workbook value for a value the core model keeps."""
+        return {stored: shown for shown, stored in self.stored_as}.get(value, value)
 
     @property
     def convenience(self) -> bool:

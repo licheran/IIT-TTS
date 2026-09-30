@@ -386,6 +386,7 @@ def test_a_template_becomes_a_core_template_with_a_pooled_spec() -> None:
     assert (spec.resource_type, spec.count, spec.filter) == ("Room", 1, "tag:room_type=lab")
     assert second.pooled == ()
     assert (second.sessions_per_week, second.active) == (1, True)
+    assert second.mode == "each"  # the workbook's "per_group" is the core mode "each"
 
 
 def test_a_template_selector_must_select_resources() -> None:

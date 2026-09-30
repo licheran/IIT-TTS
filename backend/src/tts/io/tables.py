@@ -223,7 +223,8 @@ class _Export:
         out: Values = {}
         for column in sheet.columns:
             if column.field in fields:
-                out[column.name] = fields[column.field]
+                value = fields[column.field]
+                out[column.name] = column.to_shown(value) if isinstance(value, str) else value
         return out
 
     def meta_rows(self, sheet: SheetDef) -> list[Values]:

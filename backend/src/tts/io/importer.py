@@ -137,7 +137,7 @@ def _coerce(column: ColumnDef, raw: object) -> object:
         text = shown
         if column.choices and text not in column.choices:
             raise _Bad(f'expected one of {", ".join(column.choices)}, got "{text}"')
-        return text
+        return column.to_stored(text)
     if kind == "int":
         floor = column.minimum
         expected = "integer" if floor is None else f"integer ≥ {floor}"
