@@ -29,14 +29,14 @@ If a step fails, the [troubleshooting pages](troubleshooting/README.md) explain 
 | Basics | [Basics](basics.md), [Glossary](glossary.md) |
 | The tabs | [Datasets](tabs/datasets.md), [Tables](tabs/tables.md), [Templates and Expand](tabs/templates-expand.md), [Import / export](tabs/import-export.md), [Pre-flight](tabs/preflight.md), [Run](tabs/run.md), [Timetable](tabs/timetable.md), [Runs](tabs/runs.md) |
 | The tables | [Overview of all tables](tables/README.md), [Tags](tables/tags.md), and one page for each table, listed in the overview |
+| The exams preset | [Overview](exams/README.md) and one page for each table that differs from the academic preset |
 | Troubleshooting | [Where to start](troubleshooting/README.md), [Import and editing errors](troubleshooting/import-errors.md), [Pre-flight issues](troubleshooting/preflight-issues.md), [Run statuses and messages](troubleshooting/run-statuses.md), [Infeasible runs](troubleshooting/infeasible.md) |
 | Constraints | [Constraints overview](constraints/README.md), [Selectors](constraints/selectors.md), [Default constraints](constraints/defaults.md), and one page for each of the fourteen types, listed in the overview |
 
-The exams preset's tables are added in a later section.
 
 ## Two presets
 
 The app ships with two presets. A preset decides which tables exist and what they are called.
 
-- **academic_weekly** is for a weekly timetable of lectures and tutorials across levels, programmes and universities. This wiki describes it first.
-- **exams** is for an exam session. Its tables are covered in a later section.
+- **academic_weekly** is for a weekly timetable of lectures and tutorials across levels, programmes and universities. Most of this wiki describes it.
+- **exams** is for an exam session: exams are placed on dated days and sessions, in a hall, with invigilators. See [The exams preset](exams/README.md).
