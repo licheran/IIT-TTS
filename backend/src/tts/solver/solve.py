@@ -155,6 +155,9 @@ def _hint_from(ctx: CompileContext, solver: cp_model.CpSolver) -> None:
         ctx.model.add_hint(var, solver.value(var))
     for literal in ctx.use.values():
         ctx.model.add_hint(literal, solver.boolean_value(literal))
+    for members in ctx.block_members.values():
+        for _, literal in members:
+            ctx.model.add_hint(literal, solver.boolean_value(literal))
 
 
 def solve_model(

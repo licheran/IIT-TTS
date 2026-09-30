@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from tts.api.deps import DbSession
 from tts.api.errors import ApiError
 from tts.api.expansion import expand_with_preset
+from tts.core.demands import realise
 from tts.core.model import Dataset
 from tts.core.run import RunParams
 from tts.core.selectors import SelectorError
@@ -102,8 +103,11 @@ def start_run(dataset_id: int, session: DbSession, params: RunParams | None = No
         for info in DatasetRepo(session).list():
             published = runs.published(info.id) if info.id != dataset_id else None
             if published is not None:
-                theirs = Dataset.model_validate(runs.snapshot(published.id)["dataset"])
-                others.append((theirs, runs.result(published.id)))
+                stored = runs.result(published.id)
+                theirs = realise(
+                    Dataset.model_validate(runs.snapshot(published.id)["dataset"]), stored
+                )
+                others.append((theirs, stored))
         dataset = with_locks(dataset, published_locks(dataset, others))
     if params.stage_scope:
         mine = runs.published(dataset_id)

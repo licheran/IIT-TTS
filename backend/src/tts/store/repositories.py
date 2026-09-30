@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from tts.core.model import (
     Assignment,
+    CreatedEvent,
     Dataset,
     Diagnostic,
     PooledChoice,
@@ -552,6 +553,16 @@ class RunRepo:
             delete(m.AssignedResourceRow).where(m.AssignedResourceRow.run_id == run_id)
         )
         self.session.execute(delete(m.DiagnosticRow).where(m.DiagnosticRow.run_id == run_id))
+        self.session.execute(delete(m.CreatedEventRow).where(m.CreatedEventRow.run_id == run_id))
+        self.session.execute(
+            delete(m.CreatedParticipantRow).where(m.CreatedParticipantRow.run_id == run_id)
+        )
+        for c in result.created if result else ():
+            self.session.add(m.CreatedEventRow(run_id=run_id, event=c.code, demand=c.demand))
+            for participant in c.participants:
+                self.session.add(
+                    m.CreatedParticipantRow(run_id=run_id, event=c.code, resource=participant)
+                )
         for a in result.assignments if result else ():
             self.session.add(
                 m.AssignmentRow(
@@ -598,7 +609,18 @@ class RunRepo:
             assignments.append(
                 Assignment(event=a.event, day=a.day, start_period=a.start_period, chosen=picks)
             )
-        return Result(assignments=tuple(assignments))
+        participants: dict[str, list[str]] = {}
+        for p in self.session.scalars(
+            select(m.CreatedParticipantRow).where(m.CreatedParticipantRow.run_id == run_id)
+        ):
+            participants.setdefault(p.event, []).append(p.resource)
+        created = [
+            CreatedEvent(code=c.event, demand=c.demand, participants=tuple(participants[c.event]))
+            for c in self.session.scalars(
+                select(m.CreatedEventRow).where(m.CreatedEventRow.run_id == run_id)
+            )
+        ]
+        return Result(assignments=tuple(assignments), created=tuple(created))
 
     def diagnostics(self, run_id: int) -> _List[Diagnostic]:
         rows = self.session.scalars(

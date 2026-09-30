@@ -295,6 +295,28 @@ class AssignedResourceRow(Base):
     resource: Mapped[str] = mapped_column(String(200))
 
 
+class CreatedEventRow(Base):
+    """A session the solver created for a demand (ADR-0007). It belongs to a run, not a dataset."""
+
+    __tablename__ = "created_event"
+    __table_args__ = (UniqueConstraint("run_id", "event"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    run_id: Mapped[int] = _run_fk()
+    event: Mapped[str] = mapped_column(String(200))
+    demand: Mapped[str] = mapped_column(String(200))
+
+
+class CreatedParticipantRow(Base):
+    __tablename__ = "created_participant"
+    __table_args__ = (UniqueConstraint("run_id", "event", "resource"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    run_id: Mapped[int] = _run_fk()
+    event: Mapped[str] = mapped_column(String(200))
+    resource: Mapped[str] = mapped_column(String(200))
+
+
 class DiagnosticRow(Base):
     __tablename__ = "diagnostic"
 

@@ -15,6 +15,7 @@ from dataclasses import dataclass
 
 from ortools.sat.python import cp_model
 
+from tts.core.demands import Materialised
 from tts.core.hierarchy import Hierarchy
 from tts.core.model import Dataset, Event, Resource
 from tts.core.selectors import Selectors
@@ -61,6 +62,10 @@ class CompileContext:
         ] = {}  # (event, ordinal) -> resources
         self.use: dict[PooledKey, cp_model.IntVar] = {}
         self.oiv: dict[PooledKey, cp_model.IntervalVar] = {}
+        # Demands (ADR-0007): who is in which block, and the events each participant is in
+        self.materialised: Materialised | None = None
+        self.members: dict[str, list[tuple[str, cp_model.IntVar]]] = defaultdict(list)
+        self.block_members: dict[tuple[str, int], list[tuple[str, cp_model.IntVar]]] = {}
         self.problems: list[
             str
         ] = []  # reasons the model cannot have a solution, found while compiling
@@ -177,6 +182,7 @@ class CompileContext:
         pooled = sorted({e for (e, _, r) in self.use if r == resource and e not in fixed})
         for e in pooled:
             found.append((e, self.uses(e, resource)))
+        found.extend(self.members.get(resource, []))
         return found
 
     def both(self, a: cp_model.IntVar, b: cp_model.IntVar, name: str) -> cp_model.IntVar:

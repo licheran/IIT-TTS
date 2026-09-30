@@ -134,3 +134,38 @@ def test_a_fresh_heartbeat_is_not_stale(session, l6_dataset) -> None:
     runs.heartbeat(run_id, {"elapsed": 1})
     assert runs.reap_stale() == ([], [])
     assert runs.get(run_id).progress == {"elapsed": 1}
+
+
+def test_a_run_keeps_the_sessions_the_solver_created(session, l6_dataset) -> None:
+    from tts.core.model import Assignment, CreatedEvent, Result
+
+    dataset_id = DatasetRepo(session).create("L6", l6_dataset.preset, l6_dataset)
+    runs = RunRepo(session)
+    run_id = runs.create(dataset_id, {}, {}, "abc")
+    result = Result(
+        assignments=(Assignment(event="m-TUT-01", day="Mon", start_period="P01"),),
+        created=(
+            CreatedEvent(code="m-TUT-01", demand="m-TUT", participants=("g1", "g2")),
+            CreatedEvent(code="m-TUT-02", demand="m-TUT", participants=("g3",)),
+        ),
+    )
+    runs.finish(run_id, "succeeded", result)
+    session.commit()
+    session.expire_all()
+    assert runs.result(run_id) == result
+    assert session.query(m.CreatedEventRow).count() == 2
+    assert session.query(m.CreatedParticipantRow).count() == 3
+
+
+def test_finishing_a_run_again_replaces_its_created_sessions(session, l6_dataset) -> None:
+    from tts.core.model import CreatedEvent, Result
+
+    dataset_id = DatasetRepo(session).create("L6", l6_dataset.preset, l6_dataset)
+    runs = RunRepo(session)
+    run_id = runs.create(dataset_id, {}, {}, "abc")
+    first = Result(created=(CreatedEvent(code="a", demand="d", participants=("g1",)),))
+    second = Result(created=(CreatedEvent(code="b", demand="d", participants=("g2",)),))
+    runs.finish(run_id, "succeeded", first)
+    runs.finish(run_id, "succeeded", second)
+    session.commit()
+    assert [c.code for c in runs.result(run_id).created] == ["b"]

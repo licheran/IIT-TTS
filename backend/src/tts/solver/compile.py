@@ -23,6 +23,7 @@ from collections.abc import Iterable
 from ortools.sat.python import cp_model
 
 from tts.core.candidates import Candidates
+from tts.core.demands import block_sizes, materialise, participant_size
 from tts.core.model import Availability, Dataset, Pin, PooledRequirement
 from tts.core.selectors import SelectorError
 from tts.core.timegrid import TimeGridError, covered_slots
@@ -40,21 +41,30 @@ def compile_model(
     builds the first half of the decomposition (spec 05 section 7, `solver/decompose.py`): start
     times only, with each pool's capacity as the only rule on pooled resources.
     """
-    ctx = CompileContext(dataset, explain=explain)
+    materialised = materialise(dataset)  # demands become events and blocks (ADR-0007)
+    ctx = CompileContext(materialised.dataset, explain=explain)
+    ctx.materialised = materialised
     ctx.times_only = times_only
     pins: dict[str, list[Pin]] = defaultdict(list)
-    for pin in dataset.pins:
+    for pin in ctx.dataset.pins:
         pins[pin.event].append(pin)
     unavailable = _unavailable_rows(ctx)
+    for problem in materialised.problems:
+        ctx.declare_infeasible(problem)
 
     _start_variables(ctx, pins, unavailable)
     _pooled_variables(ctx, pins, unavailable)
+    _demand_membership(ctx, unavailable)
     _no_overlap(ctx)
     _pool_capacity(ctx)
     compile_declared(ctx)
     _objective(ctx)
     return ctx
 
+
+# Interchangeable blocks of a demand are ordered by their lowest participant (spec 05 4.1a). The
+# switch exists so a test can show the optimum does not depend on it.
+BREAK_SYMMETRY = True
 
 Blocked = dict[str, list[tuple[int, Availability]]]  # resource -> (slot, row) it is unavailable
 
@@ -245,6 +255,90 @@ def _pooled_variables(
         _pinned_resources(ctx, pins)
 
 
+def _demand_membership(ctx: CompileContext, unavailable: Blocked) -> None:
+    """Who is in which block of each demand the solver splits (spec 05 section 4.1a).
+
+    A literal `x[p, b]` says participant `p` is in block `b`. Each participant is in exactly one
+    block, block sizes stay within the bounds (so they differ by at most one), and every event of
+    a block occupies a participant exactly when the participant is in the block (H1), is
+    unavailable under the same condition (H2), and needs a room that seats its members (H3).
+    """
+    mat = ctx.materialised
+    if mat is None or not mat.free:
+        return
+    model = ctx.model
+    requirements: dict[str, list[PooledRequirement]] = defaultdict(list)
+    for q in ctx.dataset.pooled:
+        requirements[q.event].append(q)
+
+    for code in sorted(mat.free):
+        participants = mat.free[code]
+        low, high = mat.bounds[code]
+        blocks = [b for b in mat.blocks if b.demand == code and b.fixed is None]
+        count = len(participants)
+        x = [[model.new_bool_var(f"x_{code}_{p}_{b.index}") for b in blocks] for p in participants]
+
+        size_guard = ctx.guard("demand", code, "sizes")
+        for i, p in enumerate(participants):
+            once = model.add(sum(x[i]) == 1)
+            guard = ctx.guard("demand", code, p)
+            if guard is not None:
+                once.only_enforce_if(guard)
+        for bi in range(len(blocks)):
+            total = sum(x[i][bi] for i in range(count))
+            for bound in (total >= low, total <= high):
+                constraint = model.add(bound)
+                if size_guard is not None:
+                    constraint.only_enforce_if(size_guard)
+
+        # Blocks are interchangeable, so order them by their lowest participant.
+        for bi in range(1, len(blocks) if BREAK_SYMMETRY else 0):
+            for i in range(count):
+                model.add_bool_or([x[i][bi].Not(), *(x[j][bi - 1] for j in range(i))])
+        cursor = 0
+        for bi, size in enumerate(block_sizes(count, len(blocks))):
+            for i in range(count):
+                model.add_hint(x[i][bi], 1 if cursor <= i < cursor + size else 0)
+            cursor += size
+
+        for bi, block in enumerate(blocks):
+            ctx.block_members[(code, block.index)] = [
+                (p, x[i][bi]) for i, p in enumerate(participants)
+            ]
+            for i, p in enumerate(participants):
+                literal = x[i][bi]
+                occupied = sorted({p} | set(ctx.hierarchy.exclusive_descendants(p)))
+                for event in block.events:
+                    duration = ctx.events[event].duration
+                    for resource in occupied:
+                        ctx.members[resource].append((event, literal))
+                        for slot, row in unavailable.get(resource, []):
+                            bad = _bad_starts(ctx.domains[event], duration, slot)
+                            guard = ctx.guard("availability", row.resource, row.day, row.period)
+                            _forbid(ctx, ctx.start[event], bad, literal, guard)
+            for event in block.events:
+                for q in requirements.get(event, ()):
+                    rule = q.capacity_rule
+                    if rule.resource_type is None:
+                        continue
+                    sizes = [
+                        participant_size(ctx.hierarchy, ctx.resources, p, rule.resource_type)
+                        for p in participants
+                    ]
+                    if not any(sizes):
+                        continue
+                    load = sum(s * x[i][bi] for i, s in enumerate(sizes) if s)
+                    requirement_guard = ctx.guard("requirement", event, str(q.ordinal))
+                    for resource in ctx.candidates.get((event, q.ordinal), ()):
+                        capacity = ctx.resources[resource].capacity or 0
+                        if sum(sizes) <= capacity:
+                            continue  # it seats everyone, whatever the block
+                        conditions = [ctx.use[(event, q.ordinal, resource)]]
+                        if requirement_guard is not None:
+                            conditions.append(requirement_guard)
+                        model.add(load <= capacity).only_enforce_if(conditions)
+
+
 def _pinned_choice(
     ctx: CompileContext, event_pins: Iterable[Pin], q: PooledRequirement, eligible: Iterable[str]
 ) -> tuple[str, ...] | None:
@@ -295,6 +389,12 @@ def _no_overlap(ctx: CompileContext) -> None:
         # A pooled candidate the event already occupies through its fixed resources is one use.
         if resource not in ctx.hierarchy.occupied_exclusive(code):
             members[resource].append((code, ctx.use[(code, ordinal, resource)], interval))
+    for resource in sorted(ctx.members):  # participants of blocks the solver fills (ADR-0007)
+        for code, literal in ctx.members[resource]:
+            interval = ctx.model.new_optional_fixed_size_interval_var(
+                ctx.start[code], ctx.events[code].duration, literal, f"m_{resource}_{code}"
+            )
+            members[resource].append((code, literal, interval))
 
     for resource in sorted(members):
         entries = members[resource]

@@ -111,7 +111,8 @@ def solve_dataset(
     control: SolveControl | None = None,
 ) -> SolveOutcome:
     """Solve a dataset, decomposing it when that is safe and worthwhile."""
-    if candidate_count(dataset) > DECOMPOSE_ABOVE and decomposable(dataset):
+    # Demands are solved whole: membership ties times, rooms and teachers together (P20.7).
+    if not dataset.demands and candidate_count(dataset) > DECOMPOSE_ABOVE and decomposable(dataset):
         return solve_decomposed(dataset, params, on_progress, control)
     return solve_model(compile_model(dataset), params, on_progress, control)
 

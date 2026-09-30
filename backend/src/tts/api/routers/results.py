@@ -11,6 +11,7 @@ from tts.api.deps import DbSession
 from tts.api.errors import ApiError, not_found
 from tts.api.routers.runs import RunOut, run_out
 from tts.core.clashes import cross_clashes
+from tts.core.demands import realise
 from tts.core.grid import EventChange, Grid, build_grid, diff_results
 from tts.core.hierarchy import Hierarchy
 from tts.core.model import Dataset, Result
@@ -44,8 +45,9 @@ def clashes(session: DbSession) -> list[ClashOut]:
             continue
         label = str(info.id)
         names[label] = (info.name, published.id)
-        dataset = Dataset.model_validate(runs.snapshot(published.id)["dataset"])
-        timetables.append((label, dataset, runs.result(published.id)))
+        stored = runs.result(published.id)
+        dataset = realise(Dataset.model_validate(runs.snapshot(published.id)["dataset"]), stored)
+        timetables.append((label, dataset, stored))
     return [
         ClashOut(
             resource=c.resource,
@@ -83,7 +85,8 @@ def _load(session: DbSession, run_id: int) -> tuple[Dataset, Result]:
     result = runs.result(run_id)
     if not result.assignments:
         raise ApiError(409, "no_result", f'run {run_id} has no timetable (status "{info.status}")')
-    return Dataset.model_validate(runs.snapshot(run_id)["dataset"]), result
+    # Sessions the solver created become ordinary events, so grids and exports need no other change.
+    return realise(Dataset.model_validate(runs.snapshot(run_id)["dataset"]), result), result
 
 
 def _check_resource(dataset: Dataset, resource_type: str | None, code: str) -> None:

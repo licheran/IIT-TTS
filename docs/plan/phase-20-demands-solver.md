@@ -8,7 +8,7 @@
 - `backend/src/tts/solver/context.py`, `solver/compile.py`, `solver/decode.py`, `solver/explain.py`, `solver/decompose.py`, `solver/constraints/`
 
 ## Tasks
-- [ ] P20.1 Variables for demands:
+- [x] P20.1 Variables for demands:
   - `k = Demand.blocks` blocks per demand and a membership literal `x[p, b]` per participant and block, with `Σ_b x[p, b] = 1` and `⌊m/k⌋ ≤ Σ_p x[p, b] ≤ ⌈m/k⌉`;
   - each block has `repeat` events, always present, each with a start over the start pattern's allowed starts, an interval and its pooled choices (`Σ_r use[e, q, r] = count`);
   - a participant's occupancy of an event (and its exclusive descendants') is an optional interval present iff `x[p, b]`, added to its no-overlap set;
@@ -17,18 +17,18 @@
   - edits: a declared event of a demand fixes its block's participants (those `x[p, b]` are constants), and its pins apply as today. A block with fewer declared events than `repeat` gets the rest created.
 
   Tests assert on the verifier's output, not on solver status.
-- [ ] P20.2 Symmetry breaking and the hint:
+- [x] P20.2 Symmetry breaking and the hint:
   - blocks are ordered by their lowest participant: participant `i` may only be in blocks `≤ i`, and block `b` holds the lowest participant not in blocks `< b`;
   - a greedy split (participants by code, cut into `k` even blocks) is given with `AddHint`.
 
   A test that the model gives the same optimum with and without symmetry breaking on a small case, with a fixed seed and one worker.
-- [ ] P20.3 `CompileContext` learns created events:
+- [x] P20.3 `CompileContext` learns created events:
   - `occupying_events` returns membership literals;
   - event selectors resolve `uses:` to a membership literal.
 
   Unit tests of each building block with a member and a non-member.
-- [ ] P20.4 Adapt every catalogue compiler in `solver/constraints/` (C1–C14) to created events, one commit per type. Each gets its three tests plus one with a created event.
-- [ ] P20.5 Decode:
+- [x] P20.4 Adapt every catalogue compiler in `solver/constraints/` (C1–C14) to created events, one commit per type. Each gets its three tests plus one with a created event.
+- [x] P20.5 Decode:
   - created events are numbered `<prefix>-<kind>-<nn>`, where the prefix is the demand's reference or code, in order of their block's lowest participant, then repetition, so the same solution always gives the same codes;
   - the result carries their participants.
 

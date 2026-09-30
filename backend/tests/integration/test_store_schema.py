@@ -23,7 +23,8 @@ def test_the_migration_creates_every_table_of_the_spec(engine) -> None:
     expected = {
         "dataset", "resource_type", "resource", "reference_type", "reference", "day", "period",
         "start_pattern", "availability", "event", "event_resource", "requirement", "constraint",
-        "template", "pin", "run", "assignment", "assigned_resource", "diagnostic",
+        "template", "pin", "run", "assignment", "assigned_resource", "created_event",
+        "created_participant", "diagnostic",
     }  # fmt: skip
     assert expected <= set(inspect(engine).get_table_names())
 
