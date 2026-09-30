@@ -30,7 +30,7 @@
   - H1–H5 hold for created events. H3 `sum_of_fixed` counts the participants.
 
   Tests first: a correct split; a group left out; a group in two blocks; a block with too many groups; uneven blocks (3 + 3 + 3 + 1); a block with one event missing; a repetition with different companions; an event too big for its room; a clash between two created events. Each should give the expected violations with entity codes.
-- [ ] P19.4 Every declared constraint's `verify` accepts created events, with their participants as fixed resources:
+- [x] P19.4 Every declared constraint's `verify` accepts created events, with their participants as fixed resources:
   - resource-scoped types count them for their participants;
   - event-scoped types select them with `ref:`, `kind:`, `tag:` and `uses:`.
 
