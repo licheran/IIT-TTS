@@ -38,11 +38,11 @@ def day_gaps(ctx: CompileContext, resource: str, day: int, name: str) -> list[cp
                 model.add_implication(source, a)
     found = []
     for i in range(1, n - 1):
-        b, a, o = before[i], after[i], occ[i]
-        if b is None or a is None:
+        earlier, later, here = before[i], after[i], occ[i]
+        if earlier is None or later is None:
             continue
         g = model.new_bool_var(f"{name}_g{i}")
-        model.add(g >= b + a - (o if o is not None else 0) - 1)
+        model.add(g >= earlier + later - (here if here is not None else 0) - 1)
         found.append(g)
     return found
 

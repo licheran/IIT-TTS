@@ -5,8 +5,6 @@ Each variant is a copy of the session's L6 dataset; the fixture itself is never 
 
 import time
 
-import pytest
-
 from tts.core.model import Availability, Constraint, Dataset, Pin, Result
 from tts.preflight.checks import Issue, has_errors, run_preflight
 from tts.presets import labeller
@@ -123,9 +121,6 @@ def test_the_explanation_of_the_two_pins_names_both_and_the_room(
     assert time.perf_counter() - started < LIMIT_S
 
 
-@pytest.mark.xfail(
-    strict=True, reason="max_days is compiled from Phase 8 (P8.6 removes this marker)"
-)
 def test_a_hard_max_days_of_one_for_a_group_is_named_in_the_explanation(
     l6_dataset: Dataset,
 ) -> None:

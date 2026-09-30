@@ -7,6 +7,7 @@ scanning, so what the verifier supports is visible in one place.
 
 from tts.core.constraints import (
     capacity,
+    max_days,
     max_gaps,
     max_per_day,
     no_overlap,
@@ -27,6 +28,7 @@ IMPLICIT: dict[str, ConstraintType] = {
 }
 
 DECLARED: dict[str, ConstraintType] = {
+    max_days.TYPE: max_days,
     max_gaps.TYPE: max_gaps,
     max_per_day.TYPE: max_per_day,
 }
