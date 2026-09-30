@@ -17,7 +17,7 @@
     - a declared event of a demand has only that demand's participants as fixed resources of the participant type;
     - a dataset doesn't mix demands with events that have no demand;
   - unit tests for each invariant. The core purity test still passes.
-- [ ] P19.2 Results with created events:
+- [x] P19.2 Results with created events:
   - the result type carries created events: code, demand, kind, duration, participants, and their assignments;
   - the occupancy helpers (`Hierarchy.occupied_resources` and the clash finder) treat a created event like a declared event whose fixed resources are its participants;
   - round-trip tests of the result JSON.

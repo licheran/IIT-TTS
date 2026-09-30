@@ -681,10 +681,40 @@ class Assignment(_Frozen):
         return tuple(sorted(value, key=lambda c: c.ordinal))
 
 
+class CreatedEvent(_Frozen):
+    """An event the solver made for a demand (ADR-0007). It is a result, not declared data.
+
+    Its properties come from the demand. `core.demands.realise` turns it into an ordinary event
+    whose fixed resources are its participants.
+    """
+
+    code: Code
+    demand: Code
+    participants: tuple[Code, ...]
+
+    @field_validator("participants")
+    @classmethod
+    def _participants(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        if not value:
+            raise ValueError("a created event needs at least one participant")
+        if len(set(value)) != len(value):
+            raise ValueError("a participant is listed twice")
+        return tuple(sorted(value))
+
+
 class Result(_Frozen):
-    """The assignments of one solve. Events without an assignment are unplaced."""
+    """The assignments of one solve. Events without an assignment are unplaced.
+
+    `created` lists the events the solver made for demands. Each has an assignment like any event.
+    """
 
     assignments: tuple[Assignment, ...] = ()
+    created: tuple[CreatedEvent, ...] = ()
+
+    @field_validator("created")
+    @classmethod
+    def _sort_created(cls, value: tuple[CreatedEvent, ...]) -> tuple[CreatedEvent, ...]:
+        return tuple(sorted(value, key=lambda c: c.code))
 
     @field_validator("assignments")
     @classmethod
