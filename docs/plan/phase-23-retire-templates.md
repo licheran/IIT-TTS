@@ -14,7 +14,7 @@
   - remove the pages for the retired tables and tab, or turn them into a short "Retired in format version 2" note that links to the replacement;
   - update `basics.md`, `glossary.md`, `tables/README.md`, the main `README.md` and `docs/cli.md`;
   - the drift tests pass.
-- [ ] P23.4 The full check:
+- [x] P23.4 The full check:
   - backend and web checks;
   - `docker compose up --build` with `scripts/smoke.sh`, extended to the `l6-config.xlsx` path;
   - the L6 and exams fixtures.
