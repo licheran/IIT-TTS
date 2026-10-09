@@ -60,6 +60,8 @@ class CompileContext:
         self.candidates: dict[
             tuple[str, int], tuple[str, ...]
         ] = {}  # (event, ordinal) -> resources
+        # More resource sets whose capacity the times-only model counts (see `_pool_capacity`)
+        self.extra_pools: frozenset[frozenset[str]] = frozenset()
         self.use: dict[PooledKey, cp_model.IntVar] = {}
         self.oiv: dict[PooledKey, cp_model.IntervalVar] = {}
         # Demands (ADR-0007): who is in which block, and the events each participant is in

@@ -1,4 +1,4 @@
-"""The synthetic institute of `generate.py`, written as demands (P20.8). Marked `scale`.
+"""The synthetic institute of `generate.py`, written as demands (P20.8, P27). Marked `scale`.
 
 About 3,000 sessions: the solver must split every module's groups into blocks and place them all
 within the NFR-2 budget, and the verifier must find no hard violation.
@@ -16,7 +16,7 @@ from tts.core.verifier import hard_violations, verify
 from tts.solver.decompose import solve_dataset
 
 sys.path.insert(0, str(Path(__file__).parent))
-from generate import generate  # noqa: E402
+from generate import ScaleParams, generate  # noqa: E402
 
 pytestmark = pytest.mark.scale
 
@@ -24,16 +24,10 @@ NFR2_SECONDS = 15 * 60
 PARAMS = RunParams(time_limit_s=NFR2_SECONDS, num_workers=8, seed=0, mode="feasible")
 
 
-@pytest.mark.xfail(
-    reason=(
-        "P20.8 target missed: 2,688 sessions with 180 free splits found no timetable in 900 s, "
-        "with the plain model, the decomposed one or the default split first. Waiting for the "
-        "user's decision (docs/STATUS.md). The assertions are not loosened."
-    ),
-    strict=False,
-)
 def test_an_institute_written_as_demands_is_solved_within_15_minutes_on_8_workers() -> None:
-    made = generate()
+    # Ten groups a programme: the sessions the solver makes are fewer than the activities, as
+    # joint sessions merge groups, and this brings them to about 3,000 (NFR-2).
+    made = generate(ScaleParams(groups_per_programme=10))
     dataset = configured_l6(made.dataset)
     sessions = sum(d.blocks * d.repeat for d in dataset.demands)
     assert 2800 <= sessions <= 3300

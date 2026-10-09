@@ -19,17 +19,18 @@ at pooled choices or at resources that can be chosen. Otherwise, and for small m
 
 import dataclasses
 import time
+from collections import defaultdict
 from collections.abc import Callable
 
-from tts.core.candidates import Candidates
 from tts.core.constraints.catalogue import CATALOGUE
 from tts.core.constraints.declared import InvalidConstraintError, parse_instance
 from tts.core.constraints.registry import declared_type
 from tts.core.demands import materialise, realise
-from tts.core.hierarchy import Hierarchy
 from tts.core.model import Dataset, Pin
 from tts.core.run import RunParams
-from tts.core.selectors import SelectorError, Selectors
+from tts.core.selectors import Selectors
+from tts.core.timegrid import TimeGrid, TimeGridError
+from tts.solver.assign import pooled_candidates
 from tts.solver.compile import compile_model
 from tts.solver.solve import SolveControl, SolveOutcome, SolveProgress, SolveStats, solve_model
 
@@ -41,18 +42,11 @@ _LOOKS_AT_CHOICES = frozenset({"preferred_resources", "travel_gap", "same_resour
 
 Progress = Callable[[SolveProgress], None]
 
+# How many times the first half is solved again after the second half finds the pools too small
+MAX_ROUNDS = 25
 
-def pooled_candidates(dataset: Dataset) -> dict[tuple[str, int], tuple[str, ...]]:
-    """The static candidates of every pooled requirement (type, filter and capacity)."""
-    hierarchy = Hierarchy(dataset)
-    static = Candidates(dataset, hierarchy, Selectors(dataset, hierarchy))
-    found = {}
-    for q in dataset.pooled:
-        try:
-            found[(q.event, q.ordinal)] = static.of(q).codes
-        except SelectorError:
-            found[(q.event, q.ordinal)] = ()
-    return found
+# A pooled requirement with at most this many candidates is decided by balancing the load first
+PREASSIGN_UP_TO = 24
 
 
 def _pins_decide(dataset: Dataset, candidates: dict[tuple[str, int], tuple[str, ...]]) -> bool:
@@ -118,27 +112,130 @@ def solve_dataset(
     analysed = materialised.dataset if materialised is not None else dataset
     large = candidate_count(analysed) > DECOMPOSE_ABOVE
     split = large and decomposable(analysed)
-    if large and materialised is not None and materialised.free:
-        # Choosing who shares a session adds a great many choices, so a large dataset first
-        # tries the default split. If no timetable exists with it, the solver chooses (below).
-        started = time.monotonic()
-        first = params.model_copy(update={"time_limit_s": params.time_limit_s / 2})
+    started = time.monotonic()
+
+    def remaining() -> RunParams:
+        return params.model_copy(
+            update={"time_limit_s": max(params.time_limit_s - (time.monotonic() - started), 0.05)}
+        )
+
+    def attempt(
+        half: RunParams, note: str, greedy: bool = False, preassign: bool = False
+    ) -> SolveOutcome | None:
+        """One try with default choices, in half the time that is left. None if it found nothing."""
+        up_to = PREASSIGN_UP_TO if preassign else 0
         tried = (
-            solve_decomposed(dataset, first, on_progress, control, greedy=True)
+            solve_decomposed(
+                dataset, half, on_progress, control, greedy=greedy, preassign=preassign
+            )
             if split
-            else solve_model(compile_model(dataset, greedy=True), first, on_progress, control)
+            else solve_model(
+                compile_model(dataset, greedy=greedy, preassign_up_to=up_to),
+                half,
+                on_progress,
+                control,
+            )
         )
         if tried.result is not None or (control is not None and control.stopped):
-            note = (
-                "participants were split by the default split (even blocks, in order of code); "
-                "the solver did not search other splits"
-            )
             return dataclasses.replace(tried, warnings=(*tried.warnings, note))
-        left = max(params.time_limit_s - (time.monotonic() - started), 0.05)
-        params = params.model_copy(update={"time_limit_s": left})
+        return None
+
+    def half_of_what_is_left() -> RunParams:
+        left = remaining()
+        return left.model_copy(update={"time_limit_s": left.time_limit_s / 2})
+
+    if large and materialised is not None:
+        # Choosing who shares a session, and who serves a session, adds a great many choices.
+        # A large dataset first tries the defaults: the default split, then a balanced load for
+        # the small pools. If no timetable exists with them, the solver chooses (below).
+        if materialised.free:
+            found = attempt(
+                half_of_what_is_left(),
+                "participants were split by the default split (even blocks, in order of code); "
+                "the solver did not search other splits",
+                greedy=True,
+            )
+            if found is not None:
+                return found
+        candidates = pooled_candidates(analysed)
+        if any(
+            q.count <= len(candidates[(q.event, q.ordinal)]) <= PREASSIGN_UP_TO
+            for q in analysed.pooled
+        ):
+            found = attempt(
+                half_of_what_is_left(),
+                "resources with few candidates were assigned by balancing their load; the solver "
+                "did not search other assignments",
+                preassign=True,
+            )
+            if found is not None:
+                return found
     if split:
-        return solve_decomposed(dataset, params, on_progress, control)
-    return solve_model(compile_model(dataset), params, on_progress, control)
+        return solve_decomposed(dataset, remaining(), on_progress, control)
+    return solve_model(compile_model(dataset), remaining(), on_progress, control)
+
+
+def hall_violations(pinned: Dataset) -> set[frozenset[str]]:
+    """Resource sets that cannot serve the events placed at one time (Hall's condition).
+
+    `pinned` has every event pinned to a day and start. At each slot, the requirements of the
+    events covering it are matched to their candidate resources, one resource to one requirement.
+    When some requirements cannot all be matched, the requirements reached while looking for a
+    match need more resources than the candidates they share, and those candidates are returned.
+    No timetable can have those events at that time, so the first half counts the capacity of
+    such a set (`compile_model(extra_pools=...)`). Only requirements for one resource are checked.
+    """
+    candidates = pooled_candidates(pinned)
+    wanted = {(q.event, q.ordinal): q.count for q in pinned.pooled}
+    try:
+        grid = TimeGrid(pinned.time)
+        starts = {
+            p.event: grid.slot(p.day, p.start_period)
+            for p in pinned.pins
+            if p.day is not None and p.start_period is not None
+        }
+    except TimeGridError:
+        return set()
+    needs: dict[int, list[frozenset[str]]] = defaultdict(list)
+    for event in pinned.events:
+        if event.code not in starts:
+            continue
+        decided = {r for p in pinned.pins if p.event == event.code for r in p.resources}
+        for (code, ordinal), codes in candidates.items():
+            if code != event.code or wanted[(code, ordinal)] != 1 or not codes:
+                continue
+            if decided & set(codes):
+                continue  # a lock already names its resource
+            for t in range(starts[code], starts[code] + event.duration):
+                needs[t].append(frozenset(codes))
+
+    found: set[frozenset[str]] = set()
+    for slot_needs in needs.values():
+        found.update(_too_few(slot_needs))
+    return found
+
+
+def _too_few(wanted: list[frozenset[str]]) -> list[frozenset[str]]:
+    """Match each wanted set to one of its own resources, no resource twice. For every wanted set
+    left over, the resources reached while looking for a place for it (Hall's violating set)."""
+    owner: dict[str, int] = {}  # resource -> index of the wanted set that holds it
+
+    def place(i: int, seen: set[str]) -> bool:
+        for r in sorted(wanted[i]):
+            if r in seen:
+                continue
+            seen.add(r)
+            if r not in owner or place(owner[r], seen):
+                owner[r] = i
+                return True
+        return False
+
+    lacking = []
+    for i in range(len(wanted)):
+        seen: set[str] = set()
+        if not place(i, seen):
+            lacking.append(frozenset(seen))
+    return lacking
 
 
 def solve_decomposed(
@@ -147,31 +244,56 @@ def solve_decomposed(
     on_progress: Progress | None = None,
     control: SolveControl | None = None,
     greedy: bool = False,
+    preassign: bool = False,
 ) -> SolveOutcome:
     started = time.monotonic()
+    up_to = PREASSIGN_UP_TO if preassign else 0
 
     def left() -> float:
         return max(params.time_limit_s - (time.monotonic() - started), 0.05)
 
-    times = solve_model(
-        compile_model(dataset, times_only=True, greedy=greedy), params, on_progress, control
-    )
-    if times.result is None or (control is not None and control.stopped):
-        return times  # infeasible, out of time or cancelled: no timetable either way
     decided = {p.event: p.resources for p in dataset.pins if p.resources}
-    pins = tuple(
-        Pin(
-            event=a.event,
-            day=a.day,
-            start_period=a.start_period,
-            resources=decided.get(a.event, ()),
-            source="lock",
+    extra: set[frozenset[str]] = set()
+    rounds = 0
+    while True:
+        times = solve_model(
+            compile_model(
+                dataset,
+                times_only=True,
+                greedy=greedy,
+                extra_pools=extra,
+                preassign_up_to=up_to,
+            ),
+            params.model_copy(update={"time_limit_s": left()}),
+            on_progress,
+            control,
         )
-        for a in times.result.assignments
-    )
-    # With demands, the times step also chose the blocks: the sessions it created become
-    # ordinary events here, so the second step only chooses rooms and teachers.
-    pinned = realise(dataset, times.result).model_copy(update={"pins": pins})
+        if times.result is None or (control is not None and control.stopped):
+            return times  # infeasible, out of time or cancelled: no timetable either way
+        pins = tuple(
+            Pin(
+                event=a.event,
+                day=a.day,
+                start_period=a.start_period,
+                resources=tuple(
+                    dict.fromkeys(
+                        (*decided.get(a.event, ()), *(r for c in a.chosen for r in c.resources))
+                    )
+                ),
+                source="lock",
+            )
+            for a in times.result.assignments
+        )
+        # With demands, the times step also chose the blocks: the sessions it created become
+        # ordinary events here, so the second step only chooses rooms and teachers.
+        pinned = realise(dataset, times.result).model_copy(update={"pins": pins})
+        # The pools' capacities are necessary, not sufficient (overlapping pools). If these times
+        # cannot be served, tell the first half which sets of resources are too few, and again.
+        more = hall_violations(pinned) - extra
+        if not more or rounds >= MAX_ROUNDS or left() <= 1:
+            break
+        extra |= more
+        rounds += 1
     resources = solve_model(
         compile_model(pinned), params.model_copy(update={"time_limit_s": left()}), None, control
     )
@@ -181,7 +303,7 @@ def solve_decomposed(
         return _combined(times, resources, time.monotonic() - started, "decomposed")
 
     # The capacities were not enough for a matching: solve everything, starting from the times.
-    full = compile_model(dataset, greedy=greedy)
+    full = compile_model(dataset, greedy=greedy, preassign_up_to=up_to)
     for a in times.result.assignments:
         if a.event in full.start:  # sessions the solver creates have other names in the model
             full.model.add_hint(full.start[a.event], full.grid.slot(a.day, a.start_period))

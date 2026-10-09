@@ -20,6 +20,13 @@ def decode(ctx: CompileContext, solver: cp_model.CpSolver) -> Result:
         if solver.boolean_value(literal):
             chosen[(event, ordinal)].append(resource)
 
+    # In the times-only model a requirement narrowed to exactly its `count` candidates has no
+    # variable, but its choice is known.
+    wanted = {(q.event, q.ordinal): q.count for q in ctx.dataset.pooled}
+    for key, codes in ctx.candidates.items():
+        if key not in chosen and codes and len(codes) == wanted[key] and ctx.times_only:
+            chosen[key] = list(codes)
+
     names, created = _created_events(ctx, solver)
     assignments = []
     for code in ctx.events:

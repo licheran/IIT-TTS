@@ -144,6 +144,8 @@ The verifier takes a dataset snapshot and a result, and checks H0–H5 and every
 2. **Symmetry breaking:** order the starts of interchangeable events (same kind, same fixed resources, same requirement).
 3. **Decomposition:** solve the times with aggregated room-type capacity constraints, then assign rooms per slot as a bipartite matching.
 4. **Hints:** start from the published run's assignment.
+5. **Pools that overlap (Phase 27).** The first half of the decomposition counts each pool's capacity, which is necessary but not sufficient when pools overlap. After it, the events at each slot are matched to their candidates; where they cannot be, the first half is solved again with the capacity of the union of resources found (`compile_model(extra_pools=...)`, at most 25 rounds). Measured: not enough on its own for the synthetic institute written as demands (no timetable in 900 s).
+6. **Default choices for a configured dataset (Phase 27).** A large configured dataset first tries the default split of groups (half the time), then **balances the load of the small pools** (a requirement with at most 24 candidates, such as a module's teachers; `solver/assign.py`): each event gets the candidates with the fewest periods so far, before the search, and the decomposition then only has to place times and rooms. A result found this way carries the warning "resources with few candidates were assigned by balancing their load; the solver did not search other assignments". If none is found, the solver chooses everything, as before. Measured on the synthetic institute written as demands (2,892 sessions, 8 workers): optimal in 76 s, against no timetable in 900 s.
 
 ## 8. Result storage for configured datasets
 

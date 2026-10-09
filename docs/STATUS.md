@@ -1,8 +1,8 @@
 # Status
 
-**Current phase:** 27 (the scale target; **next task P27.1**, a measurement). Phases 24, 25 and 26 are done except the Docker check (P24.8 and P26.7): `docker compose up --build` and `scripts/smoke.sh` were not run through Docker because the daemon was not running (the smoke script passed on both paths against a locally started API and worker). Phase 27 (the scale target) is last.
+**Current phase:** none open. Phases 24 to 27 are done except the Docker check (P24.8 and P26.7): `docker compose up --build` and `scripts/smoke.sh` were not run through Docker because the daemon was not running (the smoke script passed on both paths against a locally started API and worker). Every planned phase is done.
 
-**Decisions waiting for you:** (1) the synthetic institute written as configuration finds no timetable in 900 s (P20.8, see the log in [LOG.md](LOG.md)); (2) Pins stay a table of hand-made datasets (P23.2); (3) ADR-0006 is still Proposed. The three ADR-0007 proposals were confirmed on 2026-10-09.
+**Decisions waiting for you:** (1) Pins stay a table of hand-made datasets (P23.2); (2) ADR-0006 is still Proposed; (3) `docker compose up --build` has not been run for Phases 24 to 26 (the daemon was not running). The scale target (P20.8) is met since Phase 27: see [LOG.md](LOG.md). The three ADR-0007 proposals were confirmed on 2026-10-09.
 
 **Where things are:** the progress log (one row per task, newest last) and the acceptance results of every phase are in [LOG.md](LOG.md). This file is read at the start of every session, so it stays short.
 
@@ -28,14 +28,14 @@
 | 17 Wiki: exams preset | Done |
 | 18 Configured sessions: specs and approval | Done |
 | 19 Demands: core, verifier, pre-flight | Done |
-| 20 Demands: solver | Done, **except the scale target** (waiting for your decision) |
+| 20 Demands: solver | Done. The scale target was met in Phase 27 |
 | 21 Academic configuration (format version 2) | Done |
 | 22 Activities as the editable timetable | Done |
 | 23 Retire Templates and ActivityGroups | Done |
 | 24 The Session table (format version 2 amended) | Done, **except the Docker check of P24.8** |
 | 25 Teacher fairness | Done (three new catalogue types, `Teachers.max_hours`, derived rules; ADR-0008) |
 | 26 Reference drawer and a consistent UI | Done, **except the Docker check** (ADR-0009, audit in `docs/plan/phase-26-audit.md`) |
-| 27 Scale target for configured datasets | Not started (plan: `docs/plan/phase-27-scale-configured.md`; closes P20.8) |
+| 27 Scale target for configured datasets | Done. Acceptance: the unchanged scale test passes (2,892 sessions, 8 workers: optimal in 76 s; NFR-2 15 min); closes P20.8 |
 
 **Format version:** workbook `format_version` 1 (hand-made datasets, exams) and 2 (configured academic datasets; amended by Phase 24)
 

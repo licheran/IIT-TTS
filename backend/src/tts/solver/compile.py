@@ -27,12 +27,18 @@ from tts.core.demands import block_sizes, materialise, participant_size
 from tts.core.model import Availability, Dataset, Pin, PooledRequirement
 from tts.core.selectors import SelectorError
 from tts.core.timegrid import TimeGridError, covered_slots
+from tts.solver.assign import preassigned
 from tts.solver.context import CompileContext
 from tts.solver.registry import compile_declared
 
 
 def compile_model(
-    dataset: Dataset, explain: bool = False, times_only: bool = False, greedy: bool = False
+    dataset: Dataset,
+    explain: bool = False,
+    times_only: bool = False,
+    greedy: bool = False,
+    extra_pools: Iterable[frozenset[str]] = (),
+    preassign_up_to: int = 0,
 ) -> CompileContext:
     """The model of `dataset`. A dataset with no possible solution still compiles: the context
     records why in `problems`, and the model is infeasible.
@@ -41,11 +47,17 @@ def compile_model(
     builds the first half of the decomposition (spec 05 section 7, `solver/decompose.py`): start
     times only, with each pool's capacity as the only rule on pooled resources.
     `greedy=True` gives every demand its default split instead of leaving it to the solver.
+    `extra_pools` names more sets of resources whose capacity the times-only model counts, besides
+    the candidate sets of the requirements (found by `decompose.hall_violations`).
+    `preassign_up_to` above 0 first decides every pooled requirement with that many candidates or
+    fewer by balancing the load (`assign.preassigned`).
     """
     materialised = materialise(dataset, greedy)  # demands become events and blocks
-    ctx = CompileContext(materialised.dataset, explain=explain)
+    decided = preassigned(materialised.dataset, preassign_up_to) if preassign_up_to else None
+    ctx = CompileContext(decided or materialised.dataset, explain=explain)
     ctx.materialised = materialised
     ctx.times_only = times_only
+    ctx.extra_pools = frozenset(extra_pools)
     pins: dict[str, list[Pin]] = defaultdict(list)
     for pin in ctx.dataset.pins:
         pins[pin.event].append(pin)
@@ -434,9 +446,10 @@ def _pool_capacity(ctx: CompileContext) -> None:
     set S cannot need more than |S| of them (spec 05 section 7, "aggregated capacity").
 
     For each distinct candidate set S, the events whose candidates all lie in S share a cumulative
-    of capacity |S|, each needing `count`. This is the only rule on pooled resources in the first
-    half of the decomposition. In the full model it is implied and measured no faster (P10.4), so
-    it is not added there.
+    of capacity |S|, each needing `count`. The sets are the candidate sets of the requirements and
+    the unions the second half found it could not serve (`extra_pools`). This is the only rule on
+    pooled resources in the first half of the decomposition. In the full model it is implied and
+    measured no faster (P10.4), so it is not added there.
     """
     if not ctx.times_only:
         return
@@ -444,7 +457,7 @@ def _pool_capacity(ctx: CompileContext) -> None:
     needs: dict[str, list[tuple[frozenset[str], int]]] = defaultdict(list)
     for (event, ordinal), candidates in ctx.candidates.items():
         needs[event].append((frozenset(candidates), counts[(event, ordinal)]))
-    pools = {pool for items in needs.values() for pool, _ in items if pool}
+    pools = {pool for items in needs.values() for pool, _ in items if pool} | set(ctx.extra_pools)
     for pool in sorted(pools, key=lambda p: (len(p), sorted(p))):
         members = [
             (event, count)
