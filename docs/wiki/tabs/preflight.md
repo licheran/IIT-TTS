@@ -41,7 +41,8 @@ For a dataset built from configuration, the tab first shows **Sessions to schedu
 | A constraint whose parameters are not valid | `invalid_constraint` | error | the reason, naming the constraint code |
 | A module's session kind that no group takes | `empty_demand` | warning | the module and kind named in the message |
 | Nothing at all to schedule | `nothing_to_schedule` | warning | `nothing to schedule: …` |
-| A mistake in the configuration (an unknown session type, a teacher's module with no such kind) | `configuration` | error | `Modules "6SENG005C": …` |
+| A mistake in the configuration (a teacher's module with no such kind, an online Session row with a room type) | `configuration` | error | `Session "6SENG005C-LEC": …` |
+| A module that groups take but that has no Session rows, so nothing is scheduled for it | `configuration` | warning | `Modules "6SENG005C": module "6SENG005C" is taken by 11 groups but has no Session rows, so nothing is scheduled for it` |
 | A kind of room that is nearly used up | `pooled_pressure` | warning | `Room tag:room_type=lab: 64 periods needed, 60 available` |
 | A resource nothing can use | `unused_resource` | warning | `Room [1LA] -GP is never a candidate` |
 | A constraint whose scope matches nothing | `empty_scope` | warning | `C-GAPS: scope matches nothing` |

@@ -19,17 +19,23 @@ def prepare_with_preset(dataset: Dataset) -> Dataset:
 
 def preflight_with_preset(dataset: Dataset) -> list[Issue]:
     """Pre-flight of the dataset as the solver takes it, plus the mistakes only its preset can
-    see in a configuration (kind `configuration`, always an error)."""
+    see in a configuration (kind `configuration`; an error unless the preset calls it a warning)."""
     prepared = prepare_with_preset(dataset)
     issues = run_preflight(prepared, labeller(prepared.preset))
+    resources = {r.code for r in prepared.resources}
+    references = {r.code for r in prepared.references}
+
+    def refs_of(code: str) -> tuple[Ref, ...]:
+        if code in resources:
+            return (Ref(kind="resource", code=code),)
+        return (Ref(kind="reference", code=code),) if code in references else ()
+
     extra = [
         Issue(
-            severity="error",
+            severity="warning" if mistake.warning else "error",
             kind="configuration",
             message=f'{mistake.sheet} "{mistake.code}": {mistake.message}',
-            refs=(Ref(kind="resource", code=mistake.code),)
-            if mistake.code in {r.code for r in prepared.resources}
-            else (),
+            refs=refs_of(mistake.code),
         )
         for mistake in configuration_issues(prepared)
     ]

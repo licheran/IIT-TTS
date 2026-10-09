@@ -1113,6 +1113,11 @@ export interface components {
              */
             export_only: boolean;
             /**
+             * Key From
+             * @default []
+             */
+            key_from: string[];
+            /**
              * Hidden
              * @default false
              */

@@ -1,8 +1,9 @@
 """Builders for a small configured academic dataset (format version 2), shared by tests.
 
 Level L6 has programmes P1 and P2 (P5 belongs to level L5). Modules: M1 (mandatory, LEC and TUT),
-M2 (optional, for P1, TUT) and M3 (mandatory, for P2, LEC). Teacher T1 teaches M1, T2 teaches the
-tutorials of M1 and M2, T3 teaches M3. Group P1/G1 takes the option M2.
+M2 (optional, for P1, TUT) and M3 (mandatory, for P2, LEC), each session type a row of the `Session`
+sheet. Teacher T1 teaches M1, T2 teaches the tutorials of M1 and M2, T3 teaches M3. Group P1/G1
+takes the option M2.
 """
 
 from datetime import time
@@ -35,6 +36,33 @@ def session_type(code: str, **attrs):  # type: ignore[no-untyped-def]
     return Reference(code=code, type=types.SESSION_TYPE, attributes=tuple(base.items()))
 
 
+def session(module_code: str, type_code: str, **attrs):  # type: ignore[no-untyped-def]
+    """A `Session` row; its code follows from the module and the session type."""
+    attributes = {"module": module_code, "session_type": type_code, **attrs}
+    return Reference(
+        code=f"{module_code}-{type_code}",
+        type=types.SESSION,
+        attributes=tuple(attributes.items()),
+    )
+
+
+def with_sessions(ds: Dataset, module_code: str, *rows) -> Dataset:  # type: ignore[no-untyped-def]
+    """`ds` with the Session rows of one module replaced. A row is a session type code, or a pair
+    of a code and the settings it overrides."""
+    kept = tuple(
+        r
+        for r in ds.references
+        if not (r.type == types.SESSION and dict(r.attributes)["module"] == module_code)
+    )
+    made = tuple(
+        session(module_code, row)
+        if isinstance(row, str)
+        else session(module_code, row[0], **row[1])
+        for row in rows
+    )
+    return ds.model_copy(update={"references": (*kept, *made)})
+
+
 def dataset(**changes) -> Dataset:  # type: ignore[no-untyped-def]
     resources = [
         resource("L6", types.LEVEL),
@@ -52,9 +80,13 @@ def dataset(**changes) -> Dataset:  # type: ignore[no-untyped-def]
     references = [
         session_type("LEC", max_groups=3),
         session_type("TUT", max_groups=1),
-        module("M1", sessions="LEC;TUT"),
-        module("M2", optional=True, programmes="P1", sessions="TUT"),
-        module("M3", programmes="P2", sessions="LEC"),
+        module("M1"),
+        module("M2", optional=True, programmes="P1"),
+        module("M3", programmes="P2"),
+        session("M1", "LEC"),
+        session("M1", "TUT"),
+        session("M2", "TUT"),
+        session("M3", "LEC"),
     ]
     base = Dataset(
         preset="academic_weekly",
@@ -70,7 +102,10 @@ def dataset(**changes) -> Dataset:  # type: ignore[no-untyped-def]
                 Period(code=f"P{i}", start=time(7 + i, 0), end=time(8 + i, 0), order=i)
                 for i in range(1, 5)
             ),
-            start_patterns=(StartPattern(code="2H", duration=2, start_periods=("P1", "P3")),),
+            start_patterns=(
+                StartPattern(code="2H", duration=2, start_periods=("P1", "P3")),
+                StartPattern(code="3H", duration=3, start_periods=("P1",)),
+            ),
         ),
     )
     return base.model_copy(update=changes)

@@ -188,3 +188,57 @@ def test_a_hand_made_dataset_has_no_planned_sessions(client, l6_dataset) -> None
 
     dataset_id = import_dataset(client, l6_dataset)
     assert client.get(f"/datasets/{dataset_id}/sessions").status_code == 409
+
+
+def test_session_rows_are_a_table_keyed_by_module_and_session_type(client) -> None:
+    dataset_id = create_dataset(client)
+    assert upload(client, dataset_id, workbook(with_rooms(configured_dataset()))).json()["ok"]
+    page = client.get(f"/datasets/{dataset_id}/tables/Session").json()
+    assert "code" not in page["headers"] and page["headers"][:2] == ["module", "session_type"]
+    assert sorted(r["key"] for r in page["rows"]) == ["M1-LEC", "M1-TUT", "M2-TUT", "M3-LEC"]
+
+
+def test_changing_a_session_row_changes_the_sessions_to_schedule(client) -> None:
+    dataset_id = create_dataset(client)
+    assert upload(client, dataset_id, workbook(with_rooms(configured_dataset()))).json()["ok"]
+
+    def lecture() -> dict:
+        planned = client.get(f"/datasets/{dataset_id}/sessions").json()
+        return next(p for p in planned if p["demand"] == "M1-LEC")
+
+    assert lecture()["groups_per_session"] == 3
+    changed = client.patch(
+        row_path(dataset_id, "Session", "M1-LEC"), json={"values": {"max_groups": 1}}
+    )
+    assert changed.status_code == 200, changed.text
+    assert (lecture()["groups_per_session"], lecture()["sessions"]) == (1, 3)
+
+
+def test_a_session_row_can_be_added_and_a_repeated_pair_is_refused(client) -> None:
+    dataset_id = create_dataset(client)
+    assert upload(client, dataset_id, workbook(with_rooms(configured_dataset()))).json()["ok"]
+    added = client.post(
+        f"/datasets/{dataset_id}/tables/Session",
+        json={"values": {"module": "M3", "session_type": "TUT"}},
+    )
+    assert added.status_code == 201, added.text
+    assert added.json()["key"] == "M3-TUT"
+    again = client.post(
+        f"/datasets/{dataset_id}/tables/Session",
+        json={"values": {"module": "M3", "session_type": "TUT"}},
+    )
+    assert again.status_code == 409, again.text
+
+
+def test_preflight_warns_about_a_module_taken_by_groups_with_no_session_rows(client) -> None:
+    dataset_id = create_dataset(client)
+    assert upload(client, dataset_id, workbook(with_rooms(configured_dataset()))).json()["ok"]
+    gone = client.delete(row_path(dataset_id, "Session", "M3-LEC"))
+    assert gone.status_code == 204
+    issues = client.post(f"/datasets/{dataset_id}/preflight").json()["issues"]
+    found = [i for i in issues if i["kind"] == "configuration"]
+    assert [i["severity"] for i in found] == ["warning"]
+    assert "has no Session rows" in found[0]["message"]
+    assert [(r["kind"], r["code"], r["sheet"]) for r in found[0]["refs"]] == [
+        ("reference", "M3", "Modules")
+    ]

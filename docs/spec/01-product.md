@@ -80,7 +80,7 @@ A timetable is conflict-free only across the resources **in the same solve**. In
 | FR-14 | Validate any assignment, including one imported from FET, and report every violation | 1, 2 |
 | FR-15 | Support datasets containing many levels, programmes, universities and buildings together | 10 |
 | FR-16 | Support at least one non-academic preset with no changes to the core | 11 |
-| FR-17 | Build sessions from configuration: modules at one level, each mandatory or optional, with session kinds; groups (under a programme) with their optional modules; and teachers with the modules they teach. Session kinds (length, delivery, room type, groups per session, sessions per week) are configured by the user | 18, 21 |
+| FR-17 | Build sessions from configuration: modules at one level, each mandatory or optional, with the session kinds each one holds; groups (under a programme) with their optional modules; and teachers with the modules they teach. Session kinds (length, delivery, room type, groups per session, sessions per week) are configured by the user, and each module's `Session` rows can override them for that module | 18, 21, 24 |
 | FR-18 | The solver decides which groups share a session, in blocks of the configured number of groups (even sizes, the same companions every time a session repeats in the week), and which of a module's teachers takes it. The room seats every student of the groups | 19, 20 |
 | FR-19 | The result is the Activities table. A manual edit makes the next run a complete rebuild that keeps the edited values. Each edit is checked straight away | 22 |
 | FR-20 | Teacher workload fairness: a weekly cap, even sharing among a module's teachers, and the same teacher for a group | 25 |
@@ -119,6 +119,7 @@ A timetable is conflict-free only across the resources **in the same solve**. In
 | Demand | A rule that the solver splits into sessions: these participants, in blocks of at most `n`, each block attending `repeat` sessions of one kind |
 | Block | The participants of a demand that share its sessions |
 | Session | One scheduled meeting. The word for an event in the academic preset (an Activities row) |
+| Session row | A row of the `Session` table: how one module holds one kind of session (its groups per session, length, weekly count and so on, where it differs from the session type). A rule the solver turns into sessions, not a meeting |
 | Edit | A value the user changed in a solver-made session. The next run is a complete rebuild that keeps it |
 | Configured / hand-made dataset | A dataset whose events come from demands / whose events were typed or imported as activities |
 | Lock | A pin derived from a published run (source `lock`) |

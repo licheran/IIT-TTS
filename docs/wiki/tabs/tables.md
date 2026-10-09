@@ -2,7 +2,7 @@
 
 ## What it's for
 
-The Tables tab is where you enter and correct your data. It has **one tab per table** (Days, Periods, Groups, Teachers, Rooms, Session types, Modules and so on). The names come from the preset. Each table is described on its own page in the [table reference](../tables/README.md).
+The Tables tab is where you enter and correct your data. It has **one tab per table** (Days, Periods, Groups, Teachers, Rooms, Session types, Modules, Session and so on). The names come from the preset. Each table is described on its own page in the [table reference](../tables/README.md).
 
 Everything you change here is checked straight away by the same rules as an import, and saved. There is no Save button.
 

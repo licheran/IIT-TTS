@@ -132,6 +132,8 @@ def preflight(dataset_id: int, session: DbSession) -> PreflightOut:
     issues = preflight_with_preset(dataset)
     type_of = {r.code: r.type for r in dataset.resources}
     sheet_of_type = {s.resource_type: s.name for s in preset.sheets if s.resource_type}
+    type_of_reference = {r.code: r.type for r in dataset.references}
+    sheet_of_reference_type = {s.reference_type: s.name for s in preset.sheets if s.reference_type}
     sheet_of_target: dict[str, str] = {
         s.target: s.name for s in preset.sheets if s.target in ("event", "constraint")
     }
@@ -139,6 +141,8 @@ def preflight(dataset_id: int, session: DbSession) -> PreflightOut:
     def sheet_for(kind: str, code: str) -> str | None:
         if kind == "resource":
             return sheet_of_type.get(type_of.get(code, ""))
+        if kind == "reference":
+            return sheet_of_reference_type.get(type_of_reference.get(code, ""))
         return sheet_of_target.get(kind)
 
     return PreflightOut(

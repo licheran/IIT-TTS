@@ -1,13 +1,11 @@
 """From configuration to demands, and the mistakes only the preset can see (P21.2, ADR-0007)."""
 
-import pytest
-from academic_config import dataset, module, replaced, session_type
+from academic_config import dataset, module, replaced, session_type, with_sessions
 
 from tts.core.model import Dataset
 from tts.presets.academic_weekly.configuration import (
     configuration_issues,
     demands,
-    parse_session_item,
     parse_teacher_item,
     split_list,
 )
@@ -25,24 +23,6 @@ def test_lists_are_split_on_semicolons_and_trimmed() -> None:
     assert split_list(None) == () and split_list("") == ()
 
 
-def test_a_session_item_is_a_code_with_optional_settings() -> None:
-    assert parse_session_item("LEC").code == "LEC"
-    item = parse_session_item("LAB(start_pattern=3H, max_groups=2)")
-    assert item.code == "LAB"
-    assert item.settings == (("start_pattern", "3H"), ("max_groups", "2"))
-    assert item.problem is None
-
-
-def test_an_unreadable_session_item_says_why() -> None:
-    assert parse_session_item("LAB(start_pattern)").problem == (
-        'cannot read "LAB(start_pattern)": expected name=value'
-    )
-    assert parse_session_item("LAB(size=2)").problem == (
-        'unknown setting "size" (known: start_pattern, delivery, room_type, max_groups, '
-        "teachers, weekly)"
-    )
-
-
 def test_a_teacher_item_is_a_module_with_an_optional_kind() -> None:
     assert parse_teacher_item("M1") == ("M1", None)
     assert parse_teacher_item("M1:TUT") == ("M1", "TUT")
@@ -51,7 +31,7 @@ def test_a_teacher_item_is_a_module_with_an_optional_kind() -> None:
 # --- demands ---------------------------------------------------------------------------------
 
 
-def test_each_module_and_session_type_makes_one_demand() -> None:
+def test_each_session_row_makes_one_demand() -> None:
     assert sorted(by_code(dataset())) == ["M1-LEC", "M1-TUT", "M2-TUT", "M3-LEC"]
 
 
@@ -97,7 +77,7 @@ def test_an_online_session_type_needs_no_room() -> None:
     ds = dataset(
         references=(*dataset().references, session_type("SEM", delivery="online", room_type=""))
     )
-    ds = replaced(ds, "M1", sessions="SEM")
+    ds = with_sessions(ds, "M1", "SEM")
     (only,) = [d for d in demands(ds) if d.code == "M1-SEM"]
     assert only.delivery == "online"
     assert [p.resource_type for p in only.pooled] == ["Teacher"]
@@ -109,7 +89,7 @@ def test_zero_teachers_means_no_teacher_requirement() -> None:
 
 
 def test_a_module_can_override_the_session_type() -> None:
-    ds = replaced(dataset(), "M1", sessions="LEC(max_groups=2,weekly=2);TUT")
+    ds = with_sessions(dataset(), "M1", ("LEC", {"max_groups": 2, "weekly": 2}), "TUT")
     lecture = by_code(ds)["M1-LEC"]
     assert (lecture.max_participants, lecture.repeat, lecture.blocks) == (2, 2, 2)
 
@@ -126,9 +106,62 @@ def test_a_demand_of_a_configured_dataset_is_a_sound_core_demand() -> None:
     assert [i.message for i in ds.validate_invariants() if i.table == "demand"] == []
 
 
-def test_entries_that_cannot_be_read_make_no_demand() -> None:
-    ds = replaced(dataset(), "M1", sessions="NOPE;LAB(size=1);LEC")
-    assert sorted(by_code(ds)) == ["M1-LEC", "M2-TUT", "M3-LEC"]
+def test_a_row_for_an_unknown_session_type_makes_no_demand() -> None:
+    ds = with_sessions(dataset(), "M1", "LEC", "LAB", "TUT")
+    assert sorted(by_code(ds)) == ["M1-LEC", "M1-TUT", "M2-TUT", "M3-LEC"]
+
+
+def test_a_module_with_no_rows_makes_no_demand() -> None:
+    assert sorted(by_code(with_sessions(dataset(), "M1"))) == ["M2-TUT", "M3-LEC"]
+
+
+def test_a_blank_cell_takes_the_session_types_value() -> None:
+    demand = by_code(dataset())["M1-LEC"]
+    assert (demand.max_participants, demand.repeat, demand.start_pattern) == (3, 1, "2H")
+    assert [p.resource_type for p in demand.pooled] == ["Room", "Teacher"]
+
+
+def test_a_filled_cell_overrides_every_setting_for_that_module_only() -> None:
+    ds = with_sessions(
+        dataset(),
+        "M1",
+        (
+            "LEC",
+            {
+                "start_pattern": "3H",
+                "room_type": "hall",
+                "max_groups": 2,
+                "teachers": 2,
+                "weekly": 2,
+            },
+        ),
+        "TUT",
+    )
+    found = by_code(ds)
+    lecture = found["M1-LEC"]
+    assert (lecture.start_pattern, lecture.duration) == ("3H", 3)
+    assert (lecture.max_participants, lecture.repeat) == (2, 2)
+    room, teacher = lecture.pooled
+    assert room.filter == "tag:room_type=hall" and teacher.count == 2
+    other = found["M3-LEC"]  # the same session type, another module, keeps the type's values
+    assert (other.max_participants, other.repeat, other.start_pattern) == (3, 1, "2H")
+
+
+def test_an_online_row_never_gets_a_room_even_if_its_session_type_has_a_room_type() -> None:
+    ds = with_sessions(dataset(), "M1", ("LEC", {"delivery": "online"}), "TUT")
+    lecture = by_code(ds)["M1-LEC"]
+    assert lecture.delivery == "online"
+    assert [p.resource_type for p in lecture.pooled] == ["Teacher"]
+
+
+def test_an_in_person_row_of_an_online_session_type_gets_the_room_it_names() -> None:
+    ds = dataset(
+        references=(*dataset().references, session_type("SEM", delivery="online", room_type=""))
+    )
+    ds = with_sessions(ds, "M1", ("SEM", {"delivery": "in_person", "room_type": "lab"}))
+    seminar = by_code(ds)["M1-SEM"]
+    assert seminar.delivery == "in_person"
+    assert seminar.pooled[0].filter == "tag:room_type=lab"
 
 
 # --- mistakes --------------------------------------------------------------------------------
@@ -149,31 +182,51 @@ def test_a_programme_at_another_level_is_reported() -> None:
     ]
 
 
-def test_an_unknown_session_type_is_reported() -> None:
-    ds = replaced(dataset(), "M1", sessions="LEC;LAB;TUT")
-    assert issues(ds) == [("Modules", "M1", "sessions", 'unknown code "LAB"')]
+def test_a_module_taken_by_groups_but_without_rows_is_a_warning() -> None:
+    ds = with_sessions(dataset(), "M3")
+    (found,) = configuration_issues(ds)
+    assert (found.sheet, found.code, found.warning) == ("Modules", "M3", True)
+    assert found.message == (
+        'module "M3" is taken by 1 groups but has no Session rows, so nothing is scheduled for it'
+    )
 
 
-def test_an_unreadable_setting_is_reported() -> None:
-    ds = replaced(dataset(), "M1", sessions="LEC(start_pattern);TUT")
+def test_a_module_nobody_takes_needs_no_rows() -> None:
+    ds = dataset(references=(*dataset().references, module("M6", level="L5")))
+    assert issues(ds) == []
+
+
+def test_an_online_row_with_a_room_type_is_reported() -> None:
+    ds = with_sessions(dataset(), "M1", ("LEC", {"delivery": "online", "room_type": "lab"}), "TUT")
     assert issues(ds) == [
-        ("Modules", "M1", "sessions", 'cannot read "LEC(start_pattern)": expected name=value')
+        ("Session", "M1-LEC", "room_type", "an online session cannot have a room type")
     ]
 
 
-@pytest.mark.parametrize(
-    ("setting", "why"),
-    [
-        ("max_groups=0", "max_groups must be an integer ≥ 1"),
-        ("weekly=x", "weekly must be an integer ≥ 1"),
-        ("teachers=-1", "teachers must be an integer ≥ 0"),
-        ("delivery=hybrid", "delivery must be in_person or online"),
-        ("start_pattern=9H", 'unknown start pattern "9H"'),
-    ],
-)
-def test_a_bad_setting_value_is_reported(setting: str, why: str) -> None:
-    ds = replaced(dataset(), "M1", sessions=f"LEC({setting});TUT")
-    assert issues(ds) == [("Modules", "M1", "sessions", f'cannot read "LEC({setting})": {why}')]
+def test_an_online_session_types_row_with_a_room_type_is_reported() -> None:
+    ds = dataset(
+        references=(*dataset().references, session_type("SEM", delivery="online", room_type=""))
+    )
+    ds = with_sessions(ds, "M1", "LEC", "TUT", ("SEM", {"room_type": "lab"}))
+    assert issues(ds) == [
+        ("Session", "M1-SEM", "room_type", "an online session cannot have a room type")
+    ]
+
+
+def test_an_in_person_row_without_any_room_type_is_reported() -> None:
+    ds = dataset(
+        references=(*dataset().references, session_type("SEM", delivery="online", room_type=""))
+    )
+    ds = with_sessions(ds, "M1", "LEC", "TUT", ("SEM", {"delivery": "in_person"}))
+    assert issues(ds) == [
+        (
+            "Session",
+            "M1-SEM",
+            "room_type",
+            'required: the session is in person and neither the row nor session type "SEM" '
+            "gives one",
+        )
+    ]
 
 
 def test_a_teacher_for_a_module_that_does_not_exist_is_reported() -> None:
@@ -220,7 +273,7 @@ def test_an_online_session_type_with_a_room_type_is_reported() -> None:
     ]
 
 
-def test_a_session_carries_its_types_tags_and_its_modules_tags_win() -> None:
+def test_a_session_carries_its_types_tags_then_its_modules_then_its_rows() -> None:
     ds = dataset()
 
     def tagged(row, tags):  # type: ignore[no-untyped-def]
@@ -231,11 +284,13 @@ def test_a_session_carries_its_types_tags_and_its_modules_tags_win() -> None:
             "references": tuple(
                 tagged(r, (("block", "a"), ("who", "type")))
                 if r.code == "LEC"
-                else tagged(r, (("who", "module"),))
+                else tagged(r, (("who", "module"), ("side", "module")))
                 if r.code == "M1"
+                else tagged(r, (("side", "row"),))
+                if r.code == "M1-LEC"
                 else r
                 for r in ds.references
             )
         }
     )
-    assert dict(by_code(ds)["M1-LEC"].tags) == {"block": "a", "who": "module"}
+    assert dict(by_code(ds)["M1-LEC"].tags) == {"block": "a", "who": "module", "side": "row"}

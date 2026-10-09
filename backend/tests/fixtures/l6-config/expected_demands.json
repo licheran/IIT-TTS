@@ -1,0 +1,880 @@
+[
+ {
+  "code": "6BUIS019C-LEC",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "LEC",
+  "max_participants": 3,
+  "participants": [
+   "L6 CS / G12",
+   "L6 CS / G13",
+   "L6 CS / G14"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:THE",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6BUIS019C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6BUIS019C-TUT",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "TUT",
+  "max_participants": 1,
+  "participants": [
+   "L6 CS / G12",
+   "L6 CS / G13",
+   "L6 CS / G14"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:IMAS,MJAN,THE",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6BUIS019C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6CCGD007C-LEC",
+  "delivery": "online",
+  "duration": 2,
+  "kind": "LEC",
+  "max_participants": 1,
+  "participants": [
+   "L6 CS / G15"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:MANU,WIM",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6CCGD007C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6CCGD007C-TUT",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "TUT",
+  "max_participants": 1,
+  "participants": [
+   "L6 CS / G15"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:BIWI,MANU",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6CCGD007C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6COSC020C-LEC",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "LEC",
+  "max_participants": 4,
+  "participants": [
+   "L6 CS / G1",
+   "L6 CS / G10",
+   "L6 CS / G11",
+   "L6 CS / G12",
+   "L6 CS / G13",
+   "L6 CS / G14",
+   "L6 CS / G15",
+   "L6 CS / G16",
+   "L6 CS / G17",
+   "L6 CS / G18",
+   "L6 CS / G19",
+   "L6 CS / G2",
+   "L6 CS / G3",
+   "L6 CS / G4",
+   "L6 CS / G5",
+   "L6 CS / G6",
+   "L6 CS / G7",
+   "L6 CS / G8",
+   "L6 CS / G9"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:DILIT,FAR,LAK,MANI,NPU",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6COSC020C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6COSC020C-TUT",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "TUT",
+  "max_participants": 1,
+  "participants": [
+   "L6 CS / G1",
+   "L6 CS / G10",
+   "L6 CS / G11",
+   "L6 CS / G12",
+   "L6 CS / G13",
+   "L6 CS / G14",
+   "L6 CS / G15",
+   "L6 CS / G16",
+   "L6 CS / G17",
+   "L6 CS / G18",
+   "L6 CS / G19",
+   "L6 CS / G2",
+   "L6 CS / G3",
+   "L6 CS / G4",
+   "L6 CS / G5",
+   "L6 CS / G6",
+   "L6 CS / G7",
+   "L6 CS / G8",
+   "L6 CS / G9"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:ABM,DASU,DILIT,DUVI,FAR,JAPA,JIE,KELUM,LAK,MANI,NPU,RUZK,SAADH,YALL",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6COSC020C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6COSC021C-LEC",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "LEC",
+  "max_participants": 3,
+  "participants": [
+   "L6 CS / G15",
+   "L6 CS / G16",
+   "L6 SE / G1"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:PUBD,TOR",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6COSC021C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6COSC021C-TUT",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "TUT",
+  "max_participants": 3,
+  "participants": [
+   "L6 CS / G15",
+   "L6 CS / G16",
+   "L6 SE / G1"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:PUBD,TOR",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6COSC021C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6COSC023C-LEC",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "LEC",
+  "max_participants": 7,
+  "participants": [
+   "L6 CS / G1",
+   "L6 CS / G10",
+   "L6 CS / G11",
+   "L6 CS / G12",
+   "L6 CS / G13",
+   "L6 CS / G14",
+   "L6 CS / G15",
+   "L6 CS / G16",
+   "L6 CS / G17",
+   "L6 CS / G18",
+   "L6 CS / G19",
+   "L6 CS / G2",
+   "L6 CS / G3",
+   "L6 CS / G4",
+   "L6 CS / G5",
+   "L6 CS / G6",
+   "L6 CS / G7",
+   "L6 CS / G8",
+   "L6 CS / G9"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=auditorium",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:AAM,AHTU,BIWI,DIPE,HASA,HAWE,KRISH,MANI,MERA,MITHU,NEVI,RAMI,SANJ,SASU,SAVM,SHAV,THAB,VATD,YAS",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6COSC023C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6COSC023C-TUT",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "TUT",
+  "max_participants": 7,
+  "participants": [
+   "L6 CS / G1",
+   "L6 CS / G10",
+   "L6 CS / G11",
+   "L6 CS / G12",
+   "L6 CS / G13",
+   "L6 CS / G14",
+   "L6 CS / G15",
+   "L6 CS / G16",
+   "L6 CS / G17",
+   "L6 CS / G18",
+   "L6 CS / G19",
+   "L6 CS / G2",
+   "L6 CS / G3",
+   "L6 CS / G4",
+   "L6 CS / G5",
+   "L6 CS / G6",
+   "L6 CS / G7",
+   "L6 CS / G8",
+   "L6 CS / G9"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=auditorium",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:AAM,AHTU,BIWI,DIPE,HAWE,KRISH,MANI,MERA,MITHU,NEVI,RAMI,SANJ,SASU,SAVM,SHAV,THAB,VATD,YAS",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6COSC023C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6ELEN018C-LEC",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "LEC",
+  "max_participants": 3,
+  "participants": [
+   "L6 CS / G15",
+   "L6 CS / G16",
+   "L6 SE / G1"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:SAHP",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6ELEN018C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6ELEN018C-TUT",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "TUT",
+  "max_participants": 3,
+  "participants": [
+   "L6 CS / G15",
+   "L6 CS / G16",
+   "L6 SE / G1"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:JAPA,SAHP",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6ELEN018C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6MMCS009C-LEC",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "LEC",
+  "max_participants": 5,
+  "participants": [
+   "L6 CS / G1",
+   "L6 CS / G10",
+   "L6 CS / G11",
+   "L6 CS / G12",
+   "L6 CS / G16",
+   "L6 CS / G2",
+   "L6 CS / G3",
+   "L6 CS / G4",
+   "L6 CS / G5",
+   "L6 CS / G6",
+   "L6 CS / G7",
+   "L6 CS / G8",
+   "L6 CS / G9"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:PASI,SAHDI,SANDU",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6MMCS009C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6MMCS009C-TUT",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "TUT",
+  "max_participants": 2,
+  "participants": [
+   "L6 CS / G1",
+   "L6 CS / G10",
+   "L6 CS / G11",
+   "L6 CS / G12",
+   "L6 CS / G16",
+   "L6 CS / G2",
+   "L6 CS / G3",
+   "L6 CS / G4",
+   "L6 CS / G5",
+   "L6 CS / G6",
+   "L6 CS / G7",
+   "L6 CS / G8",
+   "L6 CS / G9"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:DMS,HAWE,MERA,PASI,SAHDI,SANDU,SANI,SAP,UTHP",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6MMCS009C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6SENG005C-LEC",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "LEC",
+  "max_participants": 4,
+  "participants": [
+   "L6 SE / G1",
+   "L6 SE / G10",
+   "L6 SE / G11",
+   "L6 SE / G2",
+   "L6 SE / G3",
+   "L6 SE / G4",
+   "L6 SE / G5",
+   "L6 SE / G6",
+   "L6 SE / G7",
+   "L6 SE / G8",
+   "L6 SE / G9"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:SUB",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6SENG005C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6SENG005C-TUT",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "TUT",
+  "max_participants": 1,
+  "participants": [
+   "L6 SE / G1",
+   "L6 SE / G10",
+   "L6 SE / G11",
+   "L6 SE / G2",
+   "L6 SE / G3",
+   "L6 SE / G4",
+   "L6 SE / G5",
+   "L6 SE / G6",
+   "L6 SE / G7",
+   "L6 SE / G8",
+   "L6 SE / G9"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=lab",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:DIPA,HARR,PASI,SUB,THAM,UTHP",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6SENG005C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6SENG006C-LEC",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "LEC",
+  "max_participants": 6,
+  "participants": [
+   "L6 SE / G1",
+   "L6 SE / G10",
+   "L6 SE / G11",
+   "L6 SE / G2",
+   "L6 SE / G3",
+   "L6 SE / G4",
+   "L6 SE / G5",
+   "L6 SE / G6",
+   "L6 SE / G7",
+   "L6 SE / G8",
+   "L6 SE / G9"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=auditorium",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:GIGA,GUG,HARR,MERA,NIYB,RAJ,SALIP,SAVM,SUB,THAB",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6SENG006C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6SENG006C-TUT",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "TUT",
+  "max_participants": 6,
+  "participants": [
+   "L6 SE / G1",
+   "L6 SE / G10",
+   "L6 SE / G11",
+   "L6 SE / G2",
+   "L6 SE / G3",
+   "L6 SE / G4",
+   "L6 SE / G5",
+   "L6 SE / G6",
+   "L6 SE / G7",
+   "L6 SE / G8",
+   "L6 SE / G9"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=auditorium",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:GIGA,GUG,HARR,MERA,NIYB,RAJ,SALIP,SAVM,SUB,THAB",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6SENG006C",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6SENG010W-LEC",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "LEC",
+  "max_participants": 6,
+  "participants": [
+   "L6 SE / G1",
+   "L6 SE / G10",
+   "L6 SE / G11",
+   "L6 SE / G2",
+   "L6 SE / G3",
+   "L6 SE / G4",
+   "L6 SE / G5",
+   "L6 SE / G6",
+   "L6 SE / G7",
+   "L6 SE / G8",
+   "L6 SE / G9"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=auditorium",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:BIWI,HASH,KRISH,MITHU,NEVI,NIYB,SALIP,SHAV,THAB,VATD",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6SENG010W",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ },
+ {
+  "code": "6SENG010W-TUT",
+  "delivery": "in_person",
+  "duration": 2,
+  "kind": "TUT",
+  "max_participants": 6,
+  "participants": [
+   "L6 SE / G1",
+   "L6 SE / G10",
+   "L6 SE / G11",
+   "L6 SE / G2",
+   "L6 SE / G3",
+   "L6 SE / G4",
+   "L6 SE / G5",
+   "L6 SE / G6",
+   "L6 SE / G7",
+   "L6 SE / G8",
+   "L6 SE / G9"
+  ],
+  "pooled": [
+   {
+    "capacity_rule": {
+     "kind": "sum_of_fixed",
+     "resource_type": "StudentGroup"
+    },
+    "count": 1,
+    "filter": "tag:room_type=auditorium",
+    "ordinal": 0,
+    "resource_type": "Room"
+   },
+   {
+    "capacity_rule": {
+     "kind": "none",
+     "resource_type": null
+    },
+    "count": 1,
+    "filter": "code:BIWI,HASH,KRISH,MITHU,NEVI,NIYB,SALIP,SHAV,THAB,VATD",
+    "ordinal": 1,
+    "resource_type": "Teacher"
+   }
+  ],
+  "reference": "6SENG010W",
+  "repeat": 1,
+  "start_pattern": "2H",
+  "tags": []
+ }
+]

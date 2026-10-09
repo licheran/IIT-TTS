@@ -3127,6 +3127,14 @@
             "title": "Export Only",
             "default": false
           },
+          "key_from": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Key From",
+            "default": []
+          },
           "hidden": {
             "type": "boolean",
             "title": "Hidden",

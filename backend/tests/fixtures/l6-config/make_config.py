@@ -6,7 +6,7 @@ The real L6 export gives the modules, groups, teachers and rooms. Its hand-made 
 configuration, and the solver makes the sessions again. The assumptions (also written to `_meta`):
 
 - a **session type** for each kind (LEC, TUT) with the settings most modules of that kind share;
-  a module overrides what differs, for example `LEC(max_groups=7)`;
+  a module's Session row fills only the cells that differ, for example `max_groups` 7;
 - the groups of a module and kind are the groups that attend any of its activities;
 - `max_groups` is the most groups any one of its activities had (a lecture shared by 7 groups
   gives 7), and `weekly` the most activities one group attends (1 in L6);
@@ -98,33 +98,37 @@ def as_configuration(dataset: Dataset) -> Dataset:
     for g in groups.values():
         programme_groups[str(g.parent)].add(g.code)
     modules: list[Reference] = []
+    rows: list[Reference] = []
     optional: set[str] = set()
     for code in sorted(takers):
         programmes = sorted({str(groups[g].parent) for g in takers[code]})
         full = all(programme_groups[p] <= takers[code] for p in programmes)
         if not full:
             optional.add(code)
-        items = []
         for kind in sorted(base):
             key = (code, kind)
             if key not in shared:
                 continue
-            changes = []
-            if shared[key] != base[kind]["max_groups"]:
-                changes.append(f"max_groups={shared[key]}")
+            # A Session row fills only the cells that differ from its session type.
+            changes: dict[str, object] = {"module": code, "session_type": kind}
             if online[key]:
-                changes.append("delivery=online")
+                changes["delivery"] = types.ONLINE
             elif room_type.get(key) != base[kind]["room_type"]:
-                changes.append(f"room_type={room_type[key]}")
+                changes["room_type"] = room_type[key]
+            if shared[key] != base[kind]["max_groups"]:
+                changes["max_groups"] = shared[key]
             per_week = max(weekly[key].values())
             if per_week != 1:
-                changes.append(f"weekly={per_week}")
-            items.append(f"{kind}({','.join(changes)})" if changes else kind)
+                changes["weekly"] = per_week
+            rows.append(
+                Reference(
+                    code=f"{code}-{kind}", type=types.SESSION, attributes=tuple(changes.items())
+                )
+            )
         attributes: list[tuple[str, object]] = [
             ("level", "L6"),
             ("optional", not full),
             ("programmes", ";".join(programmes)),
-            ("sessions", ";".join(items)),
         ]
         modules.append(Reference(code=code, type=types.MODULE, attributes=tuple(attributes)))
 
@@ -148,7 +152,7 @@ def as_configuration(dataset: Dataset) -> Dataset:
             "templates": (),
             "demands": (),
             "resources": tuple(resources),
-            "references": tuple(sorted([*session_types, *modules], key=lambda x: x.code)),
+            "references": tuple(sorted([*session_types, *modules, *rows], key=lambda x: x.code)),
         }
     )
 

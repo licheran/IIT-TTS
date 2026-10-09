@@ -1,10 +1,11 @@
 """From configuration to demands (ADR-0007, spec 02 section 6.1, spec 03 section 2a).
 
-A configured academic dataset holds no activities. Its modules say which session types they have,
-its teachers which modules they teach, its programmes which groups they contain, and its groups
-which optional modules they take. `demands` turns that into the core's demands, one per module
-and session type, and `configuration_issues` finds the mistakes the sheet columns cannot (an option
-that is not optional, a teacher for a session type the module lacks, ...).
+A configured academic dataset holds no activities. Its `Session` rows say which session types a
+module has (a blank setting takes the session type's), its teachers which modules they teach, its
+programmes which groups they contain, and its groups which optional modules they take. `demands`
+turns that into the core's demands, one per Session row, and `configuration_issues` finds the
+mistakes the sheet columns cannot (an option that is not optional, a teacher for a session type the
+module lacks, ...).
 
 Both are pure functions of a dataset. They hold no scheduling logic: what a demand asks for is
 data, and the solver decides the rest.
@@ -12,7 +13,6 @@ data, and the solver decides the rest.
 
 import re
 from collections import defaultdict
-from dataclasses import dataclass
 
 from tts.core.model import CapacityRule, Dataset, Demand, PooledSpec, Reference, Resource
 from tts.core.selectors import CodeClause, Selector, format_selector
@@ -20,11 +20,8 @@ from tts.core.sheets import ConfigIssue
 from tts.presets.academic_weekly import types
 
 LIST_SEP = ";"
-SETTINGS = ("start_pattern", "delivery", "room_type", "max_groups", "teachers", "weekly")
 ROOM_ORDINAL = 0
 TEACHER_ORDINAL = 1
-
-_ITEM = re.compile(r"^(?P<code>[^()]+?)\s*(?:\((?P<settings>.*)\))?$")
 
 
 def split_list(text: object) -> tuple[str, ...]:
@@ -32,37 +29,6 @@ def split_list(text: object) -> tuple[str, ...]:
     if not isinstance(text, str):
         return ()
     return tuple(part.strip() for part in text.split(LIST_SEP) if part.strip())
-
-
-@dataclass(frozen=True, slots=True)
-class SessionItem:
-    """One entry of `Modules.sessions`: a session type and the settings it overrides."""
-
-    code: str
-    settings: tuple[tuple[str, str], ...] = ()
-    problem: str | None = None  # why the entry cannot be read
-
-
-def parse_session_item(text: str) -> SessionItem:
-    match = _ITEM.match(text.strip())
-    if match is None:
-        return SessionItem(text.strip(), problem=f'cannot read "{text.strip()}"')
-    code = match["code"].strip()
-    raw = match["settings"]
-    if raw is None:
-        return SessionItem(code)
-    settings: list[tuple[str, str]] = []
-    for part in raw.split(","):
-        if not part.strip():
-            continue
-        name, equals, value = part.partition("=")
-        if not equals or not name.strip():
-            return SessionItem(code, problem=f'cannot read "{text.strip()}": expected name=value')
-        if name.strip() not in SETTINGS:
-            known = ", ".join(SETTINGS)
-            return SessionItem(code, problem=f'unknown setting "{name.strip()}" (known: {known})')
-        settings.append((name.strip(), value.strip()))
-    return SessionItem(code, tuple(settings))
 
 
 def parse_teacher_item(text: str) -> tuple[str, str | None]:
@@ -82,6 +48,10 @@ class _Tables:
         self.session_types: dict[str, Reference] = {
             r.code: r for r in dataset.references if r.type == types.SESSION_TYPE
         }
+        self.sessions: dict[str, list[Reference]] = defaultdict(list)  # Session rows by module
+        for row in sorted(dataset.references, key=lambda r: r.code):
+            if row.type == types.SESSION:
+                self.sessions[str(dict(row.attributes).get("module"))].append(row)
         self.by_type: dict[str, list[Resource]] = defaultdict(list)
         for resource in dataset.resources:
             self.by_type[resource.type].append(resource)
@@ -104,11 +74,10 @@ class _Tables:
         return parent.parent if parent is not None and parent.type == types.PROGRAMME else None
 
 
-def _setting(session_type: Reference, item: SessionItem, name: str, tables: _Tables) -> object:
-    overridden = dict(item.settings)
-    if name in overridden:
-        return overridden[name]
-    return tables.attribute(session_type, name)
+def _setting(session_type: Reference, row: Reference, name: str, tables: _Tables) -> object:
+    """The Session row's own value, else the session type's."""
+    own = tables.attribute(row, name)
+    return own if own is not None else tables.attribute(session_type, name)
 
 
 def _as_int(value: object) -> int | None:
@@ -149,21 +118,20 @@ def participants_of(tables: _Tables, module: Reference) -> tuple[str, ...]:
 
 
 def demands(dataset: Dataset) -> tuple[Demand, ...]:
-    """One demand for each module and session type of the configuration.
+    """One demand for each Session row of the configuration.
 
-    Entries that cannot be made into a demand (an unknown session type, a setting that is not a
-    number) are skipped: `configuration_issues` reports them.
+    Rows that cannot be made into a demand (an unknown module or session type, a setting that is
+    not a number) are skipped: `configuration_issues` and the sheet checks report them.
     """
     tables = _Tables(dataset)
     found: list[Demand] = []
     for module in sorted(tables.modules.values(), key=lambda r: r.code):
         participants = participants_of(tables, module)
-        for text in split_list(tables.attribute(module, "sessions")):
-            item = parse_session_item(text)
-            session_type = tables.session_types.get(item.code)
-            if item.problem is not None or session_type is None:
+        for row in tables.sessions.get(module.code, []):
+            session_type = tables.session_types.get(str(tables.attribute(row, "session_type")))
+            if session_type is None:
                 continue
-            made = _demand(tables, module, session_type, item, participants)
+            made = _demand(tables, module, session_type, row, participants)
             if made is not None:
                 found.append(made)
     return tuple(found)
@@ -173,18 +141,18 @@ def _demand(
     tables: _Tables,
     module: Reference,
     session_type: Reference,
-    item: SessionItem,
+    row: Reference,
     participants: tuple[str, ...],
 ) -> Demand | None:
-    pattern = _setting(session_type, item, "start_pattern", tables)
+    pattern = _setting(session_type, row, "start_pattern", tables)
     start = tables.patterns.get(str(pattern))
     if start is None:
         return None
-    limit = _as_int(_setting(session_type, item, "max_groups", tables))
-    weekly = _as_int(_setting(session_type, item, "weekly", tables))
-    teachers = _as_int(_setting(session_type, item, "teachers", tables))
-    delivery = _setting(session_type, item, "delivery", tables) or types.IN_PERSON
-    room_type = _setting(session_type, item, "room_type", tables)
+    limit = _as_int(_setting(session_type, row, "max_groups", tables))
+    weekly = _as_int(_setting(session_type, row, "weekly", tables))
+    teachers = _as_int(_setting(session_type, row, "teachers", tables))
+    delivery = _setting(session_type, row, "delivery", tables) or types.IN_PERSON
+    room_type = _setting(session_type, row, "room_type", tables)
     if (limit is not None and limit < 1) or (weekly is not None and weekly < 1):
         return None
     if teachers is not None and teachers < 0:
@@ -223,8 +191,9 @@ def _demand(
         start_pattern=start.code,
         delivery=str(delivery),
         pooled=tuple(pooled),
-        # A session carries its type's tags, and its module's tags win over them.
-        tags=tuple({**dict(session_type.tags), **dict(module.tags)}.items()),
+        # A session carries its type's tags; its module's tags win over them, and its row's win
+        # over both.
+        tags=tuple({**dict(session_type.tags), **dict(module.tags), **dict(row.tags)}.items()),
     )
 
 
@@ -234,6 +203,7 @@ def configuration_issues(dataset: Dataset) -> list[ConfigIssue]:
     found: list[ConfigIssue] = []
     _session_types(tables, found)
     _modules(tables, found)
+    _session_rows(tables, found)
     _teachers(tables, found)
     _groups(tables, found)
     return found
@@ -267,35 +237,46 @@ def _modules(tables: _Tables, found: list[ConfigIssue]) -> None:
                         f'programme "{code}" belongs to level "{programme.parent}", not "{level}"',
                     )
                 )
-        for text in split_list(tables.attribute(module, "sessions")):
-            item = parse_session_item(text)
-            if item.problem is not None:
-                found.append(ConfigIssue("Modules", module.code, "sessions", item.problem))
-            elif item.code not in tables.session_types:
-                found.append(
-                    ConfigIssue("Modules", module.code, "sessions", f'unknown code "{item.code}"')
-                )
-            else:
-                _settings(tables, module, text, item, found)
-
-
-def _settings(
-    tables: _Tables, module: Reference, text: str, item: SessionItem, found: list[ConfigIssue]
-) -> None:
-    for name, value in item.settings:
-        wrong = None
-        if name == "delivery" and value not in (types.IN_PERSON, types.ONLINE):
-            wrong = "delivery must be in_person or online"
-        elif name in ("max_groups", "weekly") and (_as_int(value) is None or _as_int(value) < 1):  # type: ignore[operator]
-            wrong = f"{name} must be an integer ≥ 1"
-        elif name == "teachers" and (_as_int(value) is None or _as_int(value) < 0):  # type: ignore[operator]
-            wrong = "teachers must be an integer ≥ 0"
-        elif name == "start_pattern" and value not in tables.patterns:
-            wrong = f'unknown start pattern "{value}"'
-        if wrong is not None:
+        taken_by = participants_of(tables, module)
+        if taken_by and not tables.sessions.get(module.code):
             found.append(
-                ConfigIssue("Modules", module.code, "sessions", f'cannot read "{text}": {wrong}')
+                ConfigIssue(
+                    "Modules",
+                    module.code,
+                    "code",
+                    f'module "{module.code}" is taken by {len(taken_by)} groups but has no '
+                    "Session rows, so nothing is scheduled for it",
+                    warning=True,
+                )
             )
+
+
+def _session_rows(tables: _Tables, found: list[ConfigIssue]) -> None:
+    for module_code in sorted(tables.sessions):
+        for row in tables.sessions[module_code]:
+            session_type = tables.session_types.get(str(tables.attribute(row, "session_type")))
+            if session_type is None:
+                continue  # an unknown code is reported by the sheet's reference check
+            delivery = _setting(session_type, row, "delivery", tables) or types.IN_PERSON
+            if delivery == types.ONLINE and tables.attribute(row, "room_type"):
+                found.append(
+                    ConfigIssue(
+                        "Session",
+                        row.code,
+                        "room_type",
+                        "an online session cannot have a room type",
+                    )
+                )
+            elif delivery != types.ONLINE and not _setting(session_type, row, "room_type", tables):
+                found.append(
+                    ConfigIssue(
+                        "Session",
+                        row.code,
+                        "room_type",
+                        "required: the session is in person and neither the row nor session type "
+                        f'"{session_type.code}" gives one',
+                    )
+                )
 
 
 def _teachers(tables: _Tables, found: list[ConfigIssue]) -> None:
@@ -308,9 +289,7 @@ def _teachers(tables: _Tables, found: list[ConfigIssue]) -> None:
                     ConfigIssue("Teachers", teacher.code, "modules", f'unknown code "{code}"')
                 )
                 continue
-            kinds = {
-                parse_session_item(t).code for t in split_list(tables.attribute(module, "sessions"))
-            }
+            kinds = {str(tables.attribute(r, "session_type")) for r in tables.sessions[module.code]}
             if kind is not None and kind not in kinds:
                 found.append(
                     ConfigIssue(

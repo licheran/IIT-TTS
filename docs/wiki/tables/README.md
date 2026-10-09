@@ -18,13 +18,14 @@ Campuses ──► Buildings ──► Rooms                                    
 
 Days, Periods, StartPatterns                                           when
 
-SessionTypes ──► Modules ──(solver)──► Activities                      what to schedule
-                 (one level, mandatory or optional)    (the solver's output)
+SessionTypes ──► Session ◄── Modules ──(solver)──► Activities          what to schedule
+                 (one row per module   (one level, mandatory   (the solver's output)
+                  and session type)     or optional)
 
 Availability, Constraints                                              rules
 ```
 
-- An arrow `A ──► B` means "each B has a parent A" or "B uses A": a level belongs to a university, a programme to a level, a group to a programme, a building to a campus, a room to a building, a module lists session types.
+- An arrow `A ──► B` means "each B has a parent A" or "B uses A": a level belongs to a university, a programme to a level, a group to a programme, a building to a campus, a room to a building, a Session row joins a module to a session type.
 - **Exclusive** resources (groups, teachers, rooms) can be in only one session at a time. The rest only group things.
 - Other tables refer to a row by its **code**. A reference to a code that does not exist is an error.
 - In a configured dataset the **Activities** are the solver's output, not something you fill in: see [Activities](Activities.md).
@@ -46,7 +47,8 @@ Availability, Constraints                                              rules
 | Buildings | Buildings | [Buildings](Buildings.md) |
 | Rooms | Rooms, their size and type | [Rooms](Rooms.md) |
 | Session types (`SessionTypes`) | The kinds of session and their settings | [SessionTypes](SessionTypes.md) |
-| Modules | The courses, their level and their sessions | [Modules](Modules.md) |
+| Modules | The courses, their level and whether they are optional | [Modules](Modules.md) |
+| Session | How each module holds each kind of session | [Session](Session.md) |
 | Availability | When a resource cannot or should not be used | [Availability](Availability.md) |
 | Constraints | Your rules | [Constraints](Constraints.md) |
 
@@ -63,7 +65,7 @@ These belong to format version 1. A configured dataset has none of them: its ses
 | Pins | Activities you fixed in time or place | [Pins](Pins.md) |
 | Assignments | A run's result (export only) | [Assignments](Assignments.md) |
 
-A hand-made dataset's Groups, Teachers and Modules tables have fewer columns than the pages show (no `options`, `modules`, `level`, `programmes`, `optional` or `sessions`): each of those pages says so.
+A hand-made dataset's Groups, Teachers and Modules tables have fewer columns than the pages show (no `options`, `modules`, `level`, `programmes` or `optional`): each of those pages says so.
 
 The name in brackets is the sheet name in an Excel or CSV file. In the app the tabs show the friendlier name.
 
@@ -72,7 +74,7 @@ The name in brackets is the sheet name in an Excel or CSV file. In the app the t
 1. **Days, Periods, Start patterns**: the shape of the week.
 2. **Universities, Levels, Programmes**, **Campuses, Buildings, Rooms**: the institute and its places.
 3. **Session types**: the kinds of session you hold.
-4. **Modules**, each with its level, whether it is optional, and its session types.
+4. **Modules**, each with its level and whether it is optional, and then the **Session** table: one row for each session type a module has.
 5. **Groups** with their optional modules, and **Teachers** with the modules they teach.
 6. **Availability** and **Constraints** when you need them.
 7. Run the solver. The sessions appear in the Activities view, where you can correct them.

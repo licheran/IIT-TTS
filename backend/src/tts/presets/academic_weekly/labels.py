@@ -13,6 +13,7 @@ TYPE_LABELS: dict[str, str] = {
     types.ROOM: "Room",
     types.MODULE: "Module",
     types.SESSION_TYPE: "Session type",
+    types.SESSION: "Session row",
 }
 
 KIND_LABELS: dict[str, str] = {

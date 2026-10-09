@@ -50,7 +50,7 @@ from tts.core.selectors import (
 )
 from tts.core.sheets import ColumnDef, PooledMapping, Preset, SheetDef
 from tts.expand.templates import expand
-from tts.io.tables import KEY_SEP, LIST_SEP, STAR, WorkbookData, row_key
+from tts.io.tables import KEY_JOIN, KEY_SEP, LIST_SEP, STAR, WorkbookData, row_key
 from tts.presets import FORMAT_VERSIONS, PRESET_VERSIONS, configuration_issues, expansion_options
 
 
@@ -210,10 +210,19 @@ class _Row:
 
     def value(self, field_name: str) -> Any:
         """The value of the column holding a core field, or None."""
+        if field_name == "code" and self.sheet.key_from:
+            return self.derived_code()
         for column in self.sheet.columns:
             if column.field == field_name:
                 return self.values.get(column.name)
         return None
+
+    def derived_code(self) -> str | None:
+        """The code of a row whose sheet derives it from its key columns (None if one is blank)."""
+        parts = [self.values.get(name) for name in self.sheet.key_from]
+        if not all(isinstance(p, str) and p for p in parts):
+            return None
+        return KEY_JOIN.join(str(p) for p in parts)
 
     def col(self, field_name: str) -> int | None:
         for column in self.sheet.columns:
@@ -395,10 +404,9 @@ class _Import:
         for sheet in self.preset.sheets:
             codes: dict[str, _Row] = {}
             by_sheet[sheet.name] = codes
-            if not any(c.field == "code" for c in sheet.columns) or sheet.target in (
-                "meta",
-                "assignment",
-            ):
+            if not (
+                sheet.key_from or any(c.field == "code" for c in sheet.columns)
+            ) or sheet.target in ("meta", "assignment"):
                 continue
             namespace = resources if sheet.target == "resource" else codes
             for row in self.rows.get(sheet.name, []):
@@ -415,9 +423,15 @@ class _Import:
                     if first.sheet is sheet
                     else f"{first.sheet.name}!R{first.number}"
                 )
-                self.issue_at(
-                    row, row.column_name("code") or "code", f'duplicate "{code}" (first at {where})'
-                )
+                if sheet.key_from:
+                    parts = " + ".join(f'"{row.values[n]}"' for n in sheet.key_from)
+                    self.issue_at(row, sheet.key_from[-1], f"duplicate {parts} (first at {where})")
+                else:
+                    self.issue_at(
+                        row,
+                        row.column_name("code") or "code",
+                        f'duplicate "{code}" (first at {where})',
+                    )
         return by_sheet
 
     def check_references(self, codes: dict[str, dict[str, _Row]]) -> None:
@@ -727,6 +741,8 @@ class _Build:
                 )
             else:
                 plain[column.field] = value
+        if row.sheet.key_from:
+            plain["code"] = row.value("code")
         return plain, tags, attributes
 
     def resource(self, row: _Row) -> Resource:
@@ -909,6 +925,8 @@ def import_raw(raw: dict[str, RawSheet], preset: Preset | None = None) -> Import
     if imp.issues:
         return ImportOutcome(tuple(imp.issues), summary=summary)
     for mistake in configuration_issues(dataset):  # what only the preset can see
+        if mistake.warning:
+            continue  # pre-flight shows it; it does not stop an import
         at = next(
             (r for r in imp.rows.get(mistake.sheet, []) if imp.code_of(r) == mistake.code), None
         )

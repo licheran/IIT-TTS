@@ -34,7 +34,8 @@ Terms are listed alphabetically. The academic words (group, teacher, room) are t
 | **Score** | The sum of `weight × penalty` over all soft constraints. Lower is better. `0` means every preference is met. |
 | **Selector** | A short text such as `under:L6 SE` that picks rows, used in rule scopes and templates. |
 | **Session** | One meeting the solver makes from a module and a session type, for example one tutorial for one block of groups. |
-| **Session type** | A kind of session (`LEC`, `TUT`, your own) with its length, delivery, room type, groups per session and sessions per week. Modules list the session types they have. |
+| **Session type** | A kind of session (`LEC`, `TUT`, your own) with its length, delivery, room type, groups per session and sessions per week. These are defaults: a Session row can change them for one module. |
+| **Session row** | A row of the Session table: how one module holds one kind of session. It is a rule, not a meeting: the solver makes the sessions from it. |
 | **Start pattern** | The list of periods an activity of a given length may start in. |
 | **Tag** | A `key=value` label on a resource or an activity, used by selectors. |
 | **Template** | Retired. A rule that generated activities. A version 1 file's template rows are expanded once when it is imported. |

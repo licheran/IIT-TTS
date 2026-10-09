@@ -39,6 +39,7 @@ RESOURCE_TYPES: tuple[ResourceType, ...] = (
 
 MODULE = "Module"
 SESSION_TYPE = "SessionType"
+SESSION = "Session"
 
 REFERENCE_TYPES: tuple[ReferenceType, ...] = (
     ReferenceType(
@@ -48,17 +49,31 @@ REFERENCE_TYPES: tuple[ReferenceType, ...] = (
             AttributeDef(name="credits", kind="int"),
             AttributeDef(name="level", kind="str"),
             AttributeDef(name="programme", kind="str"),
-            # Format version 2: the programmes that take it (`;`-separated), whether it is
-            # optional, and its session types (`;`-separated, each with optional settings).
+            # Format version 2: the programmes that take it (`;`-separated) and whether it is
+            # optional. Its session types are the rows of the `Session` sheet.
             AttributeDef(name="programmes", kind="str"),
             AttributeDef(name="optional", kind="bool"),
-            AttributeDef(name="sessions", kind="str"),
         ),
     ),
     ReferenceType(
         code=SESSION_TYPE,
         name="Session type",
         attribute_schema=(
+            AttributeDef(name="start_pattern", kind="str"),
+            AttributeDef(name="delivery", kind="str"),
+            AttributeDef(name="room_type", kind="str"),
+            AttributeDef(name="max_groups", kind="int"),
+            AttributeDef(name="teachers", kind="int"),
+            AttributeDef(name="weekly", kind="int"),
+        ),
+    ),
+    ReferenceType(
+        code=SESSION,
+        name="Session row",
+        # How a module holds one kind of session. A blank setting takes the session type's.
+        attribute_schema=(
+            AttributeDef(name="module", kind="str"),
+            AttributeDef(name="session_type", kind="str"),
             AttributeDef(name="start_pattern", kind="str"),
             AttributeDef(name="delivery", kind="str"),
             AttributeDef(name="room_type", kind="str"),

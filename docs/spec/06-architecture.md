@@ -78,7 +78,7 @@ The core-purity test fails if the domain words listed in `CLAUDE.md` rule 1 appe
 
 `dataset`, `resource_type`, `resource`, `reference_type`, `reference`, `day`, `period`, `start_pattern`, `availability`, `event`, `event_resource`, `requirement`, `constraint`, `template`, `pin`, `run`, `assignment`, `assigned_resource`, `created_event`, `created_participant`, `diagnostic`.
 
-- `event.demand` (nullable) names the demand a declared event belongs to (an edit). Session types, module levels, optional flags and sessions, teacher modules and group options of a configured academic dataset are kept in the `attributes` of `reference` and `resource` rows, like other attributes. A demand is derived from them by the preset when a run starts, not stored.
+- `event.demand` (nullable) names the demand a declared event belongs to (an edit). Session types, module levels and optional flags, `Session` rows (stored as references of the type `Session`, whose code is derived: `<module>-<session_type>`; no new table), teacher modules and group options of a configured academic dataset are kept in the `attributes` of `reference` and `resource` rows, like other attributes. A demand is derived from them by the preset when a run starts, not stored.
 - `created_event` (`run_id`, `event`, `demand`) and `created_participant` (`run_id`, `event`, `resource`) belong to a run, like `assignment`.
 
 - Their columns follow `02-domain-model.md` §1.

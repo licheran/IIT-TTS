@@ -4,7 +4,7 @@ import io
 from collections.abc import Callable
 
 import pytest
-from academic_config import dataset, module, replaced
+from academic_config import dataset, module, replaced, with_sessions
 from openpyxl import Workbook, load_workbook
 
 from tts.core.model import Dataset
@@ -35,6 +35,30 @@ def cell(workbook: Workbook, sheet: str, code: str, column: str, value: object) 
     row = next(r for r in range(2, ws.max_row + 1) if ws.cell(r, 1).value == code)
     ws.cell(row, col).value = value
     return row, col
+
+
+def session_cell(
+    workbook: Workbook, module_code: str, type_code: str, column: str, value: object
+) -> tuple[int, int]:
+    """Set a cell of the Session row for a module and session type; return its row and column."""
+    ws = workbook["Session"]
+    headers = [c.value for c in ws[1]]
+    col = headers.index(column) + 1
+    row = next(
+        r
+        for r in range(2, ws.max_row + 1)
+        if (ws.cell(r, 1).value, ws.cell(r, 2).value) == (module_code, type_code)
+    )
+    ws.cell(row, col).value = value
+    return row, col
+
+
+def add_session_row(workbook: Workbook, **values: object) -> int:
+    """Append a row to the Session sheet; return its row number."""
+    ws = workbook["Session"]
+    headers = [c.value for c in ws[1]]
+    ws.append([values.get(str(h)) for h in headers])
+    return ws.max_row
 
 
 def messages(outcome: ImportOutcome) -> list[str]:
@@ -97,37 +121,112 @@ def test_a_module_programme_at_another_level_is_refused() -> None:
     ]
 
 
-def test_an_unknown_session_type_is_refused() -> None:
+def test_a_version_two_file_has_a_session_sheet_and_no_sessions_column() -> None:
+    workbook = load_workbook(io.BytesIO(exported(dataset())))
+    assert workbook.sheetnames.index("Session") == workbook.sheetnames.index("Modules") + 1
+    assert [c.value for c in workbook["Session"][1]] == [
+        "module",
+        "session_type",
+        "start_pattern",
+        "delivery",
+        "room_type",
+        "max_groups",
+        "teachers",
+        "weekly",
+        "tags",
+    ]  # no code column: the code follows from the module and the session type
+    assert "sessions" not in [c.value for c in workbook["Modules"][1]]
+
+
+def test_session_rows_survive_a_round_trip_with_only_their_own_cells_filled() -> None:
+    ds = with_sessions(dataset(), "M1", ("LEC", {"max_groups": 4}), "TUT")
+    out = import_xlsx(exported(ds))
+    assert out.errors == () and out.data is not None
+    rows = {r.code: dict(r.attributes) for r in out.data.dataset.references if r.type == "Session"}
+    assert rows["M1-LEC"] == {"module": "M1", "session_type": "LEC", "max_groups": 4}
+    assert rows["M1-TUT"] == {"module": "M1", "session_type": "TUT"}
+    again = import_xlsx(exported(out.data.dataset))
+    assert again.data is not None and again.data.dataset == out.data.dataset
+
+
+def test_a_session_row_for_an_unknown_module_is_refused() -> None:
+    at: list[tuple[int, int]] = []
+    out = edited(dataset(), lambda wb: at.append(session_cell(wb, "M1", "LEC", "module", "M9")))
+    row, col = at[0]
+    assert messages(out) == [f'Session!R{row}C{col} [module]: unknown code "M9"']
+
+
+def test_a_session_row_for_an_unknown_session_type_is_refused() -> None:
     at: list[tuple[int, int]] = []
     out = edited(
-        dataset(), lambda wb: at.append(cell(wb, "Modules", "M1", "sessions", "LEC;LAB;TUT"))
+        dataset(), lambda wb: at.append(session_cell(wb, "M1", "LEC", "session_type", "LAB"))
     )
     row, col = at[0]
-    assert messages(out) == [f'Modules!R{row}C{col} [sessions]: unknown code "LAB"']
+    assert messages(out) == [f'Session!R{row}C{col} [session_type]: unknown code "LAB"']
 
 
-def test_an_unreadable_session_setting_is_refused() -> None:
-    at: list[tuple[int, int]] = []
+def test_a_second_session_row_for_the_same_module_and_type_is_refused() -> None:
+    at: list[int] = []
     out = edited(
         dataset(),
-        lambda wb: at.append(cell(wb, "Modules", "M1", "sessions", "LEC(start_pattern);TUT")),
+        lambda wb: at.append(add_session_row(wb, module="M1", session_type="LEC", max_groups=2)),
     )
-    row, col = at[0]
+    first = 2  # the first row written is M1-LEC
     assert messages(out) == [
-        f'Modules!R{row}C{col} [sessions]: cannot read "LEC(start_pattern)": expected name=value'
+        f'Session!R{at[0]}C2 [session_type]: duplicate "M1" + "LEC" (first at R{first})'
     ]
 
 
-def test_an_unknown_session_setting_is_refused() -> None:
+def test_a_session_row_without_a_module_or_a_type_is_refused() -> None:
+    out = edited(dataset(), lambda wb: add_session_row(wb, max_groups=2))
+    assert sorted(messages(out)) == [
+        "Session!R6C1 [module]: required",
+        "Session!R6C2 [session_type]: required",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("column", "value", "text"),
+    [
+        ("max_groups", 0, 'expected integer ≥ 1, got "0"'),
+        ("weekly", 0, 'expected integer ≥ 1, got "0"'),
+        ("teachers", -1, 'expected integer ≥ 0, got "-1"'),
+    ],
+)
+def test_a_session_number_out_of_range_is_refused(column: str, value: int, text: str) -> None:
     at: list[tuple[int, int]] = []
-    out = edited(
-        dataset(), lambda wb: at.append(cell(wb, "Modules", "M1", "sessions", "LEC(size=2);TUT"))
-    )
+    out = edited(dataset(), lambda wb: at.append(session_cell(wb, "M1", "LEC", column, value)))
+    row, col = at[0]
+    assert messages(out) == [f"Session!R{row}C{col} [{column}]: {text}"]
+
+
+def test_an_online_session_row_with_a_room_type_is_refused() -> None:
+    at: list[tuple[int, int]] = []
+
+    def change(wb: Workbook) -> None:
+        session_cell(wb, "M1", "LEC", "delivery", "online")
+        at.append(session_cell(wb, "M1", "LEC", "room_type", "lab"))
+
+    out = edited(dataset(), change)
     row, col = at[0]
     assert messages(out) == [
-        f'Modules!R{row}C{col} [sessions]: unknown setting "size" (known: start_pattern, '
-        "delivery, room_type, max_groups, teachers, weekly)"
+        f"Session!R{row}C{col} [room_type]: an online session cannot have a room type"
     ]
+
+
+def test_a_module_taken_by_groups_with_no_session_rows_still_imports() -> None:
+    ds = with_sessions(dataset(), "M3")
+    out = import_xlsx(exported(ds))
+    assert out.errors == () and out.data is not None  # pre-flight warns; the import does not stop
+
+
+def test_the_old_sessions_column_of_modules_is_refused() -> None:
+    def add(workbook: Workbook) -> None:
+        ws = workbook["Modules"]
+        ws.cell(1, ws.max_column + 1).value = "sessions"
+
+    column = len(list(load_workbook(io.BytesIO(exported(dataset())))["Modules"][1])) + 1
+    assert messages(edited(dataset(), add)) == [f"Modules!R1C{column} [sessions]: unknown column"]
 
 
 def test_a_teacher_for_a_session_type_the_module_lacks_is_refused() -> None:
@@ -237,10 +336,10 @@ def test_a_version_one_workbook_still_imports_into_a_hand_made_dataset(l6_datase
     assert "Activities" in workbook.sheetnames and "SessionTypes" not in workbook.sheetnames
 
 
-@pytest.mark.parametrize("sheet", ["Groups", "Teachers", "Modules", "SessionTypes"])
+@pytest.mark.parametrize("sheet", ["Groups", "Teachers", "Modules", "SessionTypes", "Session"])
 def test_the_new_and_changed_sheets_are_exported(sheet: str) -> None:
     assert sheet in load_workbook(io.BytesIO(exported(dataset()))).sheetnames
 
 
 def test_replaced_helper_keeps_other_rows_unchanged() -> None:
-    assert replaced(dataset(), "M1", sessions="LEC").references != dataset().references
+    assert replaced(dataset(), "M1", optional=True).references != dataset().references

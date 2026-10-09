@@ -3,6 +3,7 @@ passes pre-flight, solves, verifies and exports through the CLI and the API, and
 through the API survives the rebuild."""
 
 import io
+import json
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -16,6 +17,7 @@ from tts.api.main import create_app
 from tts.cli import app
 from tts.core.verifier import hard_violations, verify
 from tts.io.workbook import import_xlsx
+from tts.presets import derive_demands
 from tts.store.db import make_engine, make_session_factory
 from tts.store.repositories import DatasetRepo, RunRepo
 from tts.worker.runner import Worker
@@ -32,11 +34,23 @@ def test_the_workbook_is_what_the_script_writes() -> None:
     assert "assumptions" in outcome.data.meta
 
 
+def test_the_session_table_derives_the_same_demands_as_the_inline_list_did() -> None:
+    """P24.3 regression: `expected_demands.json` was dumped from the version of this workbook that
+    kept each module's sessions in `Modules.sessions` (20 demands, 72 sessions)."""
+    outcome = import_xlsx(WORKBOOK)
+    assert outcome.data is not None
+    made = derive_demands(outcome.data.dataset)
+    derived = [json.loads(d.model_dump_json()) for d in made]
+    expected = json.loads((HERE / "expected_demands.json").read_text(encoding="utf-8"))
+    assert derived == expected
+    assert sum(d.blocks * d.repeat for d in made) == 72
+
+
 def test_the_workbook_holds_configuration_only() -> None:
     from openpyxl import load_workbook
 
     names = load_workbook(WORKBOOK).sheetnames
-    assert "SessionTypes" in names
+    assert "SessionTypes" in names and "Session" in names
     for retired in ("Templates", "Activities", "ActivityGroups", "ActivityTeachers", "Pins"):
         assert retired not in names
 

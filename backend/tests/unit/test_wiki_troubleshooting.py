@@ -137,6 +137,14 @@ def addrow(sheet: str, **values: object) -> Callable[[Workbook], None]:
     return change
 
 
+def all_of(*changes: Callable[[Workbook], None]) -> Callable[[Workbook], None]:
+    def change(wb: Workbook) -> None:
+        for each in changes:
+            each(wb)
+
+    return change
+
+
 def constraint(**values: object) -> Callable[[Workbook], None]:
     base = {"code": "X", "type": "max_days", "scope": "type:Teacher", "params": '{"max": 1}'}
     return addrow("Constraints", **{**base, **values})
@@ -381,43 +389,51 @@ CASES: list[tuple[str, Callable[[Workbook], None], Path, str]] = [
         "Templates!R2C5 [groups]: under: needs a value",
     ),
     (
-        "v2 unknown session type",
-        setc("Modules", 2, "sessions", "LEC;XYZ"),
+        "v2 session row unknown module",
+        setc("Session", 2, "module", "NOPE"),
         CONFIG,
-        'Modules!R2C6 [sessions]: unknown code "XYZ"',
+        'Session!R2C1 [module]: unknown code "NOPE"',
     ),
     (
-        "v2 setting without a value",
-        setc("Modules", 2, "sessions", "LEC(max_groups)"),
+        "v2 session row unknown session type",
+        setc("Session", 2, "session_type", "XYZ"),
         CONFIG,
-        'Modules!R2C6 [sessions]: cannot read "LEC(max_groups)": expected name=value',
+        'Session!R2C2 [session_type]: unknown code "XYZ"',
     ),
     (
-        "v2 unknown setting",
-        setc("Modules", 2, "sessions", "LEC(size=2)"),
+        "v2 session row repeated",
+        setc("Session", 3, "session_type", "LEC"),
         CONFIG,
-        'Modules!R2C6 [sessions]: unknown setting "size" '
-        "(known: start_pattern, delivery, room_type, max_groups, teachers, weekly)",
+        'Session!R3C2 [session_type]: duplicate "6BUIS019C" + "LEC" (first at R2)',
     ),
     (
-        "v2 bad max_groups setting",
-        setc("Modules", 2, "sessions", "LEC(max_groups=0)"),
+        "v2 session row bad max_groups",
+        setc("Session", 2, "max_groups", 0),
         CONFIG,
-        'Modules!R2C6 [sessions]: cannot read "LEC(max_groups=0)": '
-        "max_groups must be an integer ≥ 1",
+        'Session!R2C6 [max_groups]: expected integer ≥ 1, got "0"',
     ),
     (
-        "v2 bad delivery setting",
-        setc("Modules", 2, "sessions", "LEC(delivery=hybrid)"),
+        "v2 session row online with a room type",
+        setc("Session", 4, "room_type", "lab"),
         CONFIG,
-        'Modules!R2C6 [sessions]: cannot read "LEC(delivery=hybrid)": '
-        "delivery must be in_person or online",
+        "Session!R4C5 [room_type]: an online session cannot have a room type",
     ),
     (
-        "v2 bad start pattern setting",
-        setc("Modules", 2, "sessions", "LEC(start_pattern=9H)"),
+        "v2 session row in person without a room type",
+        all_of(
+            setc("SessionTypes", 2, "delivery", "online"),
+            setc("SessionTypes", 2, "room_type", None),
+            setc("Session", 2, "delivery", "in_person"),
+        ),
         CONFIG,
-        'Modules!R2C6 [sessions]: cannot read "LEC(start_pattern=9H)": unknown start pattern "9H"',
+        "Session!R2C5 [room_type]: required: the session is in person and neither the row nor "
+        'session type "LEC" gives one',
+    ),
+    (
+        "v2 old sessions column",
+        extra_column("Modules", "sessions"),
+        CONFIG,
+        "Modules!R1C7 [sessions]: unknown column",
     ),
     (
         "v2 module without a level",

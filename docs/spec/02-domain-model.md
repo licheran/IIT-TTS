@@ -121,9 +121,9 @@ A preset contains **no scheduling logic**.
 
 | Academic phrase | Core expression |
 |---|---|
-| "Modules have session kinds such as LEC and TUT" | One demand per module and session kind |
+| "Modules have session kinds such as LEC and TUT" | One demand per row of the `Session` table (module and session kind); a blank cell of the row takes the session type's value |
 | "Every group takes the mandatory modules of its level and degree, and its own optional ones" | The demand's participants: for a mandatory module, every group under the module's programmes at the module's level; for an optional module, the groups that list it in `Groups.options` |
-| "At most 3 groups in a tutorial" | `max_participants = 3` (`max_groups` of the session type, or a module's override) |
+| "At most 3 groups in a tutorial" | `max_participants = 3` (`max_groups` of the session type, or the module's `Session` row) |
 | "Twice a week" | `repeat = 2` (`weekly`). A block keeps the same groups both times |
 | "Taught by one of the module's teachers" | A pooled Teacher requirement (count `teachers`), filter `code:` followed by the teachers whose `modules` column lists this module (or `module:KIND`) |
 | "Needs a lab that seats everyone" | Pooled Room, filter `tag:room_type=<t>`, capacity rule `sum_of_fixed:StudentGroup` (the sum over the event's participants) |

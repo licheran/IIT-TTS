@@ -1,6 +1,6 @@
 # ADR-0007: Sessions the solver creates from demands
 
-- **Status:** Accepted (design approved by the user on 2026-09-30; the items under "Decisions to review" are proposals the user has not yet confirmed)
+- **Status:** Accepted (design approved by the user on 2026-09-30; the three items under "Decisions to review" were confirmed on 2026-10-09)
 - **Date:** 2026-09-30
 
 ## Context
@@ -70,7 +70,7 @@ Option 1, with these rules:
   - `Modules.level`: exactly one level, now required (today it is information only);
   - `Modules.programmes`: the degrees at that level that take the module, a list; blank means every programme at the level;
   - `Modules.optional`: true or false (default false, meaning mandatory);
-  - `Modules.sessions`: session kinds with optional per-module overrides;
+  - `Modules.sessions`: session kinds with optional per-module overrides (replaced by the `Session` sheet, see Amendment 1);
   - `Teachers.modules`: a module, or `module:KIND`;
   - `Groups.options`: the group's optional modules. Each must be an optional module of the group's level and programme;
   - `Groups.parent` must be a programme.
@@ -98,14 +98,18 @@ Option 1, with these rules:
 - **One flag per module:** because mandatory/optional is a field of the module, one module cannot be mandatory for one degree and optional for another at the same level. That needs two module rows (two codes).
 - **No subgroups in version 2.** A version 1 dataset with a group under a group stays valid as a hand-made dataset. A version 2 workbook with one is refused.
 - **Phases:** 18 (spec updates), 19 (core and verifier), 20 (solver), 21 (academic configuration, format version 2), 22 (editing sessions: edits and complete rebuild), 23 (retire Templates and ActivityGroups; wiki), 24 (the Session table, see the amendment below), 25 (teacher fairness, last).
-- **Decisions to review** (proposals the user has not yet confirmed):
+- **Decisions reviewed** (proposals confirmed by the user on 2026-10-09):
   - the even split (sizes differ by at most one) rather than "as full as possible" (3 + 3 + 3 + 1);
   - the one-flag-per-module limit above;
   - that an edit waits for **Rebuild** instead of starting a run by itself.
 
 ## Amendment 1 (2026-09-30): a Session table instead of `Modules.sessions`
 
-Decided by the user after Phase 23; built in Phase 24 (`docs/plan/phase-24-session-table.md`), where the specs are updated.
+Decided by the user after Phase 23; built in Phase 24 (`docs/plan/phase-24-session-table.md`). Details confirmed by the user on 2026-10-09 (P24.1) and written into specs 01, 02 and 03:
+- the columns, the sheet's place after `Modules`, the tab label `Session` and the blank-cell rule are as listed below;
+- a module with no `Session` rows is a pre-flight **warning** (when groups take the module), not an error;
+- the glossary keeps **session** for one meeting, and adds **Session row** for "how a module holds one kind of session";
+- a blank `max_groups` on a row means "the session type's value", so a row cannot override a number back to "all groups" (a large number does the same).
 
 - A module's sessions move from the inline list `Modules.sessions` (`LEC;TUT;LAB(start_pattern=3H,max_groups=2)`) to a new sheet **`Session`**: one row per module and session type, with the columns `module`, `session_type`, `start_pattern`, `delivery`, `room_type`, `max_groups`, `teachers`, `weekly` and `tags`. A blank cell takes the session type's value; a filled cell overrides it for that module only. So a module's lecture can have several groups per session and its tutorial one, each set per module.
 - `Teachers.modules` is unchanged (`module` or `module:KIND`).

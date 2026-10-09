@@ -73,3 +73,41 @@ test('configured L6: plan, solve, edit a session, rebuild and keep the edit', as
   await page.getByRole('button', { name: `Undo edit of ${code}` }).click()
   await expect(page.getByText(/edits? waiting/)).toBeHidden()
 })
+
+test('configured L6: a Session row sets the groups per session', async ({ page }) => {
+  await page.goto('/')
+  await page.getByLabel('Name').fill('L6 session rows')
+  await page.getByRole('button', { name: 'Create' }).click()
+  await page.getByRole('link', { name: 'L6 session rows' }).click()
+  await page.getByRole('link', { name: 'Import / export' }).click()
+  await page.getByLabel('Workbook file').setInputFiles(CONFIG)
+  await page.getByRole('button', { name: 'Import', exact: true }).click()
+  await expect(page.getByText('Imported.')).toBeVisible()
+
+  const count = async () => {
+    await page.getByRole('link', { name: 'Pre-flight' }).click()
+    const heading = page.getByRole('heading', { name: /Sessions to schedule \(\d+\)/ })
+    await expect(heading).toBeVisible()
+    return Number(/\((\d+)\)/.exec(await heading.innerText())![1])
+  }
+  const before = await count()
+
+  // The Session table has no code column: the key is the module and the session type.
+  await page.getByRole('link', { name: 'Tables' }).click()
+  await page.getByRole('tab', { name: 'Session', exact: true }).click()
+  const lecture = page.locator('[role=row][data-key="6COSC020C-LEC"]')
+  await expect(lecture).toBeVisible()
+  await expect(page.getByRole('columnheader', { name: 'code' })).toHaveCount(0)
+
+  // That module's lecture allows four groups per session; one group per session needs more.
+  await lecture.locator('[data-column=max_groups]').dblclick()
+  const editor = page.getByLabel('max_groups of 6COSC020C-LEC')
+  await editor.fill('1')
+  await editor.press('Enter')
+  await expect(lecture.locator('[data-column=max_groups]')).toContainText('1')
+
+  await page.getByRole('link', { name: 'Pre-flight' }).click()
+  const heading = page.getByRole('heading', { name: /Sessions to schedule/ })
+  await expect(heading).not.toHaveText(`Sessions to schedule (${before})`)
+  await expect(heading).toHaveText(/Sessions to schedule \(\d{2,}\)/)
+})

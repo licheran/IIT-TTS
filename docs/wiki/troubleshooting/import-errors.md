@@ -123,19 +123,20 @@ A template that cannot be expanded (for example a selector that matches no group
 
 ## Configuration (format version 2)
 
-These come from a version 2 file, or from editing the Session types, Modules, Teachers and Groups tables of a dataset built from configuration. The row and column point at the cell to fix.
+These come from a version 2 file, or from editing the Session types, Modules, Session, Teachers and Groups tables of a dataset built from configuration. The row and column point at the cell to fix.
 
 | Message | Cause | Fix |
 |---|---|---|
-| `Modules!R2C6 [sessions]: unknown code "XYZ"` | A module lists a session type that is not in the Session types table | Add the session type, or correct the code |
-| `Modules!R2C6 [sessions]: cannot read "LEC(max_groups)": expected name=value` | A setting in brackets has no value | Write `name=value`, for example `LEC(max_groups=2)` |
-| `Modules!R2C6 [sessions]: unknown setting "size" (known: start_pattern, delivery, room_type, max_groups, teachers, weekly)` | A setting that does not exist | Use one of the six settings named in the message |
-| `Modules!R2C6 [sessions]: cannot read "LEC(max_groups=0)": max_groups must be an integer ≥ 1` | A setting with a value that is not allowed. `weekly` must also be 1 or more, and `teachers` 0 or more | Use a whole number in range |
-| `Modules!R2C6 [sessions]: cannot read "LEC(delivery=hybrid)": delivery must be in_person or online` | A delivery that is not one of the two | Use `in_person` or `online` |
-| `Modules!R2C6 [sessions]: cannot read "LEC(start_pattern=9H)": unknown start pattern "9H"` | The start pattern is not in the Start patterns table | Use a code from [StartPatterns](../tables/StartPatterns.md) |
+| `Session!R2C1 [module]: unknown code "NOPE"` | A Session row names a module that is not in the Modules table | Correct the code, or add the module |
+| `Session!R2C2 [session_type]: unknown code "XYZ"` | A Session row names a session type that is not in the Session types table | Add the session type, or correct the code |
+| `Session!R3C2 [session_type]: duplicate "6BUIS019C" + "LEC" (first at R2)` | Two Session rows have the same module and session type. A module holds each kind of session once | Delete one row, or change its session type |
+| `Session!R2C6 [max_groups]: expected integer ≥ 1, got "0"` | A Session setting with a value that is not allowed. `weekly` must also be 1 or more, and `teachers` 0 or more | Use a whole number in range, or leave the cell blank to take the session type's value |
+| `Session!R4C5 [room_type]: an online session cannot have a room type` | An online Session row (or a row of an online session type) names a room type | Clear `room_type`, or make the row `in_person` |
+| `Session!R2C5 [room_type]: required: the session is in person and neither the row nor session type "LEC" gives one` | An in-person Session row has no room type of its own, and its session type has none either (it is online) | Fill in `room_type` on the row |
+| `Modules!R1C7 [sessions]: unknown column` | An old version 2 file still has the `sessions` column of Modules. Sessions now have their own `Session` sheet | Delete the column, and add one row to the Session table for each session type the module had |
 | `Modules!R2C3 [level]: required` | A module has no level. A module belongs to exactly one | Fill in `level` |
 | `Teachers!R2C3 [modules]: unknown code "NOPE"` | A teacher lists a module that does not exist | Correct the code |
-| `Teachers!R2C3 [modules]: "6BUIS019C:LAB": module "6BUIS019C" has no session type "LAB"` | A teacher is limited to a kind of session the module does not have | Add the kind to the module's `sessions`, or correct the kind |
+| `Teachers!R2C3 [modules]: "6BUIS019C:LAB": module "6BUIS019C" has no session type "LAB"` | A teacher is limited to a kind of session the module does not have | Add a Session row for that kind, or correct the kind |
 | `Groups!R2C5 [options]: module "6COSC020C" is not optional` | A group lists a mandatory module as an option. Every group of the programme takes a mandatory module anyway | Remove it from `options`, or tick `optional` on the module |
 | `Groups!R2C5 [options]: unknown code "NOPE"` | A group lists a module that does not exist | Correct the code |
 | `Groups!R2C3 [parent]: unknown code "L6 CS / G10"` | A group's parent is another group. In version 2 a group belongs to a programme | Give the programme's code |

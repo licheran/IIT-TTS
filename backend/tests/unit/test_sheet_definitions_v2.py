@@ -34,7 +34,7 @@ def spec_sheets_v2() -> dict[str, list[tuple[str, bool]]]:
 
 
 def test_the_spec_table_was_found() -> None:
-    assert len(spec_sheets_v2()) == 16
+    assert len(spec_sheets_v2()) == 17
 
 
 def test_sheets_match_the_spec_in_name_and_order() -> None:
@@ -59,7 +59,7 @@ def test_version_two_holds_configuration_only() -> None:
     ):  # fmt: skip
         assert retired not in names
     assert not any(s.export_only for s in SHEETS_V2)
-    assert {s.name for s in SHEETS_V2} - {s.name for s in SHEETS} == {"SessionTypes"}
+    assert {s.name for s in SHEETS_V2} - {s.name for s in SHEETS} == {"SessionTypes", "Session"}
 
 
 def test_groups_hang_only_under_programmes_in_version_two() -> None:
@@ -79,7 +79,7 @@ def test_a_room_type_is_required_when_the_session_is_in_person() -> None:
 
 
 def test_list_columns_of_version_two_are_lists() -> None:
-    for sheet, name in (("Groups", "options"), ("Teachers", "modules"), ("Modules", "sessions")):
+    for sheet, name in (("Groups", "options"), ("Teachers", "modules")):
         assert PRESET_V2.sheet(sheet).column(name).kind == "list"  # type: ignore[union-attr]
 
 
@@ -100,3 +100,18 @@ def test_the_dataset_decides_which_version_holds_it() -> None:
     assert preset_for(hand_made) is PRESET
     assert preset_for(Dataset(preset=PRESET_NAME)) is PRESET_V2
     assert preset_for(Dataset(preset="exams")).format_version == 1
+
+
+def test_a_session_row_is_keyed_on_its_module_and_session_type_with_no_code_column() -> None:
+    sheet = PRESET_V2.sheet("Session")
+    assert sheet is not None
+    assert sheet.key_from == ("module", "session_type")
+    assert sheet.column("code") is None
+    assert sheet.column("module").refs == ("Modules",)  # type: ignore[union-attr]
+    assert sheet.column("session_type").refs == ("SessionTypes",)  # type: ignore[union-attr]
+    assert sheet.column("delivery").choices == ("in_person", "online")  # type: ignore[union-attr]
+    assert [c.name for c in sheet.columns if c.required] == ["module", "session_type"]
+
+
+def test_the_modules_sheet_of_version_two_has_no_sessions_column() -> None:
+    assert PRESET_V2.sheet("Modules").column("sessions") is None  # type: ignore[union-attr]

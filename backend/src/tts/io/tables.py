@@ -26,6 +26,7 @@ from tts.core.timegrid import TimeGrid
 Cell = str | int | bool | None
 
 LIST_SEP = ";"
+KEY_JOIN = "-"  # joins the key columns of a row whose code is derived from them
 KEY_SEP = "\x1f"  # joins the parts of a composite row key. Never appears in a code.
 STAR = "*"
 
@@ -113,6 +114,10 @@ _KEY_FIELDS: dict[str, tuple[str, ...]] = {
 
 def row_key(sheet: SheetDef, values: Mapping[str, object]) -> str:
     """The key of a row given its values by column name. `code` for most sheets."""
+    if sheet.key_from:
+        by_name = {c.name: values.get(c.name) for c in sheet.columns}
+        parts = ["" if by_name.get(n) is None else str(by_name[n]) for n in sheet.key_from]
+        return KEY_JOIN.join(parts)
     fields = _KEY_FIELDS.get(sheet.target, ("code",))
     by_field = {c.field: values.get(c.name) for c in sheet.columns}
     return KEY_SEP.join("" if by_field.get(f) is None else str(by_field[f]) for f in fields)
@@ -649,4 +654,5 @@ __all__ = [
     "format_pairs",
     "format_time",
     "row_key",
+    "KEY_JOIN",
 ]

@@ -50,6 +50,7 @@ class ConfigIssue:
     code: str
     column: str
     message: str
+    warning: bool = False  # a warning does not stop an import or a run
 
 
 class ColumnDef(_Frozen):
@@ -126,6 +127,9 @@ class SheetDef(_Frozen):
     pooled: PooledMapping | None = None
     more_pooled: tuple[PooledMapping, ...] = ()
     export_only: bool = False
+    # Columns whose values, joined by `-`, are the row's code. The sheet has no `code` column: the
+    # user picks the parts and the code follows from them (a duplicate pair is a duplicate code).
+    key_from: tuple[str, ...] = ()
     # A sheet the application no longer shows as a table. `hidden`: the file still has it, and its
     # rows are edited through the columns of another sheet. `import_only`: old files may have it
     # (it is read once on import) but the application never writes it.

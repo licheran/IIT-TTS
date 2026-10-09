@@ -83,6 +83,7 @@ export function useRowMutations(id: number, sheet: string) {
   const refresh = () => {
     void client.invalidateQueries({ queryKey: keys.tables(id) })
     void client.invalidateQueries({ queryKey: keys.preflight(id) })
+    void client.invalidateQueries({ queryKey: keys.planned(id) })
   }
   const path = { dataset_id: id, sheet }
   const tableKey = keys.table(id, sheet)
@@ -165,6 +166,7 @@ export function useImport(id: number) {
       if (result.ok) {
         void client.invalidateQueries({ queryKey: keys.tables(id) })
         void client.invalidateQueries({ queryKey: keys.preflight(id) })
+        void client.invalidateQueries({ queryKey: keys.planned(id) })
       }
     },
   })

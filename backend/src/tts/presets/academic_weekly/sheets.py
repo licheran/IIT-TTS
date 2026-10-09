@@ -26,6 +26,7 @@ ACTIVITIES = "Activities"
 ACTIVITY_GROUPS = "ActivityGroups"
 ACTIVITY_TEACHERS = "ActivityTeachers"
 SESSION_TYPES = "SessionTypes"
+SESSION = "Session"
 
 RESOURCE_SHEETS = (
     UNIVERSITIES,
@@ -343,8 +344,26 @@ _V2_MODULES = SheetDef(
         _c("level", "attr:level", required=True, refs=(LEVELS,)),
         _c("programmes", "attr:programmes", kind="list", refs=(PROGRAMMES,)),
         _c("optional", "attr:optional", kind="bool", default=False),
-        # Items are a session type with optional settings, so the preset checks them.
-        _c("sessions", "attr:sessions", kind="list"),
+        _c("tags", kind="pairs"),
+    ),
+)
+
+
+_V2_SESSION = SheetDef(
+    name=SESSION,
+    target="reference",
+    reference_type=types.SESSION,
+    label="Session",
+    key_from=("module", "session_type"),
+    columns=(
+        _c("module", "attr:module", required=True, refs=(MODULES,)),
+        _c("session_type", "attr:session_type", required=True, refs=(SESSION_TYPES,)),
+        _c("start_pattern", "attr:start_pattern", refs=("StartPatterns",)),
+        _c("delivery", "attr:delivery", choices=SESSION_DELIVERIES),
+        _c("room_type", "attr:room_type"),
+        _c("max_groups", "attr:max_groups", kind="int", minimum=1),
+        _c("teachers", "attr:teachers", kind="int", minimum=0),
+        _c("weekly", "attr:weekly", kind="int", minimum=1),
         _c("tags", kind="pairs"),
     ),
 )
@@ -357,9 +376,11 @@ def _v2_sheets() -> tuple[SheetDef, ...]:
     by_name[TEACHERS] = _v2_teachers()
     by_name[MODULES] = _V2_MODULES
     by_name[SESSION_TYPES] = _V2_SESSION_TYPES
+    by_name[SESSION] = _V2_SESSION
     order = (
         "_meta", "Days", "Periods", "StartPatterns", UNIVERSITIES, LEVELS, PROGRAMMES, GROUPS,
-        TEACHERS, CAMPUSES, BUILDINGS, ROOMS, SESSION_TYPES, MODULES, "Availability", "Constraints",
+        TEACHERS, CAMPUSES, BUILDINGS, ROOMS, SESSION_TYPES, MODULES, SESSION, "Availability",
+        "Constraints",
     )  # fmt: skip
     return tuple(by_name[name] for name in order)
 

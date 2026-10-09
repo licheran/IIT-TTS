@@ -6,10 +6,15 @@ configuration. The solver makes the sessions.
 Regenerate it with `uv run python tests/fixtures/l6-config/make_config.py` (from `backend/`). A test
 checks that the committed file equals the script's output.
 
+`expected_demands.json` holds the 20 demands (72 sessions) this configuration made when each
+module kept its sessions in an inline `Modules.sessions` list. A test checks that the Session table
+derives exactly the same demands.
+
 How the real L6 export became configuration (also in the workbook's `_meta` sheet):
 
-- Session types `LEC` and `TUT` hold the settings most modules of that kind share. A module
-  overrides what differs, for example `LEC(max_groups=4)` or `LEC(max_groups=1,delivery=online)`.
+- Session types `LEC` and `TUT` hold the settings most modules of that kind share. The `Session`
+  sheet has one row for each module and session type, and fills only the cells where the module
+  differs, for example `max_groups` 4 on a lecture, or `delivery` online with `max_groups` 1.
 - The groups of a module are the groups that attended any of its activities.
 - `max_groups` is the most groups any one activity of that module and kind had.
 - A module is mandatory when every group of its programmes takes it, and optional otherwise; each

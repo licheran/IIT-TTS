@@ -64,6 +64,8 @@ Version 1 is what hand-made datasets (typed or imported activities, such as the 
 
 ## 2a. Sheets (`academic_weekly`, format_version 2: configured datasets)
 
+Amended on 2026-09-30 (ADR-0007, Amendment 1) without a version bump: the `Session` sheet replaces `Modules.sessions`. No version 2 file existed outside this repository.
+
 `*` = required · `→X` = code reference to sheet X · `(new)` and `(changed)` are relative to §2.
 
 | Sheet | Columns |
@@ -81,13 +83,21 @@ Version 1 is what hand-made datasets (typed or imported activities, such as the 
 | `Buildings` | `code*`, `name`, `abbreviation`, `campus` (→Campuses), `tags` |
 | `Rooms` | `code*`, `name`, `building` (→Buildings), `capacity` (int ≥ 0), `room_type*`, `tags` |
 | `SessionTypes` | `code*` (the kind, for example `LEC`), `name`, `start_pattern*` (→StartPatterns; it gives the length), `delivery` (`in_person`\|`online`, default `in_person`), `room_type` (required when in person, blank when online), `max_groups` (int ≥ 1; blank = all the module's groups in one session), `teachers` (int ≥ 0, default 1: teachers per session), `weekly` (int ≥ 1, default 1: sessions per week), `tags` |
-| `Modules` | `code*`, `name`, `level*` (→Levels; exactly one), `programmes` (list of →Programmes whose level is the module's level; blank = every programme at the level), `optional` (bool, default false = mandatory), `sessions` (list of session types, each with optional settings, see below), `tags` |
+| `Modules` | `code*`, `name`, `level*` (→Levels; exactly one), `programmes` (list of →Programmes whose level is the module's level; blank = every programme at the level), `optional` (bool, default false = mandatory), `tags` |
+| `Session` | `module*` (→Modules), `session_type*` (→SessionTypes), `start_pattern` (→StartPatterns), `delivery` (`in_person`\|`online`), `room_type`, `max_groups` (int ≥ 1), `teachers` (int ≥ 0), `weekly` (int ≥ 1), `tags`. One row per module and session type; the pair (`module`, `session_type`) is the key. A blank cell takes the session type's value, see below |
 | `Availability` | `resource*` (any resource code), `day*` (→Days), `period*` (→Periods, or `*` for the whole day), `status*` (`unavailable`\|`avoid`) |
 | `Constraints` | `code*`, `type*` (catalogue type), `scope*` (selector), `params` (JSON object), `hard` (default true), `weight` (default 1), `active` (default true) |
 
 Not in version 2: `Templates`, `Activities`, `ActivityGroups`, `ActivityTeachers`, `Pins`, `Assignments`. A file with one of them is refused (`<Sheet>: unknown sheet`).
 
-**`Modules.sessions`.** Items are separated by `;`. An item is a session type code, optionally followed by settings in parentheses, `name=value` pairs separated by `,`, which override that session type for this module. The settings are `start_pattern`, `delivery`, `room_type`, `max_groups`, `teachers` and `weekly`. Example: `LEC;TUT;LAB(start_pattern=3H,max_groups=2)`.
+**`Session`.** (Amendment 1 of ADR-0007: this sheet replaces the inline list `Modules.sessions`; format version 2 is amended, not bumped.) A module has the session types its `Session` rows list, and no others. Each row becomes one demand, with the code `<module>-<session_type>`.
+- **A blank cell takes the session type's value.** A filled cell overrides it for this module only. The settings are `start_pattern`, `delivery`, `room_type`, `max_groups`, `teachers` and `weekly`. For example, `LEC` with `max_groups` 4 on one module's row lets that module's lectures hold four groups, while its `TUT` row stays blank and keeps the session type's one group.
+- Because blank means "inherit", a row cannot override a number back to "all groups"; on `SessionTypes` a blank `max_groups` means all the module's groups in one session, and on a `Session` row it means the session type's value. Type a number at least as large as the module's groups to get the same effect.
+- An online row never gets a room requirement, even if its session type has a room type. An in-person row whose session type is online must give a `room_type`.
+- `tags` are added to the session's tags and win over the session type's and the module's, in the order session type, then module, then row.
+- A module with no `Session` rows makes no sessions. Pre-flight warns when groups take such a module (kind `configuration`, a warning): `module "6SENG005C" is taken by 11 groups but has no Session rows, so nothing is scheduled for it`. It is not an error.
+- A second row with the same (`module`, `session_type`) is an error.
+- The sheet comes after `Modules` in the workbook, because it refers to `Modules` and `SessionTypes`.
 
 **`Teachers.modules`.** `6BUIS019C` means the teacher may take every session kind of that module; `6BUIS019C:TUT` means tutorials only. Several items are separated by `;`.
 
@@ -116,10 +126,14 @@ Version 2 adds:
 | Module without a level | `Modules!R4C3 [level]: required` |
 | Module programme at another level | `Modules!R4C4 [programmes]: programme "L5 CS" belongs to level "L5", not "L6"` |
 | Bad flag | `Modules!R4C5 [optional]: expected true or false, got "maybe"` |
-| Unknown session type | `Modules!R4C6 [sessions]: unknown code "LAB"` |
-| Unreadable setting | `Modules!R4C6 [sessions]: cannot read "LAB(start_pattern)": expected name=value` |
-| Unknown setting | `Modules!R4C6 [sessions]: unknown setting "size" (known: start_pattern, delivery, room_type, max_groups, teachers, weekly)` |
-| Teacher for a kind the module lacks | `Teachers!R9C3 [modules]: "6SENG005C:LAB": module "6SENG005C" has no session type "LAB"` |
+| Session row for an unknown module | `Session!R4C1 [module]: unknown code "6SENG099C"` |
+| Session row for an unknown session type | `Session!R4C2 [session_type]: unknown code "LAB"` |
+| Session row repeated | `Session!R9C2 [session_type]: duplicate "6SENG005C" + "LEC" (first at R4)` |
+| Bad number on a Session row | `Session!R4C6 [max_groups]: expected integer ≥ 1, got "0"` |
+| Online Session row with a room type | `Session!R4C5 [room_type]: an online session cannot have a room type` |
+| In-person Session row without a room type | `Session!R4C5 [room_type]: required: the session is in person and neither the row nor session type "LEC" gives one` |
+| `Modules.sessions` column in a version 2 file | `Modules!R1C6 [sessions]: unknown column` |
+| Teacher for a kind the module lacks | `Teachers!R9C3 [modules]: "6SENG005C:LAB": module "6SENG005C" has no session type "LAB"` (checked against the module's `Session` rows) |
 | Group under a group | `Groups!R10C3 [parent]: unknown code "L6 CS / G1"` (a group's parent must be a programme, so a group's code is not one) |
 | Option that is not optional | `Groups!R10C5 [options]: module "6SENG005C" is not optional` |
 | Option at another level | `Groups!R10C5 [options]: module "5SENG001C" is at level "L5", the group is at level "L6"` |
@@ -147,7 +161,9 @@ Version 2 example rows (from `tests/fixtures/l6-config/`, derived from the L6 fi
 ```
 SessionTypes:   LEC, Lecture, 2H, in_person, lab, 7, 1, 1,
 SessionTypes:   TUT, Tutorial, 2H, in_person, lab, 1, 1, 1,
-Modules:        6SENG005C, , L6, L6 SE, false, LEC;TUT,
+Modules:        6SENG005C, , L6, L6 SE, false,
+Session:        6SENG005C, LEC, , , , 4, , ,
+Session:        6SENG005C, TUT, , , , , , ,
 Teachers:       HAWE, , 6SENG005C:LEC;6SENG005C:TUT,
 Groups:         L6 SE / G1, , L6 SE, 30, ,
 ```

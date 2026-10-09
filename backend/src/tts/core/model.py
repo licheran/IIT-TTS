@@ -727,7 +727,7 @@ class Result(_Frozen):
 class Ref(_Frozen):
     """A pointer to something a violation is about, for messages and UI links."""
 
-    kind: Literal["event", "resource", "slot", "constraint", "demand"]
+    kind: Literal["event", "resource", "slot", "constraint", "demand", "reference"]
     code: str
 
 
