@@ -9,9 +9,9 @@ IIT-TTS (IIT TimeTabling Solution) is a **generic, data-driven scheduling engine
 3. Work on **one task (checkbox) at a time**. Write the tests first where practical, then implement, then run the checks below.
 4. When a task is done:
    - Tick its box in the phase file.
-   - Add a line to the log in `docs/STATUS.md` (date, task, notes, follow-ups).
+   - Add a line at the bottom of the log in `docs/LOG.md` (date, task, notes, follow-ups).
    - Commit with the message format below.
-5. When every box in a phase is ticked and its **Acceptance** section passes, set the next phase as current in `docs/STATUS.md`.
+5. When every box in a phase is ticked and its **Acceptance** section passes, set the next phase as current in `docs/STATUS.md` (keep that file short: current phase, phase table, decisions waiting).
 
 **Stop and ask the user** when:
 - a spec is ambiguous or contradicts another spec,
@@ -26,7 +26,7 @@ Don't loosen a test or an acceptance criterion to make it pass.
 1. **Core purity.** `core/`, `solver/`, `expand/` and `preflight/` must not contain domain words (`teacher`, `room`, `module`, `student`, `lecture`, `tutorial`, `group` as an academic term) and must not import `presets/`. Academic vocabulary lives only in `presets/academic_weekly/` and UI labels. A test enforces this.
 2. **Independent verifier.** `core/verifier.py` never imports `solver/`. Every solver result is re-checked by the verifier, and tests assert on the verifier's output, not on solver status.
 3. **Declared vs assigned.** The solver writes only `assignment` and `assigned_resource` rows inside a run. It never changes declared data.
-4. **The workbook format is a contract** (`docs/spec/03-workbook-format.md`). Any change bumps `format_version`, updates that spec and adds a note to `docs/STATUS.md`.
+4. **The workbook format is a contract** (`docs/spec/03-workbook-format.md`). Any change bumps `format_version`, updates that spec and adds a note to `docs/LOG.md`.
 5. **The L6 fixture stays green** (`backend/tests/fixtures/l6/`). Never edit `expected.json` to make a test pass unless the user approves.
 6. **No invented real-world data.** Unknown values (group sizes, capacities) are assumptions, recorded in the fixture's `_meta` sheet.
 7. **Fixed constraint catalogue.** New constraint behaviour means a new catalogue entry in `docs/spec/04-constraints.md` plus a module in `core/constraints/` (verify) and one in `solver/constraints/` (compile). Never add a special case inside the solver.
@@ -54,13 +54,16 @@ pnpm dev | pnpm test | pnpm lint | pnpm typecheck | pnpm e2e
 docker compose up --build
 ```
 
+**While working on a task**, run only the tests that cover it (`uv run pytest tests/unit/test_x.py -q`, `-k name`). The full fast suite takes about 3.5 minutes, so run it once, at the end of the task.
+
 **Before marking any task done, run:** `uv run ruff check . && uv run mypy src && uv run pytest -m "not scale"`. Run the `pnpm` checks too if `web/` changed.
 
 ## Repository map
 
 ```
 CLAUDE.md                 this file
-docs/STATUS.md            current phase, progress log  ← read first
+docs/STATUS.md            current phase and decisions waiting (short)  ← read first
+docs/LOG.md               progress log and acceptance results (read only what you need; append at the bottom)
 docs/cli.md               `tts` command reference (update with every CLI change; a test checks it)
 docs/wiki/                user wiki for timetable administrators: every tab, table, constraint and error (a test keeps it in step with the code)
 docs/spec/                what to build (authoritative)
