@@ -10,7 +10,8 @@ import {
   useTableRows,
 } from '@/api/hooks'
 import { HAS_TIMETABLE, type GridCell, type SchemaOut } from '@/api/types'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Field, Select } from '@/components/ui/field'
 import { GridView } from './GridView'
 
 export function ResultsPage({ datasetId }: { datasetId: number }) {
@@ -29,11 +30,9 @@ export function ResultsPage({ datasetId }: { datasetId: number }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          Run
-          <select
+        <Field label="Run">
+          <Select
             aria-label="Run"
-            className="h-9 rounded border border-neutral-300 px-2"
             value={runId ?? ''}
             onChange={(e) => setSearch({ run: e.target.value })}
           >
@@ -44,8 +43,8 @@ export function ResultsPage({ datasetId }: { datasetId: number }) {
                 {r.published ? ' (published)' : ''}
               </option>
             ))}
-          </select>
-        </label>
+          </Select>
+        </Field>
       </div>
       {runId === null ? (
         <p className="text-neutral-600">Start a run to see a timetable here.</p>
@@ -88,11 +87,9 @@ function ResourceGrid({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          Resource type
-          <select
+        <Field label="Resource type">
+          <Select
             aria-label="Resource type"
-            className="h-9 rounded border border-neutral-300 px-2"
             value={type ?? ''}
             onChange={(e) => {
               setType(e.target.value)
@@ -105,13 +102,12 @@ function ResourceGrid({
                 {label(s.resource_type ?? '')}
               </option>
             ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Resource
-          <select
+          </Select>
+        </Field>
+        <Field label="Resource">
+          <Select
             aria-label="Resource"
-            className="h-9 w-64 rounded border border-neutral-300 px-2"
+            className="w-64"
             value={current}
             onChange={(e) => {
               setCode(e.target.value)
@@ -123,11 +119,11 @@ function ResourceGrid({
                 {c}
               </option>
             ))}
-          </select>
-        </label>
+          </Select>
+        </Field>
         {current && (
           <a
-            className="inline-flex h-9 items-center rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-100"
+            className={buttonVariants()}
             href={runExportUrl(runId, 'html', type ?? undefined, current)}
             download
           >
@@ -135,26 +131,14 @@ function ResourceGrid({
           </a>
         )}
         {type && (
-          <a
-            className="inline-flex h-9 items-center rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-100"
-            href={runExportUrl(runId, 'html', type)}
-            download
-          >
+          <a className={buttonVariants()} href={runExportUrl(runId, 'html', type)} download>
             Export all of this type (HTML)
           </a>
         )}
-        <a
-          className="inline-flex h-9 items-center rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-100"
-          href={runExportUrl(runId, 'html')}
-          download
-        >
+        <a className={buttonVariants()} href={runExportUrl(runId, 'html')} download>
           Export all timetables (HTML)
         </a>
-        <a
-          className="inline-flex h-9 items-center rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-100"
-          href={runExportUrl(runId, 'xlsx')}
-          download
-        >
+        <a className={buttonVariants()} href={runExportUrl(runId, 'xlsx')} download>
           Export all (Excel)
         </a>
       </div>

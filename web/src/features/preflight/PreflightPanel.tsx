@@ -66,7 +66,12 @@ export function PreflightPanel({ datasetId }: { datasetId: number }) {
     <div className="flex max-w-4xl flex-col gap-3">
       <div className="flex items-center gap-3">
         <h2 className="text-lg font-semibold">Pre-flight checks</h2>
-        <Button size="sm" onClick={() => void preflight.refetch()} disabled={preflight.isFetching}>
+        <Button
+          size="sm"
+          className="min-w-28"
+          onClick={() => void preflight.refetch()}
+          disabled={preflight.isFetching}
+        >
           {preflight.isFetching ? 'Checking…' : 'Check again'}
         </Button>
       </div>

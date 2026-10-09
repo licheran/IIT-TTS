@@ -57,6 +57,8 @@ class ColumnDef(_Frozen):
     """One column of a sheet.
 
     `refs` lists the sheets whose codes the value must name (for a `list` column, each item).
+    `suggests` lists sheets whose rows help the user choose a value that the sheet's own parser
+    checks (so it is not a `refs` check): the web app's reference drawer shows them.
     `required_when` is a (column, value) pair: the column is required when that other column
     holds that value. `expands_to` marks a convenience column: on import its items become rows of
     the named join sheet, and it is never written on export. A column with `derive` is
@@ -72,6 +74,7 @@ class ColumnDef(_Frozen):
     required: bool = False
     required_when: tuple[str, str] | None = None
     refs: tuple[str, ...] = ()
+    suggests: tuple[str, ...] = ()
     allow_star: bool = False
     choices: tuple[str, ...] = ()
     minimum: int | None = None

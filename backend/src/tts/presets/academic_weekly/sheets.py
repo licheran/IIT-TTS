@@ -308,7 +308,7 @@ def _v2_teachers() -> SheetDef:
     return _entity(
         TEACHERS,
         types.TEACHER,
-        _c("modules", "attr:modules", kind="list"),
+        _c("modules", "attr:modules", kind="list", suggests=(MODULES,)),
         _c("max_hours", "attr:max_hours", kind="int", minimum=0),
         label="Teachers",
     )

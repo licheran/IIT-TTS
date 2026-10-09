@@ -1,5 +1,6 @@
-import { NavLink, Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
+import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import { useDataset } from '@/api/hooks'
+import { NavTab } from '@/components/ui/tabs'
 import { DatasetsPage } from '@/features/datasets/DatasetsPage'
 import { ResultsPage } from '@/features/grids/ResultsPage'
 import { IoPanel } from '@/features/io/IoPanel'
@@ -7,7 +8,6 @@ import { PreflightPanel } from '@/features/preflight/PreflightPanel'
 import { RunsPage } from '@/features/runs/RunsPage'
 import { StartPanel } from '@/features/runs/StartPanel'
 import { TablesPage } from '@/features/tables/TablesPage'
-import { cn } from '@/lib/utils'
 
 function useDatasetId(): number {
   return Number(useParams().id)
@@ -34,18 +34,9 @@ function DatasetLayout() {
       </div>
       <nav aria-label="Sections" className="flex flex-wrap gap-1 border-b border-neutral-300 pb-2">
         {TABS.map(([path, label]) => (
-          <NavLink
-            key={path}
-            to={`/datasets/${id}/${path}`}
-            className={({ isActive }) =>
-              cn(
-                'rounded-md px-3 py-1.5 text-sm font-medium',
-                isActive ? 'bg-neutral-900 text-white' : 'text-neutral-700 hover:bg-neutral-100',
-              )
-            }
-          >
+          <NavTab key={path} look="solid" to={`/datasets/${id}/${path}`}>
             {label}
-          </NavLink>
+          </NavTab>
         ))}
       </nav>
       <Outlet />

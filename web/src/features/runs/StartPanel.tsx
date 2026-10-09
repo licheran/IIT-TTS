@@ -13,6 +13,8 @@ import type { RunOut, RunParams } from '@/api/types'
 import { isActive } from '@/api/types'
 import { ErrorList } from '@/components/ErrorList'
 import { Button } from '@/components/ui/button'
+import { Check, Field, Input, Select } from '@/components/ui/field'
+import { Notice } from '@/components/ui/notice'
 
 const MODES: RunParams['mode'][] = ['optimise', 'feasible', 'two_phase']
 
@@ -77,81 +79,58 @@ export function StartPanel({ datasetId }: { datasetId: number }) {
           Start a run
         </h2>
         {blocked && (
-          <p role="alert" className="mb-3 rounded-md border border-red-300 bg-red-50 p-3 text-sm">
+          <Notice tone="error" role="alert" className="mb-3">
             Pre-flight found errors, so a run cannot start.{' '}
             <Link className="underline" to={`/datasets/${datasetId}/preflight`}>
               See the problems
             </Link>
-          </p>
+          </Notice>
         )}
         {edits > 0 && (
-          <p
-            role="status"
-            className="mb-3 rounded-md border border-blue-300 bg-blue-50 p-3 text-sm"
-          >
+          <Notice role="status" className="mb-3">
             {edits} {edits === 1 ? 'edit is' : 'edits are'} waiting. A rebuild solves everything
             again and keeps {edits === 1 ? 'it' : 'them'}.{' '}
             <Link className="underline" to={`/datasets/${datasetId}/tables/Activities`}>
               See the edits
             </Link>
-          </p>
+          </Notice>
         )}
         <form
           onSubmit={submit}
           className="grid gap-3"
           style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))' }}
         >
-          <label className="flex flex-col gap-1 text-sm">
-            Time limit (seconds)
-            <input
-              className="h-9 rounded border border-neutral-300 px-2"
+          <Field label="Time limit (seconds)">
+            <Input
               type="number"
               min={1}
               value={timeLimit}
               onChange={(e) => setTimeLimit(e.target.value)}
             />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Workers (blank: all CPUs)
-            <input
-              className="h-9 rounded border border-neutral-300 px-2"
+          </Field>
+          <Field label="Workers (blank: all CPUs)">
+            <Input
               type="number"
               min={1}
               value={workers}
               onChange={(e) => setWorkers(e.target.value)}
             />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Seed
-            <input
-              className="h-9 rounded border border-neutral-300 px-2"
-              type="number"
-              value={seed}
-              onChange={(e) => setSeed(e.target.value)}
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Mode
-            <select
-              className="h-9 rounded border border-neutral-300 px-2"
-              value={mode}
-              onChange={(e) => setMode(e.target.value as RunParams['mode'])}
-            >
+          </Field>
+          <Field label="Seed">
+            <Input type="number" value={seed} onChange={(e) => setSeed(e.target.value)} />
+          </Field>
+          <Field label="Mode">
+            <Select value={mode} onChange={(e) => setMode(e.target.value as RunParams['mode'])}>
               {MODES.map((m) => (
                 <option key={m} value={m}>
                   {m}
                 </option>
               ))}
-            </select>
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={lockPublished}
-              onChange={(e) => setLockPublished(e.target.checked)}
-            />
+            </Select>
+          </Field>
+          <Check checked={lockPublished} onChange={(e) => setLockPublished(e.target.checked)}>
             Lock published runs
-          </label>
+          </Check>
           <div className="flex items-end">
             <Button type="submit" variant="primary" disabled={blocked || start.isPending || active}>
               {edits > 0 ? 'Rebuild' : 'Start'}

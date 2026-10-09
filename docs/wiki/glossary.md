@@ -23,6 +23,7 @@ Terms are listed alphabetically. The academic words (group, teacher, room) are t
 | **Joint activity** | An activity that several groups attend together. It occupies all of them. |
 | **Lock** | A pin created from another dataset's published timetable, so that two datasets that share teachers or rooms do not clash. |
 | **Period** | One time slot in a day, with a start and an end. |
+| **Lookup** | A panel along the right edge of the Tables tab that shows the table a code cell refers to, so you can see which row you mean and click it to fill the cell. Opened with the **⋯** button or Ctrl+Space. |
 | **Pin** | A time, and optionally rooms, that you fix for an activity of a hand-made dataset. The solver then keeps it. In a configured dataset you *edit* the session instead. |
 | **Pooled requirement** | Something an activity needs that the solver chooses, such as a room of a given type with enough seats. Pooled means you named the kind, and the solver picks the one. |
 | **Pre-flight** | The checks made before solving. Errors stop a run from starting. |

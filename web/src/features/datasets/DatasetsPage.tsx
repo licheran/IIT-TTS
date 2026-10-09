@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { errorMessage } from '@/api/client'
 import { useCreateDataset, useDatasets, useDeleteDataset, usePresets } from '@/api/hooks'
 import { Button } from '@/components/ui/button'
+import { Field, Input, Select } from '@/components/ui/field'
 
 export function DatasetsPage() {
   const datasets = useDatasets()
@@ -26,29 +27,23 @@ export function DatasetsPage() {
             create.mutate({ name: name.trim(), preset: chosen }, { onSuccess: () => setName('') })
           }}
         >
-          <label className="flex flex-col gap-1 text-sm">
-            Name
-            <input
-              className="h-9 w-64 rounded border border-neutral-300 px-2"
+          <Field label="Name">
+            <Input
+              className="w-64"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
             />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Preset
-            <select
-              className="h-9 rounded border border-neutral-300 px-2"
-              value={chosen}
-              onChange={(e) => setPreset(e.target.value)}
-            >
+          </Field>
+          <Field label="Preset">
+            <Select value={chosen} onChange={(e) => setPreset(e.target.value)}>
               {presets.data?.map((p) => (
                 <option key={p} value={p}>
                   {p}
                 </option>
               ))}
-            </select>
-          </label>
+            </Select>
+          </Field>
           <Button
             type="submit"
             variant="primary"

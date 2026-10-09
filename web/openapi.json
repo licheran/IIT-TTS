@@ -1791,6 +1791,14 @@
             "title": "Refs",
             "default": []
           },
+          "suggests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Suggests",
+            "default": []
+          },
           "allow_star": {
             "type": "boolean",
             "title": "Allow Star",
@@ -1885,7 +1893,7 @@
           "field"
         ],
         "title": "ColumnDef",
-        "description": "One column of a sheet.\n\n`refs` lists the sheets whose codes the value must name (for a `list` column, each item).\n`required_when` is a (column, value) pair: the column is required when that other column\nholds that value. `expands_to` marks a convenience column: on import its items become rows of\nthe named join sheet, and it is never written on export. A column with `derive` is\ndescriptive: written on export only, computed as one of `event.reference`, `event.kind`,\n`end` (the end time of the last covered period), `fixed:<join sheet>` (the event's fixed\nresources that sheet lists) or `ancestors:<resource sheet>` (the chosen resources' ancestors\nof that sheet's type)."
+        "description": "One column of a sheet.\n\n`refs` lists the sheets whose codes the value must name (for a `list` column, each item).\n`suggests` lists sheets whose rows help the user choose a value that the sheet's own parser\nchecks (so it is not a `refs` check): the web app's reference drawer shows them.\n`required_when` is a (column, value) pair: the column is required when that other column\nholds that value. `expands_to` marks a convenience column: on import its items become rows of\nthe named join sheet, and it is never written on export. A column with `derive` is\ndescriptive: written on export only, computed as one of `event.reference`, `event.kind`,\n`end` (the end time of the last covered period), `fixed:<join sheet>` (the event's fixed\nresources that sheet lists) or `ancestors:<resource sheet>` (the chosen resources' ancestors\nof that sheet's type)."
       },
       "DatasetCreate": {
         "properties": {

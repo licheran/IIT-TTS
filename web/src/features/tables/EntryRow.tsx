@@ -3,6 +3,8 @@ import { ApiError } from '@/api/client'
 import type { Cell } from '@/api/types'
 import { EditorFor, POPOVER_KINDS, parseDraft, type DataColumn } from '@/components/DataTable'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/field'
+import { useLookup } from './lookup'
 
 interface Props {
   label: string
@@ -38,6 +40,7 @@ export function EntryRow({ label, columns, template, hasActions, onSubmit }: Pro
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
   const form = useRef<HTMLFormElement>(null)
+  const lookupOpen = useLookup()?.isOpen ?? false
 
   const focusField = (column?: string | null) => {
     const cells = Array.from(form.current?.querySelectorAll<HTMLElement>('[data-column]') ?? [])
@@ -111,7 +114,7 @@ export function EntryRow({ label, columns, template, hasActions, onSubmit }: Pro
         void submit()
       }}
       onKeyDown={(event) => {
-        if (event.key === 'Escape') {
+        if (event.key === 'Escape' && !lookupOpen) {
           event.preventDefault()
           clear(false)
           setError(null)
@@ -129,8 +132,7 @@ export function EntryRow({ label, columns, template, hasActions, onSubmit }: Pro
           className="flex min-w-0 items-center border-r border-blue-100 px-1 py-1"
         >
           {!isEntryColumn(c) ? null : c.kind === 'bool' ? (
-            <input
-              type="checkbox"
+            <Checkbox
               aria-label={c.header}
               className="ml-1 h-5 w-5"
               checked={draft[c.id] === 'true'}
@@ -143,11 +145,13 @@ export function EntryRow({ label, columns, template, hasActions, onSubmit }: Pro
               }}
             />
           ) : (
-            <div className="h-8 w-full min-w-0">
+            <div className="h-control-sm w-full min-w-0">
               <EditorFor
                 column={{
                   kind: POPOVER_KINDS.includes(c.kind) ? 'text' : c.kind,
                   options: c.options,
+                  lookup: c.lookup,
+                  optionNames: c.optionNames,
                 }}
                 label={`New ${c.header}${c.required ? ' (required)' : ''}`}
                 value={draft[c.id] ?? ''}
@@ -155,6 +159,7 @@ export function EntryRow({ label, columns, template, hasActions, onSubmit }: Pro
                 onChange={(value) => setDraft({ ...draft, [c.id]: value })}
                 onCommit={() => void submit()}
                 onCancel={() => {
+                  if (lookupOpen) return // Escape closes the lookup first
                   clear(false)
                   setError(null)
                 }}
@@ -164,7 +169,7 @@ export function EntryRow({ label, columns, template, hasActions, onSubmit }: Pro
         </div>
       ))}
       {hasActions && (
-        <div role="gridcell" className="flex items-center px-1">
+        <div role="gridcell" className="sticky right-0 flex items-center bg-blue-50 px-1">
           <Button type="submit" size="sm" variant="primary" disabled={busy}>
             Add
           </Button>

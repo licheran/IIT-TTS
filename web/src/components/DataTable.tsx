@@ -20,6 +20,7 @@ import {
   type EditorProps,
 } from '@/components/editors'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/field'
 import { cn } from '@/lib/utils'
 
 export type CellValue = string | number | boolean | null
@@ -35,6 +36,10 @@ export interface DataColumn {
   options?: string[]
   /** The value a new row starts with (only used for true/false columns). */
   defaultValue?: CellValue
+  /** The tables whose rows help to fill the column (the reference drawer). */
+  lookup?: { sheets: string[]; multiple: boolean }
+  /** A name to show beside a code in a dropdown, by code. */
+  optionNames?: Record<string, string>
 }
 
 export interface DataRow {
@@ -84,8 +89,13 @@ export const POPOVER_KINDS: ColumnKind[] = ['multiref', 'tags', 'json']
 export function EditorFor({
   column,
   ...props
-}: EditorProps & { column: Pick<DataColumn, 'kind' | 'options'> }) {
-  const shared = { ...props, options: column.options }
+}: EditorProps & { column: Pick<DataColumn, 'kind' | 'options' | 'lookup' | 'optionNames'> }) {
+  const shared = {
+    ...props,
+    options: column.options,
+    lookup: column.lookup,
+    optionNames: column.optionNames,
+  }
   switch (column.kind) {
     case 'int':
       return <TextEditor {...shared} numeric />
@@ -280,8 +290,9 @@ export function DataTable({
       <div className="flex flex-wrap items-center gap-2">
         <label className="flex items-center gap-2 text-sm">
           <span>Filter rows</span>
-          <input
-            className="h-8 w-56 rounded border border-neutral-300 px-2"
+          <Input
+            size="sm"
+            className="w-56"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           />
@@ -341,7 +352,9 @@ export function DataTable({
                 </div>
               )
             })}
-            {(onDelete || renderRowAction) && <div role="columnheader" className="px-2 py-1.5" />}
+            {(onDelete || renderRowAction) && (
+              <div role="columnheader" className="sticky right-0 bg-neutral-100 px-2 py-1.5" />
+            )}
           </div>
           {renderEntry?.({ template })}
         </div>
@@ -424,12 +437,12 @@ export function DataTable({
                   )
                 })}
                 {!onDelete && renderRowAction && (
-                  <div role="gridcell" className="flex items-center px-1">
+                  <div role="gridcell" className="sticky right-0 flex items-center bg-white px-1">
                     {renderRowAction(row)}
                   </div>
                 )}
                 {onDelete && (
-                  <div role="gridcell" className="flex items-center px-1">
+                  <div role="gridcell" className="sticky right-0 flex items-center bg-white px-1">
                     <Button
                       size="sm"
                       variant="danger"

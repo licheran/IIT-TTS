@@ -49,11 +49,26 @@ What the editor looks like depends on the column:
 |---|---|
 | Text or a whole number | A text box |
 | One of a fixed set of values (for example `mode`) | A drop-down |
-| One code from another table (for example a room's `building`) | A text box that suggests the codes of the other table as you type |
-| Several codes (for example an activity's `teachers`) | A checklist with a filter box. Tick the codes, then press **Done** |
+| One code from another table (for example a room's `building`) | A text box that suggests the codes of the other table as you type, with the **⋯** lookup beside it |
+| Several codes (for example an activity's `teachers`) | A checklist with a filter box and a **Look up** button. Tick the codes, then press **Done** |
+| A list of codes the program reads itself (a teacher's `modules`) | A text box with the **⋯** lookup beside it. Type `module:KIND` by hand to limit a teacher to one kind of session |
 | Tags | One row per `key` and `value`, with **Add tag** and a remove button. Press **Done** when finished |
 | JSON (constraint `params`) | A text area that tells you when the JSON is not valid. **Done** is disabled until it is |
 | True or false | A checkbox. Press Enter or double-click to switch it, with no editor |
+
+### Look up a code
+
+When a cell holds a code from another table, you do not have to remember it. Beside the field is a small **⋯** button, or press **Ctrl+Space** (or **Alt+Down**) in the field. A **lookup** opens along the right edge of the page and shows the other table, with all its columns, so you can see which row you mean.
+
+![The lookup of a room's building, beside the Rooms table](../img/lookup.png)
+
+- Type in **Search the table** to find a row by any column: a name, a campus, a capacity.
+- **Click a row** to put its code in the field. For a field that holds one code, the lookup closes. For a list (for example a teacher's `modules`), it stays open: click a row to add its code, and click it again to take it out. Chosen rows are marked.
+- A cell that may refer to rows of several tables (the `resource` of an Availability row) has one small tab for each table at the top of the lookup.
+- The lookup is read-only. Nothing is saved until you press Enter in the field, as always. Opening it, searching and closing it never saves or loses what you typed.
+- **Esc** closes the lookup first. Press it again to cancel the edit.
+- The lookup is also in the entry row. The **⋯** button is not on the Tab path, so typing a row with the keyboard alone works as before.
+- In a table that refers to another table by a code, the suggestions in the field show the **name** beside each code when the row has one.
 
 ### Delete a row
 

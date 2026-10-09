@@ -6,7 +6,8 @@ import { DataTable, type CellValue } from '@/components/DataTable'
 import { ErrorList } from '@/components/ErrorList'
 import { buildColumns, referencedSheets } from './columns'
 import { EntryRow } from './EntryRow'
-import { useRefOptions } from './useRefOptions'
+import { LookupProvider } from './lookup'
+import { useRefNames, useRefOptions } from './useRefOptions'
 
 interface Props {
   datasetId: number
@@ -19,11 +20,12 @@ export function SheetEditor({ datasetId, sheet, highlightKey }: Props) {
   const mutations = useRowMutations(datasetId, sheet.name)
   const refSheets = useMemo(() => referencedSheets(sheet), [sheet])
   const options = useRefOptions(datasetId, refSheets)
+  const names = useRefNames(datasetId, refSheets)
   const [problem, setProblem] = useState<ApiError | null>(null)
 
   const columns = useMemo(
-    () => buildColumns(page.data?.headers ?? [], sheet, options),
-    [page.data?.headers, sheet, options],
+    () => buildColumns(page.data?.headers ?? [], sheet, options, {}, names),
+    [page.data?.headers, sheet, options, names],
   )
   const rows = useMemo(
     () =>
@@ -54,33 +56,35 @@ export function SheetEditor({ datasetId, sheet, highlightKey }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {problem && (
-        <ErrorList
-          title={problem.message}
-          errors={problem.details.length ? problem.details : [{ message: problem.message }]}
-        />
-      )}
-      <DataTable
-        label={sheet.label || sheet.name}
-        columns={columns}
-        rows={rows}
-        highlightKey={highlightKey}
-        renderEntry={({ template }) => (
-          <EntryRow
-            key={sheet.name}
-            label={sheet.label || sheet.name}
-            columns={columns}
-            template={template}
-            hasActions
-            onSubmit={(values) => guard(() => mutations.create.mutateAsync(values))}
+    <LookupProvider datasetId={datasetId}>
+      <div className="flex flex-col gap-3">
+        {problem && (
+          <ErrorList
+            title={problem.message}
+            errors={problem.details.length ? problem.details : [{ message: problem.message }]}
           />
         )}
-        onEdit={(key, column, value) =>
-          guard(() => mutations.update.mutateAsync({ key, values: { [column]: value } }))
-        }
-        onDelete={(key) => guard(() => mutations.remove.mutateAsync(key))}
-      />
-    </div>
+        <DataTable
+          label={sheet.label || sheet.name}
+          columns={columns}
+          rows={rows}
+          highlightKey={highlightKey}
+          renderEntry={({ template }) => (
+            <EntryRow
+              key={sheet.name}
+              label={sheet.label || sheet.name}
+              columns={columns}
+              template={template}
+              hasActions
+              onSubmit={(values) => guard(() => mutations.create.mutateAsync(values))}
+            />
+          )}
+          onEdit={(key, column, value) =>
+            guard(() => mutations.update.mutateAsync({ key, values: { [column]: value } }))
+          }
+          onDelete={(key) => guard(() => mutations.remove.mutateAsync(key))}
+        />
+      </div>
+    </LookupProvider>
   )
 }

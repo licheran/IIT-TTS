@@ -11,6 +11,7 @@ const col = (over: Partial<ColumnDef>): ColumnDef => ({
   kind: 'str',
   required: false,
   refs: [],
+  suggests: [],
   allow_star: false,
   choices: [],
   label: '',

@@ -187,3 +187,20 @@ def test_an_edit_outside_its_demand_is_reported_as_an_invariant() -> None:
     found = check(ds)
     assert kinds(found) == ["edit_outside_demand"]
     assert found[0].refs[0].code == "edit"
+
+
+def test_a_soft_event_rule_on_the_kind_of_a_demand_does_not_have_an_empty_scope() -> None:
+    ds = configured(constraints=[rule("same_start", "kind:K")])
+    assert of_kind(check(ds), "empty_scope") == []
+
+
+def test_a_soft_event_rule_on_the_reference_of_a_demand_does_not_have_an_empty_scope() -> None:
+    ds = configured(
+        demand().model_copy(update={"reference": "M1"}), constraints=[rule("same_start", "ref:M1")]
+    )
+    assert of_kind(check(ds), "empty_scope") == []
+
+
+def test_a_soft_event_rule_that_no_demand_or_event_matches_still_has_an_empty_scope() -> None:
+    ds = configured(constraints=[rule("same_start", "kind:ZZ")])
+    assert [i.message for i in of_kind(check(ds), "empty_scope")] == ["C: scope matches nothing"]

@@ -46,6 +46,17 @@ test('draw the wiki pictures', async ({ page }) => {
   await shot('tables')
   await page.keyboard.press('Escape')
 
+  // The lookup drawer, opened from a building field of the Rooms entry row
+  await page.getByRole('tab', { name: 'Rooms', exact: true }).click()
+  await page.getByLabel('New code (required)').fill('NEWROOM')
+  await page.getByLabel('New building', { exact: true }).focus()
+  await page.keyboard.press('Control+Space')
+  await expect(page.getByRole('dialog', { name: 'New building' })).toBeVisible()
+  await expect(page.getByRole('row', { name: 'Choose GP' })).toBeVisible()
+  await shot('lookup')
+  await page.keyboard.press('Escape')
+  await page.keyboard.press('Escape')
+
   // Pre-flight
   await page.getByRole('link', { name: 'Pre-flight' }).click()
   await expect(page.getByText('No problems found')).toBeVisible()

@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useDiff, useRunActions, useRuns, useStartRun } from '@/api/hooks'
 import { HAS_TIMETABLE, isActive, type RunOut } from '@/api/types'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/field'
+import { Badge } from '@/components/ui/notice'
 import { formatNumber, statusText } from './StartPanel'
 
 export function RunsPage({ datasetId }: { datasetId: number }) {
@@ -46,8 +48,7 @@ export function RunsPage({ datasetId }: { datasetId: number }) {
             {runs.data?.map((run) => (
               <tr key={run.id} className="border-b border-neutral-200">
                 <td className="p-2">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     aria-label={`Compare run ${run.id}`}
                     checked={picked.includes(run.id)}
                     disabled={!HAS_TIMETABLE.includes(run.status)}
@@ -55,10 +56,7 @@ export function RunsPage({ datasetId }: { datasetId: number }) {
                   />
                 </td>
                 <td className="p-2">
-                  #{run.id}{' '}
-                  {run.published && (
-                    <span className="rounded bg-green-100 px-1 text-green-900">published</span>
-                  )}
+                  #{run.id} {run.published && <Badge tone="success">published</Badge>}
                 </td>
                 <td className="p-2">{statusText(run)}</td>
                 <td className="p-2">{formatNumber(run.score)}</td>

@@ -22,11 +22,19 @@ export function kindOf(column: ColumnDef | undefined): DataColumn['kind'] {
  * Table columns for the headers the server returned: the sheet's defined columns, then the
  * user's `x_` note columns. `options` maps a sheet name to the codes it holds.
  */
+/** The tables that help to fill a column: what it refers to, and what the sheet only suggests. */
+export function lookupOf(column: ColumnDef | undefined): DataColumn['lookup'] {
+  if (!column) return undefined
+  const sheets = [...new Set([...column.refs, ...column.suggests])]
+  return sheets.length > 0 ? { sheets, multiple: column.kind === 'list' } : undefined
+}
+
 export function buildColumns(
   headers: string[],
   sheet: SheetDef,
   options: Map<string, string[]>,
   labels: Record<string, string> = {},
+  names: Map<string, string> = new Map(),
 ): DataColumn[] {
   return headers.map((header) => {
     const def = sheet.columns.find((c) => c.name === header)
@@ -39,6 +47,8 @@ export function buildColumns(
       kind,
       required: def?.required ?? false,
       defaultValue: def?.default ?? null,
+      lookup: lookupOf(def),
+      optionNames: kind === 'ref' || kind === 'multiref' ? Object.fromEntries(names) : undefined,
       readOnly: def?.derive != null,
       options:
         choices.length > 0

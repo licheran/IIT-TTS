@@ -1,7 +1,7 @@
-import { NavLink, Navigate, useParams, useSearchParams } from 'react-router-dom'
+import { Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { useSchema } from '@/api/hooks'
+import { NavTab } from '@/components/ui/tabs'
 import { SessionsPage } from '@/features/sessions/SessionsPage'
-import { cn } from '@/lib/utils'
 import { SheetEditor } from './SheetEditor'
 
 /** The tab that shows a configured dataset's sessions: the solver's output, not a sheet. */
@@ -29,39 +29,21 @@ export function TablesPage({ datasetId }: { datasetId: number }) {
     <div className="flex flex-col gap-3">
       <nav aria-label="Tables" role="tablist" className="flex flex-wrap gap-1">
         {sheets.map((s) => (
-          <NavLink
+          <NavTab
             key={s.name}
-            role="tab"
             to={`/datasets/${datasetId}/tables/${s.name}`}
             aria-selected={s.name === current?.name}
-            className={({ isActive }) =>
-              cn(
-                'rounded-md border px-3 py-1 text-sm',
-                isActive
-                  ? 'border-blue-700 bg-blue-700 text-white'
-                  : 'border-neutral-300 bg-white hover:bg-neutral-100',
-              )
-            }
           >
             {s.label || s.name}
-          </NavLink>
+          </NavTab>
         ))}
         {configured && (
-          <NavLink
-            role="tab"
+          <NavTab
             to={`/datasets/${datasetId}/tables/${ACTIVITIES_TAB}`}
             aria-selected={showSessions}
-            className={({ isActive }) =>
-              cn(
-                'rounded-md border px-3 py-1 text-sm',
-                isActive
-                  ? 'border-blue-700 bg-blue-700 text-white'
-                  : 'border-neutral-300 bg-white hover:bg-neutral-100',
-              )
-            }
           >
             Activities
-          </NavLink>
+          </NavTab>
         )}
       </nav>
       {showSessions && <SessionsPage datasetId={datasetId} />}

@@ -24,7 +24,7 @@ from tts.core.constraints.declared import InvalidConstraintError, parse_instance
 from tts.core.constraints.registry import declared_type
 from tts.core.demands import created_event
 from tts.core.hierarchy import Hierarchy
-from tts.core.model import Dataset, Demand, ModelIssue, PooledSpec, Ref
+from tts.core.model import Dataset, Demand, Event, ModelIssue, PooledSpec, Ref
 from tts.core.selectors import CodeClause, SelectorError, Selectors, UsesClause, parse
 from tts.core.timegrid import TimeGrid, TimeGridError
 
@@ -407,6 +407,31 @@ class _Checker:
                     _resource_ref(resource.code),
                 )
 
+    def _events_matching(self, scope: str) -> set[str]:
+        """The declared events a scope selects, and the demands whose events it would select.
+
+        A demand makes its events only after solving, but they will have its kind, reference,
+        tags and delivery, so a scope that picks those is not empty.
+        """
+        found = set(self.selectors.events(scope))
+        if self.ds.demands and not found:
+            stand_in = tuple(
+                Event(
+                    code=d.code,
+                    kind=d.kind,
+                    reference=d.reference,
+                    duration=d.duration,
+                    start_pattern=d.start_pattern,
+                    delivery=d.delivery,
+                    tags=d.tags,
+                    demand=d.code,
+                )
+                for d in self.ds.demands
+            )
+            ahead = Selectors(self.ds.model_copy(update={"events": (*self.ds.events, *stand_in)}))
+            found = set(ahead.events(scope)) - {e.code for e in self.ds.events}
+        return found
+
     # Soft constraint on an empty scope
     def _constraint_scopes(self) -> None:
         for c in self.ds.constraints:
@@ -417,7 +442,7 @@ class _Checker:
                 matched = (
                     self.selectors.resources(c.scope)
                     if target == "resource"
-                    else self.selectors.events(c.scope)
+                    else self._events_matching(c.scope)
                 )
             except SelectorError as error:
                 self.add(

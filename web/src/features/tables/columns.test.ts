@@ -1,5 +1,5 @@
 import type { ColumnDef, SheetDef } from '@/api/types'
-import { buildColumns, kindOf, referencedSheets } from './columns'
+import { buildColumns, kindOf, lookupOf, referencedSheets } from './columns'
 
 const col = (over: Partial<ColumnDef>): ColumnDef => ({
   name: 'x',
@@ -7,6 +7,7 @@ const col = (over: Partial<ColumnDef>): ColumnDef => ({
   kind: 'str',
   required: false,
   refs: [],
+  suggests: [],
   allow_star: false,
   choices: [],
   label: '',
@@ -53,4 +54,18 @@ test('columns come from the headers, with options from the referenced sheets', (
 
 test('the referenced sheets are listed once', () => {
   expect(referencedSheets(sheet)).toEqual(['Modules'])
+})
+
+test('a column offers the lookup of the tables it refers to or that the sheet suggests', () => {
+  expect(lookupOf(col({}))).toBeUndefined()
+  expect(lookupOf(undefined)).toBeUndefined()
+  expect(lookupOf(col({ refs: ['Rooms'] }))).toEqual({ sheets: ['Rooms'], multiple: false })
+  expect(lookupOf(col({ kind: 'list', refs: ['Rooms', 'Teachers'] }))).toEqual({
+    sheets: ['Rooms', 'Teachers'],
+    multiple: true,
+  })
+  // a list the sheet parses itself still gets a lookup, but stays a text field
+  const suggested = col({ kind: 'list', suggests: ['Modules'] })
+  expect(kindOf(suggested)).toBe('text')
+  expect(lookupOf(suggested)).toEqual({ sheets: ['Modules'], multiple: true })
 })

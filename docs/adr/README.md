@@ -10,5 +10,6 @@
 | [0006](0006-several-pooled-requirements-per-sheet.md) | Several pooled requirements per sheet row | Proposed |
 | [0007](0007-solver-decided-sessions.md) | Sessions the solver creates from demands | Accepted |
 | [0008](0008-derived-fairness-rules.md) | Teacher fairness rules are derived when a run is prepared | Accepted |
+| [0009](0009-radix-primitives-for-the-web-ui.md) | Radix primitives, wrapped in our own Tailwind components | Accepted |
 
 To propose a new one, use `/new-adr <title>` or copy [0000-template.md](0000-template.md).

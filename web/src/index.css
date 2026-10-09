@@ -1,5 +1,19 @@
 @import 'tailwindcss';
 
+/*
+ * Design tokens (Phase 26, ADR-0009). Controls come in two heights, so a button, an input and a
+ * select beside each other always line up: `control` (32 px) for forms and toolbars, and
+ * `control-sm` (28 px) inside tables, where a row is 34 px. Use `h-control` / `h-control-sm`,
+ * never a height of your own. The components in `components/ui/` apply them.
+ */
+@theme {
+  --spacing-control: 2rem;
+  --spacing-control-sm: 1.75rem;
+  --spacing-row: 2.125rem;
+  --radius-control: 0.375rem;
+  --color-focus: #2563eb;
+}
+
 :root {
   color-scheme: light;
 }

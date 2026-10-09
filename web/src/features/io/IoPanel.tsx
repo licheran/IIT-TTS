@@ -3,7 +3,9 @@ import { ApiError } from '@/api/client'
 import { exportUrl, useImport } from '@/api/hooks'
 import type { ImportResult } from '@/api/types'
 import { ErrorList } from '@/components/ErrorList'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { FileInput } from '@/components/ui/field'
+import { Notice } from '@/components/ui/notice'
 
 export function IoPanel({ datasetId }: { datasetId: number }) {
   const upload = useImport(datasetId)
@@ -36,7 +38,7 @@ export function IoPanel({ datasetId }: { datasetId: number }) {
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex flex-col gap-1 text-sm">
             Workbook file
-            <input ref={input} type="file" accept=".xlsx,.zip" className="text-sm" />
+            <FileInput ref={input} accept=".xlsx,.zip" />
           </label>
           <Button variant="primary" onClick={() => void send()} disabled={upload.isPending}>
             {upload.isPending ? 'Importing…' : 'Import'}
@@ -48,12 +50,12 @@ export function IoPanel({ datasetId }: { datasetId: number }) {
           </p>
         )}
         {result?.ok && (
-          <p role="status" className="rounded-md border border-green-300 bg-green-50 p-3 text-sm">
+          <Notice tone="success" role="status">
             Imported.{' '}
             {Object.entries(result.summary)
               .map(([sheet, n]) => `${sheet}: ${n}`)
               .join(' · ')}
-          </p>
+          </Notice>
         )}
         {result && !result.ok && <ErrorList title="Nothing was imported" errors={result.errors} />}
       </section>
@@ -63,18 +65,10 @@ export function IoPanel({ datasetId }: { datasetId: number }) {
           Download the configuration
         </h2>
         <div className="flex gap-3">
-          <a
-            className="inline-flex h-9 items-center rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-100"
-            href={exportUrl(datasetId, 'xlsx')}
-            download
-          >
+          <a className={buttonVariants()} href={exportUrl(datasetId, 'xlsx')} download>
             Excel (.xlsx)
           </a>
-          <a
-            className="inline-flex h-9 items-center rounded-md border border-neutral-300 px-3 text-sm hover:bg-neutral-100"
-            href={exportUrl(datasetId, 'csvzip')}
-            download
-          >
+          <a className={buttonVariants()} href={exportUrl(datasetId, 'csvzip')} download>
             CSV files (.zip)
           </a>
         </div>
