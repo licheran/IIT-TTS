@@ -22,9 +22,11 @@ def _register() -> None:
     """
     from tts.solver.constraints import (
         avoid,
+        balance_load,
         consecutive,
         max_days,
         max_gaps,
+        max_load,
         max_per_day,
         max_span,
         min_days_between,
@@ -33,6 +35,7 @@ def _register() -> None:
         preferred_resources,
         preferred_times,
         same_day,
+        same_resource,
         same_start,
         travel_gap,
     )
@@ -53,6 +56,9 @@ def _register() -> None:
             "preferred_resources": preferred_resources.compile,
             "avoid": avoid.compile,
             "max_span": max_span.compile,
+            "max_load": max_load.compile,
+            "balance_load": balance_load.compile,
+            "same_resource": same_resource.compile,
         }
     )
 

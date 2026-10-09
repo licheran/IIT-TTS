@@ -37,7 +37,7 @@ from tts.solver.solve import SolveControl, SolveOutcome, SolveProgress, SolveSta
 DECOMPOSE_ABOVE = 20_000
 
 # Declared types whose penalty depends on which pooled resource is chosen.
-_LOOKS_AT_CHOICES = frozenset({"preferred_resources", "travel_gap"})
+_LOOKS_AT_CHOICES = frozenset({"preferred_resources", "travel_gap", "same_resource"})
 
 Progress = Callable[[SolveProgress], None]
 

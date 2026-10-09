@@ -8,7 +8,7 @@ Status: **Authoritative.** Code: `expand/`, `preflight/`, `solver/`, `core/verif
 snapshot(dataset) → prepare → preflight → compile_model → solve → decode → verify → store
 ```
 
-`prepare` depends on the dataset's kind (`02-domain-model.md` §2, invariant 7). A **hand-made** dataset already holds its events (a version 1 file's template rows were expanded once, on import, §2.1). A **configured** dataset has its preset turn the configuration into demands (§2.2), which the solver splits into sessions.
+`prepare` depends on the dataset's kind (`02-domain-model.md` §2, invariant 7). A **hand-made** dataset already holds its events (a version 1 file's template rows were expanded once, on import, §2.1). A **configured** dataset has its preset turn the configuration into demands (§2.2), which the solver splits into sessions. It also derives the preset's fairness rules from the configuration (spec 04 §3, ADR-0008). They are not stored; a stored constraint with the same code wins.
 
 - Each stage is a pure function with typed input and output, except `store`.
 - `snapshot` freezes the dataset into a core model and computes `input_hash` (SHA-256 of the canonical JSON).

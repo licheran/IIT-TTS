@@ -6,7 +6,7 @@ Some preferences are so common that the presets supply them ready-made. They are
 
 ## Academic preset
 
-A **new academic dataset** created in the app starts with these three rows.
+A **new academic dataset** created in the app starts with these three rows. (Datasets built from configuration also get the fairness rules further down.)
 
 | Code | Type | Covers | Parameters | Hard | Weight | Active | In plain words |
 |---|---|---|---|---|---|---|---|
@@ -29,6 +29,18 @@ And one more that exists only in a special case:
 - **Importing a workbook replaces the constraints** with the workbook's Constraints sheet. If it is empty, the three defaults are gone. Put your rows in the workbook, or add the defaults back by hand from the table above.
 - The command `tts import-fet` adds the defaults to the workbook it writes, unless you pass `--no-defaults`. The L6 sample `l6.xlsx` was written with `--no-defaults`, so it has no constraints. With the defaults, L6 scores 0: every preference is met.
 - The Run tab's score breakdown lists these rules by their codes.
+
+## Fairness rules of a configured academic dataset
+
+A dataset built from configuration also gets these rules, **made by the program each time a run starts**. They are not rows of the Constraints table, so you will not find them there; the Run tab's score breakdown lists them by their codes.
+
+| Code | Type | Covers | Parameters | Hard | Weight | In plain words |
+|---|---|---|---|---|---|---|
+| `LOAD-<teacher>` | [`max_load`](max_load.md) | that teacher | `{"max": <max_hours>, "unit": "periods"}` | yes | — | The teacher is occupied at most `max_hours` periods in a week. One rule for each teacher with `max_hours` filled in the [Teachers](../tables/Teachers.md) table |
+| `FAIR-<module>` | [`balance_load`](balance_load.md) | the teachers who list the module | `{"unit": "periods"}` | no | 2 | The teachers of a module carry the same weekly load. One rule for each module with two or more teachers |
+| `CONT-<module>-<kind>` | [`same_resource`](same_resource.md) | `ref:<module>;kind:<kind>` | `{"type": "Teacher", "per": "StudentGroup"}` | no | 3 | A group has the same teacher for all its sessions of a kind of one module. One rule for each [Session](../tables/Session.md) row with two or more teachers who can take it |
+
+To switch one off or change its weight, **add a row with the same code** to the Constraints table (for example `FAIR-6SENG005C`, `active` unticked). A row of the table always wins over the rule the program would make. A hand-made dataset gets none of them.
 
 ## Lecture before tutorial
 

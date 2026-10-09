@@ -22,7 +22,7 @@ def spec_types() -> dict[str, str]:
 
 
 def test_the_spec_table_was_found() -> None:
-    assert len(spec_types()) == 14
+    assert len(spec_types()) == 17
 
 
 def test_the_catalogue_matches_the_spec_table() -> None:

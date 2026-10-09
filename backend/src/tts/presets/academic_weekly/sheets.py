@@ -309,6 +309,7 @@ def _v2_teachers() -> SheetDef:
         TEACHERS,
         types.TEACHER,
         _c("modules", "attr:modules", kind="list"),
+        _c("max_hours", "attr:max_hours", kind="int", minimum=0),
         label="Teachers",
     )
 

@@ -90,7 +90,8 @@ def test_the_api_solves_the_configuration_and_keeps_an_edit_through_a_rebuild(
 
     def solve() -> int:
         started = client.post(
-            f"/datasets/{dataset_id}/runs", json={"num_workers": 2, "time_limit_s": 120}
+            f"/datasets/{dataset_id}/runs",
+            json={"num_workers": 2, "time_limit_s": 120, "mode": "feasible"},
         )
         assert started.status_code == 201, started.text
         assert Worker(factory, worker_id="w").run_once() is True

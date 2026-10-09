@@ -2,7 +2,7 @@
 
 ## What they are
 
-A **constraint** is a rule about the timetable. Some rules always hold and you never write them. Others are yours: you add a row to the [Constraints](../tables/Constraints.md) table, choose a **type** from a fixed list of fourteen, say **whom or what it covers** with a selector, and decide whether it is **hard** or **soft**.
+A **constraint** is a rule about the timetable. Some rules always hold and you never write them. Others are yours: you add a row to the [Constraints](../tables/Constraints.md) table, choose a **type** from a fixed list of seventeen, say **whom or what it covers** with a selector, and decide whether it is **hard** or **soft**.
 
 ## Rules that always hold
 
@@ -44,7 +44,7 @@ After a run, the Run tab shows a **Score breakdown**: one line for each soft rul
 - Use **soft** for what you would like, such as few gaps. Soft rules never make a run fail.
 - If a run is `infeasible`, changing a hard rule to soft is the quickest way to see what the timetable would look like without it.
 
-## The fourteen types
+## The seventeen types
 
 | Type | Covers | What it asks for |
 |---|---|---|
@@ -62,6 +62,9 @@ After a run, the Run tab shows a **Score breakdown**: one line for each soft rul
 | [`preferred_resources`](preferred_resources.md) | activities | Use rooms that match a selector |
 | [`avoid`](avoid.md) | resources | Keep out of the slots marked `avoid` in Availability |
 | [`max_span`](max_span.md) | resources | The day is no longer than so many periods |
+| [`max_load`](max_load.md) | resources | At most so many periods (or activities) in the week |
+| [`balance_load`](balance_load.md) | resources | The same weekly load for all of them |
+| [`same_resource`](same_resource.md) | activities | A group keeps the same teacher (or other resource) |
 
 The list is fixed. A type that is not on it is refused when you import or edit the table.
 

@@ -14,8 +14,16 @@ data, and the solver decides the rest.
 import re
 from collections import defaultdict
 
-from tts.core.model import CapacityRule, Dataset, Demand, PooledSpec, Reference, Resource
-from tts.core.selectors import CodeClause, Selector, format_selector
+from tts.core.model import (
+    CapacityRule,
+    Constraint,
+    Dataset,
+    Demand,
+    PooledSpec,
+    Reference,
+    Resource,
+)
+from tts.core.selectors import CodeClause, KindClause, RefClause, Selector, format_selector
 from tts.core.sheets import ConfigIssue
 from tts.presets.academic_weekly import types
 
@@ -194,6 +202,82 @@ def _demand(
         # A session carries its type's tags; its module's tags win over them, and its row's win
         # over both.
         tags=tuple({**dict(session_type.tags), **dict(module.tags), **dict(row.tags)}.items()),
+    )
+
+
+FAIR_WEIGHT = 2
+CONTINUITY_WEIGHT = 3
+
+
+def derived_constraints(dataset: Dataset) -> tuple[Constraint, ...]:
+    """The fairness rules the configuration implies (spec 04 section 3, ADR-0008).
+
+    - `LOAD-<teacher>`: a hard weekly cap in periods, for each teacher with `max_hours`;
+    - `FAIR-<module>`: soft, the weekly load of the module's teachers is equal, for each module
+      with two or more teachers;
+    - `CONT-<module>-<kind>`: soft, a group keeps one teacher for a module's sessions of a kind,
+      for each Session row whose teachers are two or more.
+
+    They are never stored; a stored constraint with the same code takes their place.
+    """
+    tables = _Tables(dataset)
+    found: list[Constraint] = []
+    for teacher in sorted(tables.by_type[types.TEACHER], key=lambda r: r.code):
+        hours = _as_int(tables.attribute(teacher, "max_hours"))
+        if hours is not None and hours >= 0:
+            found.append(
+                Constraint(
+                    code=f"LOAD-{teacher.code}",
+                    type="max_load",
+                    scope=format_selector(Selector((CodeClause((teacher.code,)),))),
+                    params={"max": hours, "unit": "periods"},
+                    hard=True,
+                )
+            )
+    for module in sorted(tables.modules.values(), key=lambda r: r.code):
+        pool = _module_teachers(tables, module.code)
+        if len(pool) >= 2:
+            found.append(
+                Constraint(
+                    code=f"FAIR-{module.code}",
+                    type="balance_load",
+                    scope=format_selector(Selector((CodeClause(pool),))),
+                    params={"unit": "periods"},
+                    hard=False,
+                    weight=FAIR_WEIGHT,
+                )
+            )
+        for row in tables.sessions.get(module.code, []):
+            kind = str(tables.attribute(row, "session_type"))
+            if (
+                kind not in tables.session_types
+                or len(_teacher_pool(tables, module.code, kind)) < 2
+            ):
+                continue
+            found.append(
+                Constraint(
+                    code=f"CONT-{module.code}-{kind}",
+                    type="same_resource",
+                    scope=format_selector(Selector((RefClause(module.code), KindClause((kind,))))),
+                    params={"type": types.TEACHER, "per": types.STUDENT_GROUP},
+                    hard=False,
+                    weight=CONTINUITY_WEIGHT,
+                )
+            )
+    return tuple(found)
+
+
+def _module_teachers(tables: _Tables, module: str) -> tuple[str, ...]:
+    """The teachers that list the module for any kind."""
+    return tuple(
+        sorted(
+            teacher.code
+            for teacher in tables.by_type[types.TEACHER]
+            if any(
+                parse_teacher_item(item)[0] == module
+                for item in split_list(tables.attribute(teacher, "modules"))
+            )
+        )
     )
 
 

@@ -51,6 +51,9 @@ CASES = [
     Case("not_overlapping", "kind:K", {}, 1, 4, 0),
     Case("preferred_times", "kind:K", {"slots": ["d1:p1"]}, 1, 4, 2),
     Case("preferred_resources", "kind:K", {"filter": "code:r1"}, 1, 4, 0),
+    Case("max_load", "type:G", {"max": 1, "unit": "events"}, 2, 4, 4),  # each group has two
+    Case("balance_load", "type:G", {"unit": "events"}, 1, 4, 0),
+    Case("same_resource", "kind:K", {"type": "R", "per": "G"}, 1, 4, 0),
 ]
 
 # `order` and `consecutive` name events by code in their parameters, and the codes of sessions the

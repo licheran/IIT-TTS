@@ -115,5 +115,6 @@ Decided by the user after Phase 23; built in Phase 24 (`docs/plan/phase-24-sessi
 - `Teachers.modules` is unchanged (`module` or `module:KIND`).
 - Workbook format version 2 is **amended, not bumped**: no version 2 file exists outside the repository, and the `l6-config.xlsx` fixture is regenerated. A version 2 file with a `Modules.sessions` column is refused.
 - The demands, and the session and edit codes, are unchanged (`<module>-<session_type>`), so the solver, the verifier and Phase 22's edits need no change.
+- **Amendment 2 (2026-10-09):** `Teachers.max_hours` (a weekly cap in periods) is added to the version 2 `Teachers` sheet in the same way, for Phase 25 (ADR-0008).
 - **Why:** the inline list is a small language inside one cell: no dropdowns, errors that point at a whole string, and no sorting or filtering. A table gives each setting its own checked cell.
 

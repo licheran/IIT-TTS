@@ -45,7 +45,7 @@ Versions of these libraries must be checked against React 19 and Tailwind 4 when
   - run the app and list the inconsistencies in `docs/plan/phase-26-audit.md` (unplanned shifts when content loads, text that overflows its cell or panel, controls taller than the row, buttons and dropdowns of different sizes, tabs, banners). Take screenshots at 1280 px and 1024 px wide;
   - check the candidate libraries (Radix UI, React Aria, Base UI) for React 19 and Tailwind 4, and bundle size;
   - ask you to confirm: option A, B or C; the drawer's trigger; reference-only or click to pick; and what happens for the columns that have no `refs`;
-  - record the decision in an ADR (`docs/adr/0008-…`, from the template) if a library is added.
+  - record the decision in an ADR (the next number, from the template) if a library is added.
 - [ ] P26.2 Foundations:
   - design tokens in `index.css` (control height, row height, spacing, radius, text sizes, focus ring) and one set of control sizes;
   - shared `components/ui/` controls: `Input`, `Select`, `Badge`, `Banner`, `Tabs`, with `Button` brought in line;

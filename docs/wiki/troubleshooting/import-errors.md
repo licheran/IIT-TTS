@@ -93,7 +93,7 @@ Dropdowns in exported Excel files help avoid unknown codes.
 
 | Message | Cause | Fix |
 |---|---|---|
-| `Constraints!R2C2 [type]: "max_gap" is not in the catalogue` | The type is not one of the fourteen | Use a type from the [constraint list](../constraints/README.md) |
+| `Constraints!R2C2 [type]: "max_gap" is not in the catalogue` | The type is not one of the seventeen | Use a type from the [constraint list](../constraints/README.md) |
 | `Constraints!R2C3 [scope]: unknown clause "teacher:"` | The selector has a clause name that does not exist | See [Selectors](../constraints/selectors.md) |
 | `Constraints!R2C3 [scope]: clause "kind:" does not select resources` | The selector picks the wrong kind of thing for this type | Use a clause that picks what the type covers |
 | `Constraints!R2C4 [params]: expected a JSON object, got invalid JSON (Expecting property name enclosed in double quotes)` | `params` is not valid JSON | Use double quotes: `{"max": 2}` |

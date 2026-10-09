@@ -7,11 +7,13 @@ scanning, so what the verifier supports is visible in one place.
 
 from tts.core.constraints import (
     avoid,
+    balance_load,
     capacity,
     consecutive,
     demand_cover,
     max_days,
     max_gaps,
+    max_load,
     max_per_day,
     max_span,
     min_days_between,
@@ -24,6 +26,7 @@ from tts.core.constraints import (
     preferred_times,
     requirement_match,
     same_day,
+    same_resource,
     same_start,
     travel_gap,
     unavailable,
@@ -55,6 +58,9 @@ DECLARED: dict[str, ConstraintType] = {  # catalogue order (spec 04 section 2)
     preferred_resources.TYPE: preferred_resources,
     avoid.TYPE: avoid,
     max_span.TYPE: max_span,
+    max_load.TYPE: max_load,
+    balance_load.TYPE: balance_load,
+    same_resource.TYPE: same_resource,
 }
 
 

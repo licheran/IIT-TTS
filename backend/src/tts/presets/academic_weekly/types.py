@@ -26,7 +26,11 @@ RESOURCE_TYPES: tuple[ResourceType, ...] = (
         code=TEACHER,
         exclusive=True,
         # The modules the teacher may teach, `;`-separated, each `module` or `module:KIND`.
-        attribute_schema=(AttributeDef(name="modules", kind="str"),),
+        attribute_schema=(
+            AttributeDef(name="modules", kind="str"),
+            # The most periods the teacher may be occupied in a week (format version 2).
+            AttributeDef(name="max_hours", kind="int"),
+        ),
     ),
     ResourceType(code=CAMPUS, exclusive=False),
     ResourceType(

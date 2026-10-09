@@ -2,11 +2,14 @@
 
 from collections.abc import Callable
 
-from tts.core.model import Dataset, Demand
+from tts.core.model import Constraint, Dataset, Demand
 from tts.core.sheets import ConfigIssue, Preset
 from tts.presets import academic_weekly
 from tts.presets.academic_weekly.configuration import configuration_issues as academic_issues
 from tts.presets.academic_weekly.configuration import demands as academic_demands
+from tts.presets.academic_weekly.configuration import (
+    derived_constraints as academic_derived_constraints,
+)
 from tts.presets.academic_weekly.defaults import with_defaults as academic_defaults
 from tts.presets.academic_weekly.labels import all_labels as academic_labels
 from tts.presets.academic_weekly.labels import label as academic_label
@@ -79,6 +82,18 @@ DEMANDS: dict[str, Callable[[Dataset], tuple[Demand, ...]]] = {
 ISSUES: dict[str, Callable[[Dataset], list[ConfigIssue]]] = {
     ACADEMIC_WEEKLY.name: academic_issues,
 }
+
+
+DERIVED_CONSTRAINTS: dict[str, Callable[[Dataset], tuple[Constraint, ...]]] = {
+    ACADEMIC_WEEKLY.name: academic_derived_constraints,
+}
+
+
+def derive_constraints(dataset: Dataset) -> tuple[Constraint, ...]:
+    """The rules a configured dataset's configuration implies (none for a hand-made dataset or a
+    preset without any). Never stored: a stored constraint with the same code wins."""
+    derive = DERIVED_CONSTRAINTS.get(dataset.preset)
+    return () if derive is None or dataset.kind == "hand_made" else derive(dataset)
 
 
 def derive_demands(dataset: Dataset) -> tuple[Demand, ...]:

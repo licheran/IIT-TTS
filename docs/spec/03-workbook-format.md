@@ -78,7 +78,7 @@ Amended on 2026-09-30 (ADR-0007, Amendment 1) without a version bump: the `Sessi
 | `Levels` | `code*`, `name`, `university` (→Universities), `tags` |
 | `Programmes` | `code*`, `name`, `level` (→Levels), `tags` |
 | `Groups` | `code*`, `name`, `parent*` (→Programmes **only**), `size` (int ≥ 0), `options` (new: list of →Modules; the group's optional modules), `tags` |
-| `Teachers` | `code*`, `name`, `modules` (new: list of →Modules, or `module:KIND` to teach only that session kind), `tags` |
+| `Teachers` | `code*`, `name`, `modules` (new: list of →Modules, or `module:KIND` to teach only that session kind), `max_hours` (new, amended in Phase 25: whole number ≥ 0, occupied periods per week; blank for no limit), `tags` |
 | `Campuses` | `code*`, `name`, `tags` |
 | `Buildings` | `code*`, `name`, `abbreviation`, `campus` (→Campuses), `tags` |
 | `Rooms` | `code*`, `name`, `building` (→Buildings), `capacity` (int ≥ 0), `room_type*`, `tags` |
@@ -98,6 +98,8 @@ Not in version 2: `Templates`, `Activities`, `ActivityGroups`, `ActivityTeachers
 - A module with no `Session` rows makes no sessions. Pre-flight warns when groups take such a module (kind `configuration`, a warning): `module "6SENG005C" is taken by 11 groups but has no Session rows, so nothing is scheduled for it`. It is not an error.
 - A second row with the same (`module`, `session_type`) is an error.
 - The sheet comes after `Modules` in the workbook, because it refers to `Modules` and `SessionTypes`.
+
+**`Teachers.max_hours`.** (Amendment 2 of ADR-0007 and ADR-0008: format version 2 is amended again, not bumped.) The most periods a teacher may be occupied in a week, counted in periods (one period is one hour in the L6 data). Blank means no limit. It becomes a hard `max_load` rule for that teacher, derived when a run is prepared (spec 04 §3).
 
 **`Teachers.modules`.** `6BUIS019C` means the teacher may take every session kind of that module; `6BUIS019C:TUT` means tutorials only. Several items are separated by `;`.
 
@@ -133,6 +135,7 @@ Version 2 adds:
 | Online Session row with a room type | `Session!R4C5 [room_type]: an online session cannot have a room type` |
 | In-person Session row without a room type | `Session!R4C5 [room_type]: required: the session is in person and neither the row nor session type "LEC" gives one` |
 | `Modules.sessions` column in a version 2 file | `Modules!R1C6 [sessions]: unknown column` |
+| Bad number | `Teachers!R9C4 [max_hours]: expected integer ≥ 0, got "-1"` |
 | Teacher for a kind the module lacks | `Teachers!R9C3 [modules]: "6SENG005C:LAB": module "6SENG005C" has no session type "LAB"` (checked against the module's `Session` rows) |
 | Group under a group | `Groups!R10C3 [parent]: unknown code "L6 CS / G1"` (a group's parent must be a programme, so a group's code is not one) |
 | Option that is not optional | `Groups!R10C5 [options]: module "6SENG005C" is not optional` |
@@ -164,6 +167,6 @@ SessionTypes:   TUT, Tutorial, 2H, in_person, lab, 1, 1, 1,
 Modules:        6SENG005C, , L6, L6 SE, false,
 Session:        6SENG005C, LEC, , , , 4, , ,
 Session:        6SENG005C, TUT, , , , , , ,
-Teachers:       HAWE, , 6SENG005C:LEC;6SENG005C:TUT,
+Teachers:       HAWE, , 6SENG005C:LEC;6SENG005C:TUT, 18,
 Groups:         L6 SE / G1, , L6 SE, 30, ,
 ```

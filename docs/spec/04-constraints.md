@@ -42,6 +42,9 @@ Status: **Authoritative.** Each type is implemented as `core/constraints/<type>.
 | C12 | `preferred_resources` | events | `filter: selector` | Every chosen pooled resource matches the filter | number of non-matching choices |
 | C13 | `avoid` | resources | (from `Availability` rows with `status=avoid`) | The resource isn't occupied in `avoid` slots | occupied avoid-periods |
 | C14 | `max_span` | resources | `max:int` | Per day, last occupied period − first + 1 ≤ `max` | Σ excess |
+| C15 | `max_load` | resources | `max:int`, `unit: "events"\|"periods"` (default periods) | Over the week, the events (or occupied periods) of the resource are ≤ `max` | the excess |
+| C16 | `balance_load` | resources | `unit: "events"\|"periods"` (default periods) | The weekly load (events or occupied periods) of the resources in `S` is equal. Fewer than two resources: nothing to balance | the load of the most loaded resource minus that of the least loaded |
+| C17 | `same_resource` | events | `type: <ResourceType>`, `per: <ResourceType>` | For each resource of type `per` (for example a group), the events of `S` it occupies use the same resource of type `type` (for example a teacher), fixed or chosen | for each `per` resource, its events in `S` minus the number that use its most common resource of type `type`; summed |
 
 Rules for every declared type:
 - Any declared type may be `hard: true` (then `p` must be 0) or soft with a `weight`.
@@ -60,6 +63,16 @@ Rules for every declared type:
 
 Lecture-before-tutorial ordering is added per module by the expander (`05-solver.md` §2) as soft `order` constraints with weight 1. It applies to hand-made datasets only (see §5).
 
+**Derived rules (ADR-0008).** For a configured academic dataset the preset also derives, when a run is prepared and without storing them, the rules below. A row of the Constraints table with the same code wins over a derived rule (so a user switches one off with `active=false`, or changes its weight). Hand-made datasets get none.
+
+| Code | type | scope | params | hard | weight |
+|---|---|---|---|---|---|
+| `LOAD-<teacher>` | `max_load` | `code:<teacher>` | `{"max": <Teachers.max_hours>, "unit": "periods"}` | true | — (every teacher with `max_hours`) |
+| `FAIR-<module>` | `balance_load` | `code:` the teachers whose `modules` list the module | `{"unit": "periods"}` | false | 2 (every module with two or more such teachers) |
+| `CONT-<module>-<kind>` | `same_resource` | `ref:<module>;kind:<kind>` | `{"type": "Teacher", "per": "StudentGroup"}` | false | 3 (every Session row whose teacher pool has two or more teachers) |
+
+Shares are equal; there is no per-teacher share. Continuity is within a module and kind of session, not across kinds.
+
 ## 4. Test requirements for each type
 
 1. `verify` returns the exact expected penalty on at least three hand-built cases (0, 1 and several violations).
@@ -72,8 +85,8 @@ Sessions the solver creates from a demand (ADR-0007) are events like any other o
 
 | Kind of constraint | Types | With created events |
 |---|---|---|
-| **Resource-scoped** | C1, C2, C3, C10, C13, C14 | Work on the resource's occupancy. A created event occupies a participant exactly when the participant is in its block, so the penalty counts it through that membership. No change to the semantics |
-| **Event-scoped** | C4, C5, C6, C9, C11, C12 | The scope selects created events by properties known before solving: `kind:`, `ref:`, `tag:` and `type:`-free selectors. A created event has its demand's kind, reference and tags. They then behave as any event |
+| **Resource-scoped** | C1, C2, C3, C10, C13, C14, C15, C16 | Work on the resource's occupancy. A created event occupies a participant exactly when the participant is in its block, so the penalty counts it through that membership. No change to the semantics |
+| **Event-scoped** | C4, C5, C6, C9, C11, C12, C17 | The scope selects created events by properties known before solving: `kind:`, `ref:`, `tag:` and `type:`-free selectors. A created event has its demand's kind, reference and tags. They then behave as any event |
 | Types that name events | C7 `order`, C8 `consecutive` | `params.sequence` lists event codes, and the codes of sessions the solver creates do not exist before solving, so these two apply to declared events only (hand-made events, or edits of a configured dataset) |
 | Scope with `code:` | event-scoped | Codes of created events do not exist before solving, so `code:` selects declared events only. The verifier, which sees the real codes, may select more. Pre-flight warns when a `code:` scope matches no declared event while demands exist |
 | Scope with `uses:` | event-scoped | Which resources a created event uses depends on the grouping. The solver ignores created events for a `uses:` scope. Pre-flight gives an **error** when such a constraint is hard (the solver could not enforce it) and a **warning** when it is soft (the solver optimises only the declared events, while the score is still measured exactly by the verifier) |

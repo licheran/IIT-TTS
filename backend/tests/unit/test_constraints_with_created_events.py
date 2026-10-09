@@ -64,6 +64,21 @@ CASES = [
         1,
     ),
     Case("max_span", "code:g1", {"max": 2}, place(D1P1, D1P4, D2P1), 2),
+    Case("max_load", "code:g1", {"max": 2, "unit": "events"}, place(D1P1, D1P2, D2P1), 1),
+    Case(
+        "balance_load",
+        "code:r1,r2",
+        {"unit": "events"},
+        place(D1P1, ("d1", "p2", "r2"), D2P1),
+        1,
+    ),
+    Case(
+        "same_resource",
+        "kind:K",
+        {"type": "R", "per": "G"},
+        place(D1P1, ("d1", "p2", "r2"), D2P1),
+        2,  # g1 and g2 each have a session away from their most common room
+    ),
     Case(
         "avoid",
         "code:g1",

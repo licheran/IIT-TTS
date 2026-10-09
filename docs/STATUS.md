@@ -1,6 +1,6 @@
 # Status
 
-**Current phase:** 24, the Session table. **Next task: P24.8**, the last part of the full check: `docker compose up --build` and `scripts/smoke.sh` (Docker was not running; the smoke script passed on both paths against a locally started API and worker). P24.1–P24.7 are done. Phase 25 is teacher fairness; Phase 26 is the reference drawer and a consistent UI (planned).
+**Current phase:** 26 (reference drawer; **next task P26.1**, which starts with an audit and then asks you). Phases 24 and 25 are done except the Docker check (P24.8): `docker compose up --build` and `scripts/smoke.sh` were not run through Docker because the daemon was not running (the smoke script passed on both paths against a locally started API and worker). Phase 27 (the scale target) is last.
 
 **Decisions waiting for you:** (1) the synthetic institute written as configuration finds no timetable in 900 s (P20.8, see the log in [LOG.md](LOG.md)); (2) Pins stay a table of hand-made datasets (P23.2); (3) ADR-0006 is still Proposed. The three ADR-0007 proposals were confirmed on 2026-10-09.
 
@@ -32,8 +32,8 @@
 | 21 Academic configuration (format version 2) | Done |
 | 22 Activities as the editable timetable | Done |
 | 23 Retire Templates and ActivityGroups | Done |
-| 24 The Session table (format version 2 amended) | In progress: P24.1–P24.7 done; P24.8 waits for the Docker check |
-| 25 Teacher fairness | Not started |
+| 24 The Session table (format version 2 amended) | Done, **except the Docker check of P24.8** |
+| 25 Teacher fairness | Done (three new catalogue types, `Teachers.max_hours`, derived rules; ADR-0008) |
 | 26 Reference drawer and a consistent UI | Not started (plan: `docs/plan/phase-26-reference-drawer.md`) |
 | 27 Scale target for configured datasets | Not started (plan: `docs/plan/phase-27-scale-configured.md`; closes P20.8) |
 

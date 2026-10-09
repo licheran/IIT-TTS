@@ -25,4 +25,7 @@ CATALOGUE: dict[str, Target] = {
     "preferred_resources": "event",
     "avoid": "resource",
     "max_span": "resource",
+    "max_load": "resource",
+    "balance_load": "resource",
+    "same_resource": "event",
 }
