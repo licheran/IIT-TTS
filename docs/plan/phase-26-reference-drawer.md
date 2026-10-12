@@ -65,7 +65,7 @@ Versions of these libraries must be checked against React 19 and Tailwind 4 when
   Tests: vitest (search, pick, list columns, the draft is kept); e2e: add a Rooms row by looking up a building in the drawer; `entry.spec.ts` unchanged; 5,000-row check still passes.
 - [x] P26.5 Fix the inconsistencies of the audit that the new controls did not already remove, and tick them off in `phase-26-audit.md`.
 - [x] P26.6 Wiki and docs: a section on the reference drawer in `docs/wiki/tabs/Tables.md` (with a picture), the Basics and glossary pages, and every screenshot redrawn with `pnpm wiki:shots`. The drift tests pass.
-- [x] P26.7 The full check (done except Docker, which was not running): backend and web checks, `pnpm e2e`, `docker compose up --build` with `scripts/smoke.sh`, tick the boxes, log in `docs/LOG.md`, commit and push.
+- [x] P26.7 The full check (Docker run on 2026-10-12, see the log): backend and web checks, `pnpm e2e`, `docker compose up --build` with `scripts/smoke.sh`, tick the boxes, log in `docs/LOG.md`, commit and push.
 
 ## Acceptance
 - Every reference cell of the academic and exams presets can open the drawer and shows the target table with its columns; picking behaves as decided in P26.1.

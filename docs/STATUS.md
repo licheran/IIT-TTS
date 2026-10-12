@@ -1,8 +1,8 @@
 # Status
 
-**Current phase:** none open. Phases 24 to 27 are done except the Docker check (P24.8 and P26.7): `docker compose up --build` and `scripts/smoke.sh` were not run through Docker because the daemon was not running (the smoke script passed on both paths against a locally started API and worker). Every planned phase is done.
+**Current phase:** none open. Every planned phase (0 to 27) is done and the Docker check has passed.
 
-**Decisions waiting for you:** (1) Pins stay a table of hand-made datasets (P23.2); (2) ADR-0006 is still Proposed; (3) `docker compose up --build` has not been run for Phases 24 to 26 (the daemon was not running). The scale target (P20.8) is met since Phase 27: see [LOG.md](LOG.md). The three ADR-0007 proposals were confirmed on 2026-10-09.
+**Decisions waiting for you:** (1) Pins stay a table of hand-made datasets (P23.2); (2) ADR-0006 is still Proposed; (3) nothing is pushed yet, and GitHub CI has never run. The scale target (P20.8) is met since Phase 27: see [LOG.md](LOG.md). The three ADR-0007 proposals were confirmed on 2026-10-09.
 
 **Where things are:** the progress log (one row per task, newest last) and the acceptance results of every phase are in [LOG.md](LOG.md). This file is read at the start of every session, so it stays short.
 
@@ -32,9 +32,9 @@
 | 21 Academic configuration (format version 2) | Done |
 | 22 Activities as the editable timetable | Done |
 | 23 Retire Templates and ActivityGroups | Done |
-| 24 The Session table (format version 2 amended) | Done, **except the Docker check of P24.8** |
+| 24 The Session table (format version 2 amended) | Done |
 | 25 Teacher fairness | Done (three new catalogue types, `Teachers.max_hours`, derived rules; ADR-0008) |
-| 26 Reference drawer and a consistent UI | Done, **except the Docker check** (ADR-0009, audit in `docs/plan/phase-26-audit.md`) |
+| 26 Reference drawer and a consistent UI | Done (ADR-0009, audit in `docs/plan/phase-26-audit.md`) |
 | 27 Scale target for configured datasets | Done. Acceptance: the unchanged scale test passes (2,892 sessions, 8 workers: optimal in 76 s; NFR-2 15 min); closes P20.8 |
 
 **Format version:** workbook `format_version` 1 (hand-made datasets, exams) and 2 (configured academic datasets; amended by Phase 24)

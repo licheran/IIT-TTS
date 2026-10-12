@@ -79,7 +79,7 @@ Sheet `Session`, placed after `Modules` in the workbook (it refers to Modules an
   - the tables overview (the diagram, the order of the workbook, the order to fill in), the Tags page, the glossary, and the Activities and Pre-flight tab pages;
   - the troubleshooting page: the removed `Modules.sessions` messages replaced by the Session messages, each reproduced by `test_wiki_troubleshooting.py`;
   - redraw the pictures that show the tables (`pnpm wiki:shots`).
-- [ ] P24.8 The full check (done except Docker: the daemon was not running; see the log of 2026-10-09):
+- [x] P24.8 The full check (Docker run on 2026-10-12, see the log):
   - backend and web checks, and `pnpm e2e`;
   - `docker compose up --build` with `scripts/smoke.sh` (both paths);
   - L6 (`expected.json`) and the exams fixture unchanged;
