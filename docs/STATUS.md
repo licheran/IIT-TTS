@@ -1,6 +1,6 @@
 # Status
 
-**Current phase:** none open. Every planned phase (0 to 27) is done and the Docker check has passed.
+**Current phase:** 28 Guided data entry ([phase-28-guided-entry.md](plan/phase-28-guided-entry.md)). Next task: **P28.1** (spec and ADR-0007 Amendment 3; stop and ask before code).
 
 **Decisions waiting for you:** (1) Pins stay a table of hand-made datasets (P23.2); (2) ADR-0006 is still Proposed; (3) nothing is pushed yet, and GitHub CI has never run. The scale target (P20.8) is met since Phase 27: see [LOG.md](LOG.md). The three ADR-0007 proposals were confirmed on 2026-10-09.
 
@@ -36,6 +36,7 @@
 | 25 Teacher fairness | Done (three new catalogue types, `Teachers.max_hours`, derived rules; ADR-0008) |
 | 26 Reference drawer and a consistent UI | Done (ADR-0009, audit in `docs/plan/phase-26-audit.md`) |
 | 27 Scale target for configured datasets | Done. Acceptance: the unchanged scale test passes (2,892 sessions, 8 workers: optimal in 76 s; NFR-2 15 min); closes P20.8 |
+| 28 Guided data entry | **Current.** Hierarchy University → Programme → Level → Module (version 2 amended), tables in fill order, field help, time/date pickers |
 
 **Format version:** workbook `format_version` 1 (hand-made datasets, exams) and 2 (configured academic datasets; amended by Phase 24)
 
